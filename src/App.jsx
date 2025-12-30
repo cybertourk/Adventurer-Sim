@@ -6,8 +6,8 @@ import {
   ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2, Compass
 } from 'lucide-react';
 
-// FIX: Added explicit .jsx extension to help build tool resolve the file
 import CharacterSVG from './CharacterSVG.jsx';
+import { getBackground } from './Backgrounds.jsx';
 import { 
   ITEM_DB, 
   MAINTENANCE_ACTIONS, 
@@ -22,7 +22,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.13 (Refactored & Split)
+  Version: 1.14 (Backgrounds Restored)
   -------------------------------------------------------------------------
 */
 
@@ -75,7 +75,6 @@ const ActionButton = ({ icon: Icon, label, days, cost, costType = 'gp', onClick,
     `}
   >
     <div className={`p-2 rounded-md ${disabled ? 'bg-slate-700' : 'bg-slate-900 group-hover:text-indigo-400'}`}>
-      {/* Handle case where Icon might be undefined if map fails */}
       {Icon ? <Icon size={18} /> : <HelpCircle size={18} />}
     </div>
     <div className="flex flex-col flex-1 min-w-0">
@@ -510,7 +509,7 @@ export default function App() {
       return all.find(i => i.id === id);
   };
 
-  const CurrentSceneBackground = LOCATIONS[location]?.renderBackground || (() => null);
+  const CurrentSceneBackground = getBackground(location);
   const currentLocData = LOCATIONS[location];
   const maxStats = calculateMaxStats(resources.level);
 
