@@ -1,9 +1,9 @@
 /* -------------------------------------------------------------------------
   GAME DATA & CONFIGURATION
-  Version: 1.13
+  Version: 1.12 (SRD Match)
 ------------------------------------------------------------------------- */
 
-export const SAVE_KEY = 'dnd_tamagotchi_v14_failures'; 
+export const SAVE_KEY = 'dnd_tamagotchi_v1_12'; 
 export const MAX_STAT = 100;
 
 // --- Section 5: Equipment & Economy ---
@@ -13,24 +13,25 @@ export const ITEM_DB = {
     { id: 'leather_cap', name: 'Bad Hair Day Hider', type: 'head', stats: { ac: 1 }, cost: 25, description: 'Basic leather cap.' },
     { id: 'iron_helm', name: 'Bucket with Eye Holes', type: 'head', stats: { ac: 3, dex: -1 }, cost: 60, description: 'Heavy protection.' },
     { id: 'wizard_hat', name: 'Pointy Hat of Smartness', type: 'head', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
-    { id: 'crown', name: 'Crown', type: 'head', stats: { cha: 3 }, cost: 500, description: 'Fit for a king.' }, 
   ],
   body: [
-    { id: 'tunic', name: 'Breezy Tunic', type: 'body', stats: { ac: 0 }, cost: 0, description: 'Drafty rags.' },
+    { id: 'tunic', name: 'Breezy Tunic', type: 'body', stats: { ac: 0 }, cost: 0, description: 'Drafty.' },
     { id: 'leather_armor', name: 'Stiff Cow Skin', type: 'body', stats: { ac: 2 }, cost: 40, description: 'Smells like a tannery.' },
     { id: 'chainmail', name: 'Jingly Shirt', type: 'body', stats: { ac: 5, dex: -2 }, cost: 150, description: 'Loud but protective.' },
     { id: 'plate', name: 'Shiny Can Suit', type: 'body', stats: { ac: 8, dex: -4 }, cost: 500, description: 'I am invincible! (Mostly).' },
+    // Kept for SVG compatibility, though not in SRD shop list explicitly
     { id: 'robe', name: 'Mysterious Robe', type: 'body', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing fabric.' },
   ],
   mainHand: [
     { id: 'fist', name: 'These Two Hands', type: 'mainHand', stats: { str: 0 }, cost: 0, description: 'Always loaded.' },
     { id: 'dagger', name: 'Pointy Stick', type: 'mainHand', stats: { dex: 2, str: 1 }, cost: 15, description: 'Good for cheese and goblins.' },
     { id: 'sword', name: 'Sharp Metal Bar', type: 'mainHand', stats: { str: 2 }, cost: 50, description: 'The classic choice.' },
-    { id: 'staff', name: 'Wizard Twig', type: 'mainHand', stats: { int: 1, str: 1 }, cost: 60, description: 'It is just a stick, right?' },
     { id: 'axe', name: 'The Chopper', type: 'mainHand', stats: { str: 3 }, cost: 75, description: 'Solving problems, one swing at a time.' },
+    { id: 'staff', name: 'Wizard Twig', type: 'mainHand', stats: { int: 1, str: 1 }, cost: 60, description: 'It is just a stick, right?' },
     { id: 'hammer', name: 'Bonk Stick', type: 'mainHand', stats: { str: 3 }, cost: 100, description: 'Unlocks smithing.' },
   ],
   offHand: [
+    // Kept for SVG compatibility
     { id: 'none', name: 'Empty', type: 'offHand', stats: { ac: 0 }, cost: 0, description: 'Free hand.' },
     { id: 'wooden_shield', name: 'Plank', type: 'offHand', stats: { ac: 1 }, cost: 15, description: 'Splinters included.' },
     { id: 'tower_shield', name: 'Wall', type: 'offHand', stats: { ac: 3, dex: -2 }, cost: 60, description: 'Portable cover.' },
@@ -83,7 +84,7 @@ export const MAINTENANCE_ACTIONS = [
 
 export const JOB_DB = {
   tier1: [
-    { id: 'job_field', label: 'Field Hand', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Pulling Weeds.', message: 'Farmer Maggot yelled at me.', effects: { gold: 8, xp: 5, hunger: 10, thirst: 10, stress: 5, mood: -5 } },
+    { id: 'job_field', label: 'Field Hand', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Pulling Weeds.', message: 'Farmer Maggot yells a lot.', effects: { gold: 8, xp: 5, hunger: 10, thirst: 10, stress: 5, mood: -5 } },
     { id: 'job_muck', label: 'Stable Muck', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Shoveling Poop.', message: 'It smells like success. And manure.', effects: { gold: 10, xp: 5, hunger: 10, thirst: 10, stress: 10, mood: -10 } },
     { id: 'job_wood', label: 'Wood Chop', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Hitting Trees.', message: 'Like fighting, but the enemy does not move.', effects: { gold: 9, xp: 5, hunger: 15, thirst: 10, stress: 5 } },
     { id: 'job_rats', label: 'Rat Catcher', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Poking Squeaky Things.', message: 'They bite back sometimes.', effects: { gold: 12, xp: 8, hunger: 10, thirst: 10, stress: 10, health: -2 } },
@@ -98,16 +99,18 @@ export const JOB_DB = {
 
 export const ADVENTURE_DB = {
   tier1: [
-    { id: 'adv_rats', label: 'Giant Rats', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Rats of Unusual Size. (3 Days)', message: 'Why are they so big?!', effects: { gold: 15, xp: 20, hunger: 30, thirst: 30, stress: 20, health: -10 } },
-    { id: 'adv_spiders', label: 'Giant Spiders', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Too Many Legs. (3 Days)', message: 'Nope. Nope. Nope.', effects: { gold: 20, xp: 25, hunger: 30, thirst: 30, stress: 30, health: -15, mood: -10 } },
+    { id: 'adv_rats', label: 'Giant Rats', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Rats of Unusual Size.', message: 'Why are they so big?!', effects: { gold: 15, xp: 20, hunger: 30, thirst: 30, stress: 20, health: -10 } },
+    { id: 'adv_spiders', label: 'Giant Spiders', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Too Many Legs.', message: 'Nope. Nope. Nope.', effects: { gold: 20, xp: 25, hunger: 30, thirst: 30, stress: 30, health: -15, mood: -10 } },
   ],
   tier2: [
-    { id: 'adv_goblins', label: 'Goblins', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Green Ankle Biters. (3 Days)', message: 'They travel in packs.', effects: { gold: 40, xp: 50, hunger: 40, thirst: 40, stress: 30, health: -20 } },
-    { id: 'adv_bandits', label: 'Bandits', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Muggers in Masks. (3 Days)', message: 'Hey, that is MY gold!', effects: { gold: 50, xp: 60, hunger: 40, thirst: 40, stress: 30, health: -25 } },
+    { id: 'adv_goblins', label: 'Goblins', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Green Ankle Biters.', message: 'They travel in packs.', effects: { gold: 40, xp: 50, hunger: 40, thirst: 40, stress: 30, health: -20 } },
+    { id: 'adv_bandits', label: 'Bandits', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Muggers in Masks.', message: 'Hey, that is MY gold!', effects: { gold: 50, xp: 60, hunger: 40, thirst: 40, stress: 30, health: -25 } },
   ],
   tier3: [
-    { id: 'adv_cult', label: 'Cultist Leader', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'Weird Robe Guy. (5 Days)', message: 'He keeps screaming about squids.', effects: { gold: 120, xp: 150, hunger: 60, thirst: 60, stress: 50, health: -30 } },
-    { id: 'adv_undead', label: 'Undead Knight', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'Spooky Scary Skeleton. (5 Days)', message: 'He refuses to stay down.', effects: { gold: 150, xp: 200, hunger: 60, thirst: 60, stress: 50, health: -40 } },
+    { id: 'adv_cult', label: 'Cultist Leader', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'Weird Robe Guy.', message: 'He keeps screaming about squids.', effects: { gold: 120, xp: 150, hunger: 60, thirst: 60, stress: 50, health: -30 } },
+    { id: 'adv_undead', label: 'Undead Knight', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'Spooky Scary Skeleton.', message: 'He refuses to stay down.', effects: { gold: 150, xp: 200, hunger: 60, thirst: 60, stress: 50, health: -40 } },
+    { id: 'adv_lich', label: 'Lich Tomb', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'The Bone Zone.', message: 'Bad vibes in here.', effects: { gold: 200, xp: 250, hunger: 70, thirst: 70, stress: 60, health: -50 } },
+    { id: 'adv_dragon', label: 'Young Dragon', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'Spicy Lizard.', message: 'Everything is on fire.', effects: { gold: 300, xp: 350, hunger: 80, thirst: 80, stress: 70, health: -60 } },
   ]
 };
 
@@ -130,15 +133,14 @@ export const LOCATIONS = {
     id: 'village_road',
     name: 'Village Road',
     type: 'homeless',
-    description: 'Sleeping in the dirt. It is cold.',
-    details: "Living on the road can be hard on the body and mind. Earn some gold to stay at an Inn or save up to buy a home.",
+    description: 'A Nice Patch of Dirt. (0g)',
+    details: "Nature is my blanket. Living on the road is hard on the body and mind.",
     dailyCost: 0,
     hasFoodService: false, 
     tips: [
       { label: "Health", text: "Recovers only 5 (instead of 15).", type: "bad" },
       { label: "Stress", text: "Reduces by only 5 (instead of 20).", type: "bad" },
-      { label: "Mood", text: "Decreases by 10 (because sleeping outside is miserable).", type: "bad" },
-      { label: "Food/Drink", text: "Cannot purchase meals instantly. Must use Inventory.", type: "bad" }
+      { label: "Mood", text: "Decreases by 10.", type: "bad" }
     ],
     modifiers: {
       rest: { health: 5, stress: -5, mood: -10, hunger: 5, thirst: 5 } 
@@ -148,17 +150,32 @@ export const LOCATIONS = {
     id: 'inn_room',
     name: 'Rusty Spoon Inn',
     type: 'renting',
-    description: 'A warm bed and a roof. Costs 5g/day.',
-    details: "A modest room. It smells of ale and old wood, but it beats the rain. Room service is available for a fee.",
+    description: 'Lumpy Mattress. (5g/day)',
+    details: "Beats the dirt. A warm bed and a roof.",
     dailyCost: 5,
     hasFoodService: true, 
     tips: [
       { label: "Rest", text: "Full recovery benefits.", type: "good" },
-      { label: "Cost", text: "5 Gold deducted daily automatically.", type: "bad" },
-      { label: "Service", text: "Can order food/drink directly.", type: "good" }
+      { label: "Cost", text: "5 Gold deducted daily automatically.", type: "bad" }
     ],
     modifiers: {
       rest: { health: 15, stress: -20, mood: 5, hunger: 5, thirst: 5 } 
+    }
+  },
+  estate: {
+    id: 'estate',
+    name: 'Estate',
+    type: 'owned',
+    description: 'Fancy House. (50g/day)',
+    details: "I am basically a noble now. Luxury living.",
+    dailyCost: 50,
+    hasFoodService: true,
+    tips: [
+      { label: "Rest", text: "Maximum recovery benefits.", type: "good" },
+      { label: "Cost", text: "50 Gold deducted daily.", type: "bad" }
+    ],
+    modifiers: {
+      rest: { health: 30, stress: -40, mood: 20, hunger: 0, thirst: 0 }
     }
   }
 };
