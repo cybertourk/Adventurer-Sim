@@ -343,15 +343,10 @@ export default function App() {
       // Daily Reset Logic (Shop & Quests)
       refreshShop();
       
-      // Permanent Tier Unlocking Chance (20%) - separate from daily bonus quest
-      // Note: User clarified they want a daily chance for a single NEXT TIER QUEST, not a permanent unlock.
-      // Adjusting logic: MaxTier only increases on major milestones (not implemented yet), 
-      // but daily generation handles the "bonus quest" chance.
-      
       // Generate new set of quests (includes the 20% chance for a bonus quest internally)
       const newQuests = generateDailyQuests(maxTier);
       
-      // Check if bonus triggered for notification
+      // Check if bonus triggered for notification (more than 3 quests in any category)
       const hasBonus = newQuests.labor.length > 3 || newQuests.adventure.length > 3 || newQuests.social.length > 3;
       if (hasBonus) {
           addMessage("A rare opportunity appeared! (Higher Tier Quest)", 'success');
@@ -591,6 +586,7 @@ export default function App() {
   };
 
   const CurrentSceneBackground = getBackground(location);
+  // FIX: Added safety fallback in case location ID is invalid
   const currentLocData = LOCATIONS[location] || LOCATIONS['village_road'];
 
   const getStatInfo = (key) => {
