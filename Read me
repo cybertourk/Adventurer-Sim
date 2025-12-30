@@ -1,0 +1,3 @@
+Chaotic Adventurer Simulator ⚔️A "Tamagotchi-style" RPG simulator where you manage a chaotic D&D adventurer. Manage their hunger, thirst, stress, and mood while sending them on questionable quests and buying gear.FeaturesSurvival Mechanics: Balance Health, Hunger, Thirst, Mood, and Stress.Inventory System: Buy/Sell weapons, armor, and supplies.Dynamic Visuals: The character SVG updates based on equipped gear and gender.Housing: Rent a room at the inn or sleep on the street.TechnologiesReactTailwind CSSViteLucide React (Icons)How to Run LocallyClone the repository.Install dependencies:npm install
+Start the development server:npm run dev
+DeploymentThis project is set up to be deployed easily on Vercel, Netlify, or GitHub Pages.
