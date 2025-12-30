@@ -6,9 +6,8 @@ import {
   ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2, Compass, Plus, Minus
 } from 'lucide-react';
 
-// FIX: Added .jsx and .js extensions to ensure files are found
-import CharacterSVG from './CharacterSVG.jsx';
-import { getBackground } from './Backgrounds.jsx';
+import CharacterSVG from './CharacterSVG';
+import { getBackground } from './Backgrounds';
 import { 
   ITEM_DB, 
   MAINTENANCE_ACTIONS, 
@@ -19,11 +18,11 @@ import {
   APPEARANCE_OPTIONS, 
   SAVE_KEY, 
   MAX_STAT 
-} from './data.js';
+} from './data';
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.18 (Strict Imports Fix)
+  Version: 1.20 (Re-attempt Import Resolution)
   -------------------------------------------------------------------------
 */
 
@@ -661,8 +660,8 @@ export default function App() {
       )}
 
       {showShop && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl relative flex flex-col h-[70vh]">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm animate-in fade-in" onClick={() => setShowShop(false)}>
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl relative flex flex-col h-[70vh]" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b border-slate-700">
                 <div className="flex items-center gap-2">
                     <ShoppingBag className="text-amber-400" />
@@ -728,11 +727,39 @@ export default function App() {
         </div>
       )}
 
+      {showLocationInfo && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in" onClick={() => setShowLocationInfo(false)}>
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl relative" onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowLocationInfo(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X size={20} /></button>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 bg-indigo-900/30 rounded-full text-indigo-400"><MapPin size={24} /></div>
+              <div>
+                <h3 className="text-lg font-bold text-white">{currentLocData.name}</h3>
+                <span className="text-xs font-mono text-indigo-400 uppercase">{currentLocData.type}</span>
+              </div>
+            </div>
+            <p className="text-sm text-slate-300 mb-6 leading-relaxed">{currentLocData.details}</p>
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Effects & Modifiers</h4>
+              {currentLocData.tips && currentLocData.tips.map((tip, idx) => (
+                <div key={idx} className="flex items-start gap-3 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
+                  <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-none ${tip.type === 'bad' ? 'bg-red-500' : 'bg-emerald-500'}`} />
+                  <div className="flex-1">
+                    <span className="text-xs font-bold text-slate-200 block">{tip.label}</span>
+                    <span className="text-xs text-slate-400 block">{tip.text}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 relative bg-slate-900 flex flex-col items-center justify-center overflow-hidden">
           <CurrentSceneBackground />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50 pointer-events-none" />
           
-          <div className="absolute top-0 left-0 right-0 p-3 md:p-4 flex justify-between items-start z-20">
+          <div className="absolute top-0 left-0 right-0 p-3 md:p-4 flex justify-between items-start z-50">
              <div className="flex gap-4">
                 <div className="flex flex-col">
                    <span className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase">Gold</span>
