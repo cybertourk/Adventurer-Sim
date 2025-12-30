@@ -1,20 +1,19 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  Shield, Sword, VenetianMask, Shirt, User, Backpack, X, Heart, Zap, Sparkles, 
-  Utensils, Coins, Hammer, Tent, Scroll, Skull, Activity, Droplets, MapPin, 
-  ShoppingBag, DollarSign, Key, Apple, Beer, MessageCircle, Dice5, Anchor, Music, Pickaxe, BookOpen, Gem, Crown
+  Activity, Scroll, Backpack, User, X, ShoppingBag, MapPin, Key, 
+  Coins
 } from 'lucide-react';
 
 // --- Imports ---
-// Explicit extensions added to resolve build errors
+// Importing from the standard directory structure
 import { 
   ITEM_DB, LOCATIONS, APPEARANCE_OPTIONS, 
   LABOR_DB, SOCIAL_DB, ADVENTURE_DB, MAINTENANCE_ACTIONS,
   MAX_STAT, SAVE_KEY, AnchorIcon 
-} from './data/GameData.jsx';
+} from './data/GameData';
 
-import CharacterSVG from './components/CharacterSVG.jsx';
-import { StatBlock, ActionButton, renderItemStats } from './components/UIComponents.jsx';
+import CharacterSVG from './components/CharacterSVG';
+import { StatBlock, ActionButton, renderItemStats } from './components/UIComponents';
 
 export default function App() {
   // --- State ---
