@@ -1,529 +1,52 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Shield, Sword, VenetianMask, Shirt, RotateCcw, User, Palette, 
   Backpack, X, Heart, Zap, Sparkles, Utensils, Coins, 
-  Hammer, Tent, Scroll, Skull, Menu, Activity, Droplets, MapPin, Info, ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2, Compass
+  Hammer, Tent, Scroll, Skull, Menu, Activity, Droplets, MapPin, Info, 
+  ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2, Compass
 } from 'lucide-react';
+
+import CharacterSVG from './CharacterSVG';
+import { 
+  ITEM_DB, 
+  MAINTENANCE_ACTIONS, 
+  JOB_DB, 
+  ADVENTURE_DB, 
+  SOCIAL_DB, 
+  LOCATIONS, 
+  APPEARANCE_OPTIONS, 
+  SAVE_KEY, 
+  MAX_STAT 
+} from './data.js';
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.13 (UI Split: Actions vs Quests)
-  
-  This game focuses on how absolutely weird, terrible, and chaotic D&D 
-  adventurers are. They make poor choices, have messy relationships, 
-  get confused, and tend to be violent and disruptive.
+  Version: 1.13 (Refactored & Split)
   -------------------------------------------------------------------------
 */
 
-// --- PHASE 1: DATABASE SYNCHRONIZATION ---
-
-// Section 5: Equipment & Economy
-const ITEM_DB = {
-  head: [
-    { id: 'none', name: 'Bare', type: 'head', stats: { ac: 0 }, cost: 0, description: 'Wind in your hair.' },
-    { id: 'leather_cap', name: 'Bad Hair Day Hider', type: 'head', stats: { ac: 1 }, cost: 25, description: 'Basic leather cap.' },
-    { id: 'iron_helm', name: 'Bucket with Eye Holes', type: 'head', stats: { ac: 3, dex: -1 }, cost: 60, description: 'Heavy protection.' },
-    { id: 'wizard_hat', name: 'Pointy Hat of Smartness', type: 'head', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
-    { id: 'crown', name: 'Crown', type: 'head', stats: { cha: 3 }, cost: 500, description: 'Fit for a king.' }, 
-  ],
-  body: [
-    { id: 'tunic', name: 'Breezy Tunic', type: 'body', stats: { ac: 0 }, cost: 0, description: 'Drafty rags.' },
-    { id: 'leather_armor', name: 'Stiff Cow Skin', type: 'body', stats: { ac: 2 }, cost: 40, description: 'Smells like a tannery.' },
-    { id: 'chainmail', name: 'Jingly Shirt', type: 'body', stats: { ac: 5, dex: -2 }, cost: 150, description: 'Loud but protective.' },
-    { id: 'plate', name: 'Shiny Can Suit', type: 'body', stats: { ac: 8, dex: -4 }, cost: 500, description: 'I am invincible! (Mostly).' },
-    { id: 'robe', name: 'Mysterious Robe', type: 'body', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing fabric.' },
-  ],
-  mainHand: [
-    { id: 'fist', name: 'These Two Hands', type: 'mainHand', stats: { str: 0 }, cost: 0, description: 'Always loaded.' },
-    { id: 'dagger', name: 'Pointy Stick', type: 'mainHand', stats: { dex: 2, str: 1 }, cost: 15, description: 'Good for cheese and goblins.' },
-    { id: 'sword', name: 'Sharp Metal Bar', type: 'mainHand', stats: { str: 2 }, cost: 50, description: 'The classic choice.' },
-    { id: 'staff', name: 'Wizard Twig', type: 'mainHand', stats: { int: 1, str: 1 }, cost: 60, description: 'It is just a stick, right?' },
-    { id: 'axe', name: 'The Chopper', type: 'mainHand', stats: { str: 3 }, cost: 75, description: 'Solving problems, one swing at a time.' },
-    { id: 'hammer', name: 'Bonk Stick', type: 'mainHand', stats: { str: 3 }, cost: 100, description: 'Unlocks smithing.' },
-  ],
-  offHand: [
-    { id: 'none', name: 'Empty', type: 'offHand', stats: { ac: 0 }, cost: 0, description: 'Free hand.' },
-    { id: 'wooden_shield', name: 'Plank', type: 'offHand', stats: { ac: 1 }, cost: 15, description: 'Splinters included.' },
-    { id: 'tower_shield', name: 'Wall', type: 'offHand', stats: { ac: 3, dex: -2 }, cost: 60, description: 'Portable cover.' },
-    { id: 'orb', name: 'Glowy Ball', type: 'offHand', stats: { int: 3 }, cost: 200, description: 'Ooh, shiny.' },
-  ],
-  supplies: [
-    { id: 'ration', name: 'Mystery Meat Jerky', type: 'food', cost: 3, description: 'Don\'t ask what animal it was.', effects: { hunger: -30, health: 5 } },
-    { id: 'potion', name: 'Red Goop', type: 'potion', cost: 25, description: 'Tastes like cherries and pennies.', effects: { health: 50 } },
-    { id: 'ale', name: 'Liquid Courage', type: 'drink', cost: 5, description: 'Makes everyone prettier.', effects: { thirst: -15, mood: 10, stress: -10 } },
-    { id: 'wine', name: 'Fancy Grape Juice', type: 'drink', cost: 25, description: 'Pinkies out!', effects: { thirst: -20, mood: 20, stress: -15 } },
-    { id: 'water', name: 'Water Skin', type: 'drink', cost: 0, description: 'Basic hydration.', effects: { thirst: -40 } },
-  ]
+// Map string names from data.js back to React Components
+const ICON_MAP = {
+  'Shield': Shield,
+  'Sword': Sword,
+  'Scroll': Scroll,
+  'Hammer': Hammer,
+  'Tent': Tent,
+  'Activity': Activity,
+  'Utensils': Utensils,
+  'Droplets': Droplets,
+  'Beer': Beer,
+  'Skull': Skull,
+  'User': User,
+  'Coins': Coins,
+  'Heart': Heart,
+  'Zap': Zap,
+  'DollarSign': DollarSign,
+  'Compass': Compass
 };
 
-// Section 2: Maintenance Actions
-const MAINTENANCE_ACTIONS = [
-  { 
-    id: 'eat', label: 'Eat', icon: Utensils, cost: 5, days: 0, costType: 'gp', 
-    description: 'Noms.', message: 'Ate something crunchy.',
-    effects: { hunger: -30, health: 5 } 
-  },
-  { 
-    id: 'drink', label: 'Drink', icon: Droplets, cost: 0, days: 0, costType: 'gp', 
-    description: 'Glug glug.', message: 'Refreshing!',
-    effects: { thirst: -40 } 
-  },
-  { 
-    id: 'sleep', label: 'Sleep', icon: Tent, cost: 0, days: 1, costType: 'gp', 
-    description: 'Nap time. (+Health, -Stress).', message: 'Zzz...',
-    effects: { health: 15, stress: -20, hunger: 10, thirst: 10 } 
-  },
-  { 
-    id: 'train', label: 'Train', icon: Activity, cost: 10, days: 1, costType: 'gp', 
-    description: 'Hitting things with other things.', message: 'I feel stronger!',
-    effects: { xp: 10, hunger: 20, thirst: 20 } 
-  },
-  { 
-    id: 'repair', label: 'Repair', icon: Hammer, cost: 5, days: 0, costType: 'gp', 
-    description: 'Fixing the dents.', message: 'Hammering out the dents.',
-    effects: { stress: -10 } 
-  },
-  { 
-    id: 'tavern', label: 'Tavern', icon: Beer, cost: 8, days: 0, costType: 'gp', 
-    description: 'Socializing... loudly.', message: 'Huzzah!',
-    effects: { mood: 15, stress: -15, hunger: -5, thirst: -10 } 
-  },
-];
+// --- Sub Components ---
 
-// Section 3: Quests (Databases)
-
-const JOB_DB = {
-  tier1: [
-    { id: 'job_field', label: 'Field Hand', icon: Scroll, cost: 0, days: 1, type: 'labor', description: 'Pulling Weeds.', message: 'Farmer Maggot yelled at me.', effects: { gold: 8, xp: 5, hunger: 10, thirst: 10, stress: 5, mood: -5 } },
-    { id: 'job_muck', label: 'Stable Muck', icon: Scroll, cost: 0, days: 1, type: 'labor', description: 'Shoveling Poop.', message: 'It smells like success. And manure.', effects: { gold: 10, xp: 5, hunger: 10, thirst: 10, stress: 10, mood: -10 } },
-    { id: 'job_wood', label: 'Wood Chop', icon: Scroll, cost: 0, days: 1, type: 'labor', description: 'Hitting Trees.', message: 'Like fighting, but the enemy does not move.', effects: { gold: 9, xp: 5, hunger: 15, thirst: 10, stress: 5 } },
-    { id: 'job_rats', label: 'Rat Catcher', icon: Scroll, cost: 0, days: 1, type: 'labor', description: 'Poking Squeaky Things.', message: 'They bite back sometimes.', effects: { gold: 12, xp: 8, hunger: 10, thirst: 10, stress: 10, health: -2 } },
-    { id: 'job_run', label: 'Runner', icon: Scroll, cost: 0, days: 1, type: 'labor', description: 'Running Errands.', message: 'Cardio is hard.', effects: { gold: 8, xp: 5, hunger: 15, thirst: 20, stress: 5 } },
-  ],
-  tier2: [
-    { id: 'job_guard', label: 'Guard Duty', icon: Shield, cost: 0, days: 1, type: 'labor', description: 'Standing Around Menacingly.', message: 'Trying not to fall asleep.', effects: { gold: 15, xp: 10, hunger: 10, thirst: 10, stress: 5 } },
-    { id: 'job_dock', label: 'Dock Work', icon: Scroll, cost: 0, days: 1, type: 'labor', description: 'Lifting Heavy Boxes.', message: 'My back hurts.', effects: { gold: 25, xp: 15, hunger: 20, thirst: 20, stress: 15, health: -5 } },
-    { id: 'job_smith', label: 'Smithing', icon: Hammer, cost: 0, days: 1, type: 'labor', description: 'Hitting Hot Metal.', message: 'Sparks are pretty.', effects: { gold: 45, xp: 20, hunger: 20, thirst: 30, stress: 10 } },
-  ]
-};
-
-const ADVENTURE_DB = {
-  tier1: [
-    { id: 'adv_rats', label: 'Giant Rats', icon: Skull, cost: 0, days: 3, type: 'adventure', description: 'Rats of Unusual Size. (3 Days)', message: 'Why are they so big?!', effects: { gold: 15, xp: 20, hunger: 30, thirst: 30, stress: 20, health: -10 } },
-    { id: 'adv_spiders', label: 'Giant Spiders', icon: Skull, cost: 0, days: 3, type: 'adventure', description: 'Too Many Legs. (3 Days)', message: 'Nope. Nope. Nope.', effects: { gold: 20, xp: 25, hunger: 30, thirst: 30, stress: 30, health: -15, mood: -10 } },
-  ],
-  tier2: [
-    { id: 'adv_goblins', label: 'Goblins', icon: Skull, cost: 0, days: 3, type: 'adventure', description: 'Green Ankle Biters. (3 Days)', message: 'They travel in packs.', effects: { gold: 40, xp: 50, hunger: 40, thirst: 40, stress: 30, health: -20 } },
-    { id: 'adv_bandits', label: 'Bandits', icon: Skull, cost: 0, days: 3, type: 'adventure', description: 'Muggers in Masks. (3 Days)', message: 'Hey, that is MY gold!', effects: { gold: 50, xp: 60, hunger: 40, thirst: 40, stress: 30, health: -25 } },
-  ],
-  tier3: [
-    { id: 'adv_cult', label: 'Cultist Leader', icon: Skull, cost: 0, days: 5, type: 'adventure', description: 'Weird Robe Guy. (5 Days)', message: 'He keeps screaming about squids.', effects: { gold: 120, xp: 150, hunger: 60, thirst: 60, stress: 50, health: -30 } },
-    { id: 'adv_undead', label: 'Undead Knight', icon: Skull, cost: 0, days: 5, type: 'adventure', description: 'Spooky Scary Skeleton. (5 Days)', message: 'He refuses to stay down.', effects: { gold: 150, xp: 200, hunger: 60, thirst: 60, stress: 50, health: -40 } },
-  ]
-};
-
-const SOCIAL_DB = {
-  tier1: [
-    { id: 'soc_gossip', label: 'Gossip', icon: User, cost: 0, days: 1, type: 'social', description: 'Talking Smack.', message: 'Did you hear about the miller\'s wife?', effects: { xp: 10, mood: 10, hunger: 5, thirst: 5 } },
-    { id: 'soc_beg', label: 'Begging', icon: Coins, cost: 0, days: 1, type: 'social', description: 'Spare a Copper?', message: 'Please? Pretty please?', effects: { gold: 5, mood: -5, hunger: 10, thirst: 10, stress: 10 } },
-    { id: 'soc_flirt', label: 'Flirt', icon: Heart, cost: 0, days: 1, type: 'social', description: 'Hey Good Lookin\'.', message: 'How you doin?', effects: { mood: 20, stress: -5, xp: 5, hunger: 5, thirst: 5 } },
-    { id: 'soc_brawl', label: 'Brawl', icon: Zap, cost: 0, days: 1, type: 'social', description: 'Punching Contest.', message: 'Face-to-fist style.', effects: { xp: 15, health: -5, stress: -10, hunger: 10, thirst: 10 } },
-  ],
-  tier2: [
-    { id: 'soc_gamble', label: 'Gamble', icon: DollarSign, cost: 10, days: 1, type: 'social', description: 'Rolling the Bones.', message: 'Daddy needs a new pair of boots!', effects: { xp: 10, mood: 10, stress: 10 } },
-    { id: 'soc_bribe', label: 'Bribe Guard', icon: Coins, cost: 20, days: 1, type: 'social', description: 'Greasing Palms.', message: 'Look the other way, pal.', effects: { xp: 30, stress: -10 } },
-  ]
-};
-
-// Section 4: Locations (RESTORED COMPLEX BACKGROUNDS)
-const LOCATIONS = {
-  village_road: {
-    id: 'village_road',
-    name: 'Village Road',
-    type: 'homeless',
-    description: 'Sleeping in the dirt. It is cold.',
-    details: "Living on the road can be hard on the body and mind. Earn some gold to stay at an Inn or save up to buy a home.",
-    dailyCost: 0,
-    hasFoodService: false, 
-    tips: [
-      { label: "Health", text: "Recovers only 5 (instead of 15).", type: "bad" },
-      { label: "Stress", text: "Reduces by only 5 (instead of 20).", type: "bad" },
-      { label: "Mood", text: "Decreases by 10 (because sleeping outside is miserable).", type: "bad" },
-      { label: "Food/Drink", text: "Cannot purchase meals instantly. Must use Inventory.", type: "bad" }
-    ],
-    renderBackground: () => (
-      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-amber-900/20" />
-        <div className="absolute top-10 left-20 w-1 h-1 bg-white opacity-40 rounded-full" />
-        <div className="absolute top-20 left-1/4 w-0.5 h-0.5 bg-white opacity-60 rounded-full" />
-        <div className="absolute top-5 right-1/3 w-1 h-1 bg-white opacity-30 rounded-full" />
-        <div className="absolute top-10 right-10 w-12 h-12 rounded-full bg-indigo-100/20 blur-xl" />
-        <div className="absolute top-12 right-12 w-8 h-8 rounded-full bg-indigo-50/80 shadow-[0_0_20px_rgba(255,255,255,0.5)]" />
-        <div className="absolute bottom-[35%] left-0 right-0 h-24 bg-slate-900 opacity-40 [clip-path:polygon(0%_100%,0%_20%,20%_0%,50%_30%,80%_10%,100%_40%,100%_100%)]" />
-        <div className="absolute bottom-[35%] left-0 right-0 h-32 flex items-end justify-center gap-1 opacity-60">
-            <div className="w-16 h-12 bg-slate-900 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
-            <div className="w-10 h-24 bg-slate-900 [clip-path:polygon(10%_100%,10%_10%,0%_10%,10%_0%,90%_0%,100%_10%,90%_10%,90%_100%)]" />
-            <div className="w-20 h-16 bg-slate-900 [clip-path:polygon(0%_100%,0%_30%,20%_30%,50%_0%,80%_30%,100%_30%,100%_100%)]" />
-            <div className="w-24" />
-            <div className="w-14 h-14 bg-slate-900 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
-        </div>
-        <div className="absolute bottom-[35%] -left-10 w-32 h-24 bg-slate-950 opacity-80 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
-        <div className="absolute bottom-[35%] -right-10 w-40 h-28 bg-slate-950 opacity-80 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
-        <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-[#3f2e18]" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-64 md:w-96 h-[35%] bg-[#5c4026] [clip-path:polygon(20%_0,80%_0,100%_100%,0%_100%)] opacity-80" />
-        <div className="absolute inset-0 bg-radial-gradient(circle_at_center,transparent_0%,#0f172a_100%) opacity-60" />
-      </div>
-    ),
-    modifiers: {
-      rest: { health: 5, stress: -5, mood: -10, hunger: 5, thirst: 5 } 
-    }
-  },
-  inn_room: {
-    id: 'inn_room',
-    name: 'Rusty Spoon Inn',
-    type: 'renting',
-    description: 'A warm bed and a roof. Costs 5g/day.',
-    details: "A modest room. It smells of ale and old wood, but it beats the rain. Room service is available for a fee.",
-    dailyCost: 5,
-    hasFoodService: true, 
-    tips: [
-      { label: "Rest", text: "Full recovery benefits.", type: "good" },
-      { label: "Cost", text: "5 Gold deducted daily automatically.", type: "bad" },
-      { label: "Service", text: "Can order food/drink directly.", type: "good" }
-    ],
-    renderBackground: () => (
-      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#1a120b]">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#3f2e18_1px,transparent_1px)] [background-size:20px_20px]" />
-        <div className="absolute top-10 left-10 w-24 h-32 bg-[#0f172a] border-4 border-[#3f2e18] rounded-t-full overflow-hidden">
-           <div className="absolute top-2 right-4 w-4 h-4 bg-white rounded-full opacity-80 shadow-[0_0_10px_white]" />
-           <div className="absolute bottom-0 w-full h-1 bg-black/50" />
-           <div className="absolute w-1 h-full left-1/2 bg-[#3f2e18]" />
-           <div className="absolute h-1 w-full top-1/2 bg-[#3f2e18]" />
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 h-[25%] bg-[#2a1d10] border-t border-[#3f2e18]" />
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-48 h-12 bg-red-900/40 rounded-[50%]" />
-      </div>
-    ),
-    modifiers: {
-      rest: { health: 15, stress: -20, mood: 5, hunger: 5, thirst: 5 } 
-    }
-  }
-};
-
-// --- Appearance Options (Unchanged) ---
-const APPEARANCE_OPTIONS = {
-  skinTones: [
-    { id: 'pale', label: 'Pale', color: '#f3e5dc', shadow: '#e0c8b8' },
-    { id: 'fair', label: 'Fair', color: '#eecfa1', shadow: '#dcb386' },
-    { id: 'tan', label: 'Tan', color: '#d4a373', shadow: '#b07d4e' },
-    { id: 'dark', label: 'Dark', color: '#8d5524', shadow: '#6e3b12' },
-    { id: 'deep', label: 'Deep', color: '#3b2219', shadow: '#2a1810' },
-  ],
-  hairColors: [
-    { id: 'black', label: 'Black', color: '#09090b' },
-    { id: 'brown', label: 'Brown', color: '#3f2307' },
-    { id: 'blonde', label: 'Blonde', color: '#ca8a04' },
-    { id: 'red', label: 'Red', color: '#7f1d1d' },
-    { id: 'grey', label: 'Grey', color: '#9ca3af' },
-    { id: 'white', label: 'White', color: '#f3f4f6' },
-  ],
-  eyeColors: [
-    { id: 'blue', label: 'Blue', color: '#3b82f6' },
-    { id: 'green', label: 'Green', color: '#22c55e' },
-    { id: 'brown', label: 'Brown', color: '#451a03' },
-    { id: 'hazel', label: 'Hazel', color: '#854d0e' },
-    { id: 'red', label: 'Red', color: '#ef4444' },
-  ],
-  hairStyles: [
-    { id: 'bald', label: 'Bald' },
-    { id: 'short', label: 'Short' },
-    { id: 'long', label: 'Long' },
-  ]
-};
-
-const MAX_STAT = 100;
-const SAVE_KEY = 'dnd_tamagotchi_v14_failures'; 
-
-// --- SVG Components (Visuals Unchanged) ---
-const CharacterSVG = ({ equipped, appearance, isAlive }) => {
-  const { gender, skinTone, hairColor, eyeColor, hairStyle } = appearance;
-  const skin = APPEARANCE_OPTIONS.skinTones.find(t => t.id === skinTone) || APPEARANCE_OPTIONS.skinTones[1];
-  const hair = APPEARANCE_OPTIONS.hairColors.find(c => c.id === hairColor)?.color || '#3f2307';
-  const eyes = APPEARANCE_OPTIONS.eyeColors.find(c => c.id === eyeColor)?.color || '#451a03';
-  const wearingHat = ['leather_cap', 'wizard_hat', 'iron_helm', 'crown'].includes(equipped.head);
-  const wearingFullHelm = equipped.head === 'iron_helm';
-
-  const getZoneStyles = () => {
-    const styles = {
-      head: { fill: 'url(#skin-gradient)', filter: 'none', stroke: skin.shadow },
-      torso: { fill: '#f8fafc', filter: 'url(#fabric-noise)', stroke: '#94a3b8' }, 
-      legs: { fill: '#713f12', filter: 'url(#fabric-noise)', stroke: '#451a03' }, 
-      pelvis: { fill: '#713f12', filter: 'url(#fabric-noise)', stroke: '#451a03' }, 
-      arms: { fill: '#f8fafc', filter: 'url(#fabric-noise)', stroke: '#94a3b8' }, 
-      boots: { fill: '#18181b', stroke: '#000000' } 
-    };
-
-    switch (equipped.body) {
-      case 'tunic':
-        styles.torso = { fill: '#d4d4d8', filter: 'url(#fabric-noise)', stroke: '#a1a1aa' };
-        styles.legs = { fill: '#525252', filter: 'url(#fabric-noise)', stroke: '#262626' };
-        styles.pelvis = { fill: '#525252', filter: 'url(#fabric-noise)', stroke: '#262626' }; 
-        break;
-      case 'leather_armor':
-        styles.torso = { fill: '#5f370e', filter: 'url(#leather-noise)', stroke: '#3f2307' };
-        styles.legs = { fill: '#3f2307', filter: 'url(#leather-noise)', stroke: '#271c19' };
-        styles.pelvis = { fill: '#3f2307', filter: 'url(#leather-noise)', stroke: '#271c19' }; 
-        styles.arms = { fill: '#5f370e', filter: 'url(#leather-noise)', stroke: '#3f2307' }; 
-        styles.boots = { fill: '#271c19', stroke: '#000000' };
-        break;
-      case 'chainmail':
-        const chainStyle = { fill: 'url(#chain-pattern)', filter: 'none', stroke: '#3f3f46' };
-        styles.torso = chainStyle;
-        styles.pelvis = chainStyle;
-        styles.arms = chainStyle;
-        styles.legs = { fill: '#713f12', filter: 'url(#fabric-noise)', stroke: '#451a03' };
-        break;
-      case 'plate':
-        const plateStyle = { fill: 'url(#metal-sheen)', filter: 'none', stroke: '#27272a' };
-        styles.torso = plateStyle;
-        styles.legs = plateStyle;
-        styles.pelvis = plateStyle;
-        styles.arms = plateStyle;
-        styles.boots = { fill: 'url(#metal-sheen)', stroke: '#27272a' };
-        break;
-      case 'robe':
-        const robeStyle = { fill: '#312e81', filter: 'url(#fabric-noise)', stroke: '#1e1b4b' };
-        styles.torso = robeStyle;
-        styles.legs = robeStyle;
-        styles.pelvis = robeStyle;
-        styles.arms = robeStyle; 
-        break;
-    }
-
-    if (equipped.head === 'iron_helm') {
-        styles.head = { fill: 'url(#metal-sheen)', filter: 'none', stroke: '#27272a' };
-    }
-
-    return styles;
-  };
-
-  const s = getZoneStyles();
-  let torsoPath = gender === 'female' ? `M142 80 Q 142 88 135 90 Q 115 92 112 105 Q 108 115 115 160 L 132 200 L 168 200 L 185 160 Q 192 115 188 105 Q 185 92 165 90 Q 158 88 158 80 Z` : `M142 80 Q 142 88 135 90 Q 115 92 110 105 Q 105 115 112 160 L 130 200 L 170 200 L 188 160 Q 195 115 190 105 Q 185 92 165 90 Q 158 88 158 80 Z`;
-  let pelvisPath = gender === 'female' ? `M132 200 L 168 200 L 150 225 Z` : `M130 200 L 170 200 L 150 225 Z`;
-  let headPath = gender === 'female' ? `M 132 60 C 132 35 168 35 168 60 C 168 75 150 85 150 85 C 150 85 132 75 132 60 Z` : null;
-
-  return (
-    <svg viewBox="0 0 300 450" className={`w-full h-full transition-all duration-1000 ${isAlive ? '' : 'grayscale opacity-50'}`}>
-      <defs>
-        <filter id="leather-noise">
-          <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch" result="noise" />
-          <feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.2 0" in="noise" result="softNoise"/>
-          <feComposite operator="in" in="softNoise" in2="SourceGraphic" result="composite"/>
-          <feBlend mode="multiply" in="composite" in2="SourceGraphic"/>
-        </filter>
-        <filter id="fabric-noise">
-           <feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="2" result="noise" />
-           <feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.15 0" in="noise" result="softNoise"/>
-           <feComposite operator="in" in="softNoise" in2="SourceGraphic" result="composite"/>
-           <feBlend mode="multiply" in="composite" in2="SourceGraphic"/>
-        </filter>
-        <linearGradient id="metal-sheen" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#52525b" />
-          <stop offset="30%" stopColor="#e4e4e7" />
-          <stop offset="60%" stopColor="#71717a" />
-          <stop offset="100%" stopColor="#3f3f46" />
-        </linearGradient>
-        <radialGradient id="skin-gradient" cx="0.4" cy="0.4" r="0.8">
-           <stop offset="0%" stopColor={skin.color} />
-           <stop offset="100%" stopColor={skin.shadow} />
-        </radialGradient>
-        <pattern id="chain-pattern" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
-           <rect width="6" height="6" fill="#52525b" />
-           <circle cx="3" cy="3" r="2" fill="#71717a" />
-        </pattern>
-        <linearGradient id="gold-sheen" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#713f12" />
-          <stop offset="40%" stopColor="#eab308" />
-          <stop offset="50%" stopColor="#fef08a" />
-          <stop offset="60%" stopColor="#ca8a04" />
-          <stop offset="100%" stopColor="#713f12" />
-        </linearGradient>
-      </defs>
-
-      <g id="legs" filter={s.legs.filter}>
-        {equipped.body === 'robe' ? (
-          <path d={`M125 210 L 110 390 Q 150 405 190 390 L 175 210 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
-        ) : (
-          <g>
-            <path d={`M${gender === 'female' ? 128 : 130} 200 Q 120 250 125 300 L 128 390 L 145 390 L 148 300 Q 150 250 ${gender === 'female' ? 148 : 148} 300 L 150 210 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
-            <path d={`M${gender === 'female' ? 172 : 170} 200 Q 180 250 175 300 L 172 390 L 155 390 L 152 300 Q 150 250 ${gender === 'female' ? 152 : 152} 300 L 150 210 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
-             {s.boots && s.boots.fill !== 'none' && (
-               <g>
-                 <path d="M125 300 L 128 390 L 145 390 L 148 300 Q 136 310 125 300" fill={s.boots.fill} stroke={s.boots.stroke} strokeWidth="1.5" />
-                 <path d="M175 300 L 172 390 L 155 390 L 152 300 Q 164 310 175 300" fill={s.boots.fill} stroke={s.boots.stroke} strokeWidth="1.5" />
-                 {equipped.body === 'plate' && (
-                    <g stroke="#27272a" strokeWidth="1" fill="none">
-                        <path d="M126 330 L 147 330" />
-                        <path d="M127 360 L 146 360" />
-                        <path d="M153 330 L 174 330" />
-                        <path d="M154 360 L 173 360" />
-                    </g>
-                 )}
-               </g>
-             )}
-          </g>
-        )}
-      </g>
-      <g id="pelvis" filter={s.pelvis.filter}>
-         {equipped.body !== 'robe' && (<path d={pelvisPath} fill={s.pelvis.fill} stroke={s.pelvis.stroke} strokeWidth="1.5" />)}
-      </g>
-      <g id="torso" filter={s.torso.filter}>
-        <path d={torsoPath} fill={s.torso.fill} stroke={s.torso.stroke} strokeWidth="1.5" />
-        {gender === 'female' && equipped.body !== 'plate' && (
-           <path d="M 128 115 Q 140 125 150 115 Q 160 125 172 115" stroke={s.torso.stroke} strokeWidth="1" fill="none" opacity="0.6" />
-        )}
-        {(equipped.body === 'tunic' || equipped.body === 'leather_armor') && (
-           <path d="M150 95 L 150 200" stroke={s.torso.stroke} strokeWidth="1" strokeDasharray="4 2" opacity="0.5" />
-        )}
-        {equipped.body === 'plate' && (
-            <path d="M115 140 Q 150 160 185 140" stroke="#27272a" strokeWidth="1.5" fill="none" />
-        )}
-      </g>
-      <g id="arms" filter={s.arms.filter}>
-        <path d="M110 105 Q 105 110 108 125 Q 110 145 100 190 L 95 210 L 110 210 L 120 190 Q 125 150 120 105 Z" fill={s.arms.fill} stroke={s.arms.stroke} strokeWidth="1.5" />
-        <path d="M190 105 Q 195 110 192 125 Q 190 145 200 190 L 205 210 L 190 210 L 180 190 Q 175 150 180 105 Z" fill={s.arms.fill} stroke={s.arms.stroke} strokeWidth="1.5" />
-        {equipped.body === 'plate' && (
-           <g>
-             <path d="M100 75 Q 85 85 90 115 L 120 105 Z" fill="url(#metal-sheen)" stroke="#27272a" />
-             <path d="M200 75 Q 215 85 210 115 L 180 105 Z" fill="url(#metal-sheen)" stroke="#27272a" />
-           </g>
-        )}
-      </g>
-      <g id="hands">
-         <circle cx="102" cy="215" r="8" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1"/>
-         <circle cx="198" cy="215" r="8" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1"/>
-      </g>
-      <g id="head">
-        {!wearingFullHelm && (
-          <g>
-             <ellipse cx="133" cy="60" rx="4" ry="7" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1" transform="rotate(-10, 133, 60)" />
-             <ellipse cx="167" cy="60" rx="4" ry="7" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1" transform="rotate(10, 167, 60)" />
-          </g>
-        )}
-        {headPath ? (
-           <path d={headPath} fill={s.head.fill} stroke={s.head.stroke} strokeWidth="1.5" />
-        ) : (
-           <ellipse cx="150" cy="60" rx="18" ry="22" fill={s.head.fill} stroke={s.head.stroke} strokeWidth="1.5" />
-        )}
-        {!wearingFullHelm && (
-           <g id="face-features">
-             <path d="M138 54 Q 143 51 147 54" stroke="#3f2307" strokeWidth="1.5" fill="none" opacity="0.8" />
-             <path d="M153 54 Q 157 51 162 54" stroke="#3f2307" strokeWidth="1.5" fill="none" opacity="0.8" />
-             <circle cx="143" cy="60" r="2" fill={isAlive ? eyes : '#000'} />
-             <circle cx="157" cy="60" r="2" fill={isAlive ? eyes : '#000'} />
-             {isAlive && (<><circle cx="143.5" cy="59.5" r="0.5" fill="#fff" opacity="0.6" /><circle cx="157.5" cy="59.5" r="0.5" fill="#fff" opacity="0.6" /></>)}
-             {gender === 'female' && (<g stroke={hair} strokeWidth="1"><path d="M141 58 L 139 56" /><path d="M159 58 L 161 56" /></g>)}
-             <path d={isAlive ? "M150 60 L 149 68 L 152 70" : "M150 60 L 149 68 L 152 70"} fill="none" stroke={isAlive ? skin.shadow : "#444"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-             <path d={isAlive ? "M145 76 Q 150 79 155 76" : "M145 79 Q 150 76 155 79"} stroke={isAlive ? skin.shadow : "#444"} strokeWidth="1.5" fill="none" strokeLinecap="round" />
-             {!wearingHat && hairStyle !== 'bald' && (
-                <>
-                  {hairStyle === 'short' && (<path d="M150 35 Q 170 35 168 57 L 168 67 L 162 52 Q 150 42 138 52 L 132 67 L 132 57 Q 130 35 150 35" fill={hair} />)}
-                  {hairStyle !== 'long' && (<path d="M150 35 Q 170 35 168 57 L 168 67 L 162 52 Q 150 42 138 52 L 132 67 L 132 57 Q 130 35 150 35" fill={hair} />)}
-                </>
-             )}
-             {hairStyle === 'long' && (
-                <g>
-                   <path d="M130 50 L 125 90 L 140 90 L 135 50" fill={hair} />
-                   <path d="M170 50 L 175 90 L 160 90 L 165 50" fill={hair} />
-                   {!wearingHat && (<path d="M150 35 Q 175 35 170 65 L 175 90 L 160 90 L 160 55 Q 150 45 140 55 L 140 90 L 125 90 L 130 65 Q 125 35 150 35" fill={hair} />)}
-                </g>
-             )}
-             {equipped.head === 'leather_cap' && (<path d="M120 53 Q 150 0 180 53 L 180 58 L 120 58 Z" fill="#5f370e" stroke="#3f2307" />)}
-             {equipped.head === 'wizard_hat' && (
-                <g transform="translate(150, 45)"> 
-                   <ellipse cx="0" cy="0" rx="35" ry="8" fill="#312e81" stroke="#1e1b4b" />
-                   <path d="M-18 0 L -2 -70 L 2 -70 L 18 0 Z" fill="#312e81" stroke="#1e1b4b" />
-                </g>
-             )}
-             {equipped.head === 'crown' && (<path d="M134 47 L 140 35 L 150 49 L 160 35 L 166 47 Q 150 52 134 47" fill="none" stroke="url(#gold-sheen)" strokeWidth="2" strokeLinejoin="round" />)}
-           </g>
-        )}
-        {wearingFullHelm && (
-           <g>
-             <path d="M129 35 Q 150 27 171 35 L 173 79 Q 150 87 127 79 L 129 35" fill="url(#metal-sheen)" stroke="#27272a" strokeWidth="1.5" />
-             <path d="M129 52 L 171 52" stroke="#18181b" strokeWidth="2" />
-             <line x1="150" y1="35" x2="150" y2="82" stroke="#18181b" strokeWidth="1" opacity="0.3" />
-           </g>
-        )}
-      </g>
-      <g id="main-hand" transform="translate(205, 200) rotate(45)">
-        {equipped.mainHand === 'sword' && (
-          <g transform="scale(1.75) translate(0, 5)">
-            <line x1="0" y1="10" x2="0" y2="-10" stroke="#3f2307" strokeWidth="2" /> 
-            <circle cx="0" cy="12" r="3" fill="#52525b" stroke="#27272a" strokeWidth="0.5"/>
-            <rect x="-10" y="-14" width="20" height="4" fill="#52525b" stroke="#27272a" rx="1" strokeWidth="0.5"/>
-            <path d="M-4 -14 L 4 -14 L 3 -80 L 0 -90 L -3 -80 Z" fill="url(#metal-sheen)" stroke="#52525b" strokeWidth="0.5"/>
-            <line x1="0" y1="-14" x2="0" y2="-80" stroke="#52525b" strokeWidth="0.5" opacity="0.5" />
-          </g>
-        )}
-        {equipped.mainHand === 'axe' && (
-           <g>
-             <rect x="-3" y="-15" width="6" height="120" fill="#3f2307" rx="1" transform="translate(0, -40)" /> 
-             <g transform="translate(0, -70)">
-                <rect x="-6" y="-15" width="12" height="30" fill="#52525b" />
-                <path d="M 6 -15 L 25 -15 Q 35 0 25 15 L 6 15 Z" fill="url(#metal-sheen)" stroke="#52525b" strokeWidth="1.5" />
-                <path d="M -6 -15 L -25 -15 Q -35 0 -25 15 L -6 15 Z" fill="url(#metal-sheen)" stroke="#52525b" strokeWidth="1.5" />
-             </g>
-           </g>
-        )}
-        {equipped.mainHand === 'staff' && (
-            <g>
-              <rect x="-3" y="-60" width="6" height="150" fill="#3f2307" rx="2" />
-              <circle cx="0" cy="-60" r="10" fill="url(#skin-gradient)" />
-              <circle cx="0" cy="-60" r="6" fill="#10b981" className="animate-pulse" />
-            </g>
-        )}
-         {equipped.mainHand === 'dagger' && (
-           <g transform="scale(1.5)">
-             <line x1="0" y1="8" x2="0" y2="-8" stroke="#3f2307" strokeWidth="2" />
-             <circle cx="0" cy="10" r="2" fill="#52525b" />
-             <rect x="-6" y="-10" width="12" height="2" fill="#52525b" />
-             <path d="M-3 -10 L 3 -10 L 0 -40 Z" fill="url(#metal-sheen)" stroke="#52525b" strokeWidth="0.5"/>
-           </g>
-        )}
-        {equipped.mainHand === 'hammer' && (
-           <g transform="scale(1.2)">
-             <rect x="-3" y="-10" width="6" height="80" fill="#3f2307" transform="translate(0, -30)" /> 
-             <g transform="translate(0, -50)">
-                <rect x="-15" y="-15" width="30" height="20" fill="#52525b" stroke="#27272a" />
-             </g>
-           </g>
-        )}
-      </g>
-      <g id="off-hand" transform="translate(95, 200) rotate(10)">
-         {equipped.offHand === 'wooden_shield' && (
-            <g transform="translate(-20, -20)">
-               <circle cx="20" cy="20" r="25" fill="#5f370e" stroke="#3f2307" strokeWidth="3" filter="url(#leather-noise)"/>
-               <circle cx="20" cy="20" r="5" fill="#52525b" />
-            </g>
-         )}
-         {equipped.offHand === 'tower_shield' && (
-            <g transform="translate(-20, -40)">
-               <path d="M0 0 L 40 0 L 40 80 L 20 90 L 0 80 Z" fill="url(#metal-sheen)" stroke="#27272a" strokeWidth="3" />
-            </g>
-         )}
-         {equipped.offHand === 'orb' && (
-           <g transform="translate(0, -10)">
-            <circle cx="0" cy="0" r="24" fill="#6366f1" fillOpacity="0.8" stroke="#4338ca" strokeWidth="2" />
-            <circle cx="0" cy="0" r="16" fill="none" stroke="#c7d2fe" strokeWidth="1" className="animate-spin-slow" strokeDasharray="4 4"/>
-           </g>
-         )}
-      </g>
-    </svg>
-  );
-};
-
-// --- Components (StatBlock, ActionButton) ---
 const StatBlock = ({ label, value, max, alert, inverted, onClick }) => (
     <button 
       onClick={onClick}
@@ -551,7 +74,8 @@ const ActionButton = ({ icon: Icon, label, days, cost, costType = 'gp', onClick,
     `}
   >
     <div className={`p-2 rounded-md ${disabled ? 'bg-slate-700' : 'bg-slate-900 group-hover:text-indigo-400'}`}>
-      <Icon size={18} />
+      {/* Handle case where Icon might be undefined if map fails */}
+      {Icon ? <Icon size={18} /> : <HelpCircle size={18} />}
     </div>
     <div className="flex flex-col flex-1 min-w-0">
       <div className="flex justify-between items-center">
@@ -1224,7 +748,13 @@ export default function App() {
                 <div className="h-px bg-slate-800 my-2" />
                 <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Maintenance</div>
                 {MAINTENANCE_ACTIONS.map(action => (
-                  <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead} />
+                  <ActionButton 
+                    key={action.id} 
+                    {...action} 
+                    icon={ICON_MAP[action.icon] || HelpCircle} 
+                    onClick={() => performAction(action)} 
+                    disabled={isDead} 
+                  />
                 ))}
               </div>
             )}
@@ -1233,17 +763,35 @@ export default function App() {
               <div className="space-y-2 animate-in fade-in duration-300">
                 <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Tier 1 Jobs</div>
                 {JOB_DB.tier1.map(action => (
-                  <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead} />
+                  <ActionButton 
+                    key={action.id} 
+                    {...action} 
+                    icon={ICON_MAP[action.icon] || HelpCircle}
+                    onClick={() => performAction(action)} 
+                    disabled={isDead} 
+                  />
                 ))}
                 <div className="h-px bg-slate-800 my-2" />
                 <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2 mt-4">Tier 1 Adventures</div>
                 {ADVENTURE_DB.tier1.map(action => (
-                  <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead} />
+                  <ActionButton 
+                    key={action.id} 
+                    {...action} 
+                    icon={ICON_MAP[action.icon] || HelpCircle}
+                    onClick={() => performAction(action)} 
+                    disabled={isDead} 
+                  />
                 ))}
                 <div className="h-px bg-slate-800 my-2" />
                 <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2 mt-4">Social</div>
                 {SOCIAL_DB.tier1.map(action => (
-                  <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead} />
+                  <ActionButton 
+                    key={action.id} 
+                    {...action} 
+                    icon={ICON_MAP[action.icon] || HelpCircle}
+                    onClick={() => performAction(action)} 
+                    disabled={isDead} 
+                  />
                 ))}
               </div>
             )}
