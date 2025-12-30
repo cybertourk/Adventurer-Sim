@@ -22,7 +22,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.20 (Re-attempt Import Resolution)
+  Version: 1.22 (Quest Tabs & Tier Progression)
   -------------------------------------------------------------------------
 */
 
@@ -144,8 +144,15 @@ export default function App() {
   const [location, setLocation] = useState('village_road'); 
   const [housing, setHousing] = useState('homeless'); 
   const [rentActive, setRentActive] = useState(false); 
+  const [maxTier, setMaxTier] = useState(1); 
+  const [dailyQuests, setDailyQuests] = useState({
+    labor: [],
+    adventure: [],
+    social: []
+  });
 
   const [activeTab, setActiveTab] = useState('actions');
+  const [questTab, setQuestTab] = useState('labor'); // Sub-tab for quests
   const [activeSlot, setActiveSlot] = useState('head');
   const [isPanelOpen, setIsPanelOpen] = useState(false); 
   const [messages, setMessages] = useState([]);
@@ -198,6 +205,28 @@ export default function App() {
     setShopStock(selection);
   };
 
+  const generateDailyQuests = (currentTier) => {
+    const getPool = (db, tier) => {
+       let pool = [];
+       for (let i = 1; i <= tier; i++) {
+         if (db[`tier${i}`]) pool = [...pool, ...db[`tier${i}`]];
+       }
+       return pool;
+    };
+
+    const selectRandom = (pool, count) => {
+       if (!pool || pool.length === 0) return [];
+       const shuffled = [...pool].sort(() => 0.5 - Math.random());
+       return shuffled.slice(0, count);
+    };
+
+    return {
+      labor: selectRandom(getPool(JOB_DB, currentTier), 3),
+      adventure: selectRandom(getPool(ADVENTURE_DB, currentTier), 3),
+      social: selectRandom(getPool(SOCIAL_DB, currentTier), 3)
+    };
+  };
+
   useEffect(() => {
     const saved = localStorage.getItem(SAVE_KEY);
     if (saved) {
@@ -213,11 +242,18 @@ export default function App() {
         setRentActive(parsed.rentActive || false);
         setDays(parsed.days || 1);
         setInventory(parsed.inventory || ['none', 'tunic', 'fist']);
+        setMaxTier(parsed.maxTier || 1);
         
         if (parsed.shopStock && parsed.shopStock.length > 0) {
             setShopStock(parsed.shopStock);
         } else {
             refreshShop();
+        }
+
+        if (parsed.dailyQuests) {
+           setDailyQuests(parsed.dailyQuests);
+        } else {
+           setDailyQuests(generateDailyQuests(parsed.maxTier || 1));
         }
         
         // If we loaded data, game is started
@@ -226,9 +262,11 @@ export default function App() {
       } catch (e) {
         console.error("Failed to load save", e);
         refreshShop();
+        setDailyQuests(generateDailyQuests(1));
       }
     } else {
         refreshShop();
+        setDailyQuests(generateDailyQuests(1));
         setGameStarted(false); // Trigger creation screen
     }
   }, []);
@@ -244,10 +282,10 @@ export default function App() {
       if (housing === 'homeless' && location === 'inn_room') setLocation('village_road');
 
       const gameState = {
-        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, lastSave: Date.now()
+        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, lastSave: Date.now()
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
-  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted]);
+  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests]);
 
   // --- Logic Helpers ---
 
@@ -261,6 +299,8 @@ export default function App() {
 
   const passTime = (daysPassed) => {
       setDays(prev => prev + daysPassed);
+      
+      // Rent Logic
       if (rentActive && housing === 'inn') {
           const totalRent = daysPassed * LOCATIONS.inn_room.dailyCost;
           if (resources.gold >= totalRent) {
@@ -273,6 +313,19 @@ export default function App() {
               addMessage("Evicted! Couldn't pay rent.", 'error');
           }
       }
+
+      // Daily Reset Logic (Shop & Quests)
+      refreshShop();
+      
+      // Tier Unlocking Chance (20%)
+      let currentTier = maxTier;
+      if (Math.random() < 0.20 && currentTier < 3) { // Max tier 3 for now
+          currentTier++;
+          setMaxTier(currentTier);
+          addMessage(`New opportunities unlocked! (Tier ${currentTier})`, 'success');
+      }
+
+      setDailyQuests(generateDailyQuests(currentTier));
   };
 
   const performAction = (action) => {
@@ -548,6 +601,7 @@ export default function App() {
       const newMax = calculateMaxStats(1, attributes.con);
       setStats(prev => ({ ...prev, health: newMax.health }));
       setGameStarted(true);
+      setDailyQuests(generateDailyQuests(1)); // Generate initial quests
   };
 
   // --- VIEW: Character Creation ---
@@ -582,6 +636,7 @@ export default function App() {
                                         ))}
                                     </div>
                                 </div>
+                                {/* ... (Appearance controls kept same) ... */}
                                 <div>
                                     <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Skin Tone</h3>
                                     <div className="flex gap-2">
@@ -734,14 +789,14 @@ export default function App() {
             <div className="flex items-center gap-3 mb-4">
               <div className="p-3 bg-indigo-900/30 rounded-full text-indigo-400"><MapPin size={24} /></div>
               <div>
-                <h3 className="text-lg font-bold text-white">{currentLocData.name}</h3>
-                <span className="text-xs font-mono text-indigo-400 uppercase">{currentLocData.type}</span>
+                <h3 className="text-lg font-bold text-white">{currentLocData?.name}</h3>
+                <span className="text-xs font-mono text-indigo-400 uppercase">{currentLocData?.type}</span>
               </div>
             </div>
-            <p className="text-sm text-slate-300 mb-6 leading-relaxed">{currentLocData.details}</p>
+            <p className="text-sm text-slate-300 mb-6 leading-relaxed">{currentLocData?.details}</p>
             <div className="space-y-3">
               <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Effects & Modifiers</h4>
-              {currentLocData.tips && currentLocData.tips.map((tip, idx) => (
+              {currentLocData?.tips && currentLocData.tips.map((tip, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
                   <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-none ${tip.type === 'bad' ? 'bg-red-500' : 'bg-emerald-500'}`} />
                   <div className="flex-1">
@@ -843,6 +898,10 @@ export default function App() {
             <Backpack size={20} />
             <span className="text-[10px] font-bold">Gear</span>
          </button>
+         <button onClick={() => togglePanel('appearance')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'appearance' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
+            <User size={20} />
+            <span className="text-[10px] font-bold">Look</span>
+         </button>
       </div>
 
       <div className={`fixed md:relative z-40 transition-transform duration-300 ease-out bg-slate-900 border-slate-700 shadow-2xl md:w-72 md:h-full md:border-l md:translate-y-0 bottom-28 left-4 right-4 rounded-2xl border h-[55vh] ${isPanelOpen ? 'translate-y-0' : 'translate-y-[150%] md:translate-x-full md:hidden'}`}>
@@ -851,6 +910,7 @@ export default function App() {
                 {activeTab === 'actions' && <><Activity size={14}/> Actions</>}
                 {activeTab === 'quests' && <><Scroll size={14}/> Quests</>}
                 {activeTab === 'equip' && <><Backpack size={14}/> Equipment</>}
+                {activeTab === 'appearance' && <><User size={14}/> Appearance</>}
              </div>
              <button onClick={() => setIsPanelOpen(false)} className="w-6 h-6 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 hover:text-white">
                <X size={14} />
@@ -860,6 +920,7 @@ export default function App() {
              <button onClick={() => setActiveTab('actions')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'actions' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Actions</button>
              <button onClick={() => setActiveTab('quests')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'quests' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Quests</button>
              <button onClick={() => setActiveTab('equip')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'equip' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Gear</button>
+             <button onClick={() => setActiveTab('appearance')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'appearance' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Look</button>
           </div>
 
           <div className="h-full overflow-y-auto custom-scrollbar p-3 pb-20 md:pb-4">
@@ -894,38 +955,40 @@ export default function App() {
 
             {activeTab === 'quests' && (
               <div className="space-y-2 animate-in fade-in duration-300">
-                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Tier 1 Jobs</div>
-                {JOB_DB.tier1.map(action => (
-                  <ActionButton 
-                    key={action.id} 
-                    {...action} 
-                    icon={ICON_MAP[action.icon] || HelpCircle}
-                    onClick={() => performAction(action)} 
-                    disabled={isDead} 
-                  />
-                ))}
-                <div className="h-px bg-slate-800 my-2" />
-                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2 mt-4">Tier 1 Adventures</div>
-                {ADVENTURE_DB.tier1.map(action => (
-                  <ActionButton 
-                    key={action.id} 
-                    {...action} 
-                    icon={ICON_MAP[action.icon] || HelpCircle}
-                    onClick={() => performAction(action)} 
-                    disabled={isDead} 
-                  />
-                ))}
-                <div className="h-px bg-slate-800 my-2" />
-                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2 mt-4">Social</div>
-                {SOCIAL_DB.tier1.map(action => (
-                  <ActionButton 
-                    key={action.id} 
-                    {...action} 
-                    icon={ICON_MAP[action.icon] || HelpCircle}
-                    onClick={() => performAction(action)} 
-                    disabled={isDead} 
-                  />
-                ))}
+                <div className="flex gap-2 mb-4 p-1 bg-slate-800 rounded-lg">
+                   {['labor', 'adventure', 'social'].map(qt => (
+                      <button key={qt} onClick={() => setQuestTab(qt)} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase transition-colors ${questTab === qt ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>
+                        {qt}
+                      </button>
+                   ))}
+                </div>
+                
+                {questTab === 'labor' && (
+                   <div className="space-y-2">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Available Jobs</div>
+                      {dailyQuests.labor.length > 0 ? dailyQuests.labor.map(action => (
+                        <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
+                      )) : <div className="text-xs text-slate-500 italic p-2">No jobs available today.</div>}
+                   </div>
+                )}
+                
+                {questTab === 'adventure' && (
+                   <div className="space-y-2">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Available Adventures</div>
+                      {dailyQuests.adventure.length > 0 ? dailyQuests.adventure.map(action => (
+                        <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
+                      )) : <div className="text-xs text-slate-500 italic p-2">No adventures available today.</div>}
+                   </div>
+                )}
+                
+                {questTab === 'social' && (
+                   <div className="space-y-2">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Social Opportunities</div>
+                      {dailyQuests.social.length > 0 ? dailyQuests.social.map(action => (
+                        <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
+                      )) : <div className="text-xs text-slate-500 italic p-2">No one wants to talk to you.</div>}
+                   </div>
+                )}
               </div>
             )}
 
@@ -984,6 +1047,28 @@ export default function App() {
                       )
                   )}
               </div>
+            )}
+            {activeTab === 'appearance' && (
+               <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gender</h3>
+                    <div className="flex gap-2">
+                      {['male', 'female'].map(g => (<button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-1.5 rounded border text-[10px] font-bold uppercase ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{g}</button>))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Skin</h3>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {APPEARANCE_OPTIONS.skinTones.map(t => (<button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-6 h-6 rounded-full border-2 ${appearance.skinTone === t.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: t.color }} />))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Hair Style</h3>
+                    <div className="flex gap-2">
+                      {APPEARANCE_OPTIONS.hairStyles.map(s => (<button key={s.id} onClick={() => updateAppearance('hairStyle', s.id)} className={`flex-1 py-1 rounded border text-[10px] font-medium ${appearance.hairStyle === s.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{s.label}</button>))}
+                    </div>
+                  </div>
+               </div>
             )}
           </div>
       </div>
