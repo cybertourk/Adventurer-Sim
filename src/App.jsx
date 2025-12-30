@@ -2,12 +2,12 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Shield, Sword, VenetianMask, Shirt, RotateCcw, User, Palette, 
   Backpack, X, Heart, Zap, Sparkles, Utensils, Coins, 
-  Hammer, Tent, Scroll, Skull, Menu, Activity, Droplets, MapPin, Info, ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine
+  Hammer, Tent, Scroll, Skull, Menu, Activity, Droplets, MapPin, Info, ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2
 } from 'lucide-react';
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.12 (SRD Sync)
+  Version: 1.12 (SRD Sync) + Visuals Restored
   
   This game focuses on how absolutely weird, terrible, and chaotic D&D 
   adventurers are. They make poor choices, have messy relationships, 
@@ -31,7 +31,6 @@ const ITEM_DB = {
     { id: 'leather_armor', name: 'Stiff Cow Skin', type: 'body', stats: { ac: 2 }, cost: 40, description: 'Smells like a tannery.' },
     { id: 'chainmail', name: 'Jingly Shirt', type: 'body', stats: { ac: 5, dex: -2 }, cost: 150, description: 'Loud but protective.' },
     { id: 'plate', name: 'Shiny Can Suit', type: 'body', stats: { ac: 8, dex: -4 }, cost: 500, description: 'I am invincible! (Mostly).' },
-    // Kept Robe for SVG compatibility, but mapped to "Rags" stats if not in SRD or kept as extra
     { id: 'robe', name: 'Mysterious Robe', type: 'body', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing fabric.' },
   ],
   mainHand: [
@@ -136,26 +135,43 @@ const SOCIAL_DB = {
   ]
 };
 
-// Section 4: Locations
+// Section 4: Locations (RESTORED COMPLEX BACKGROUNDS)
 const LOCATIONS = {
   village_road: {
     id: 'village_road',
     name: 'Village Road',
     type: 'homeless',
-    description: 'A Nice Patch of Dirt.',
-    details: "Nature is my blanket. Living on the road is hard on the body.",
+    description: 'Sleeping in the dirt. It is cold.',
+    details: "Living on the road can be hard on the body and mind. Earn some gold to stay at an Inn or save up to buy a home.",
     dailyCost: 0,
     hasFoodService: false, 
     tips: [
-      { label: "Health", text: "Recovers only 5.", type: "bad" },
-      { label: "Stress", text: "Reduces by only 5.", type: "bad" },
-      { label: "Mood", text: "Decreases by 10.", type: "bad" },
+      { label: "Health", text: "Recovers only 5 (instead of 15).", type: "bad" },
+      { label: "Stress", text: "Reduces by only 5 (instead of 20).", type: "bad" },
+      { label: "Mood", text: "Decreases by 10 (because sleeping outside is miserable).", type: "bad" },
+      { label: "Food/Drink", text: "Cannot purchase meals instantly. Must use Inventory.", type: "bad" }
     ],
     renderBackground: () => (
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-amber-900/20" />
-        <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:30px_30px]" />
-        <div className="absolute bottom-0 w-full h-1/3 bg-[#2a2a2a]" />
+        <div className="absolute top-10 left-20 w-1 h-1 bg-white opacity-40 rounded-full" />
+        <div className="absolute top-20 left-1/4 w-0.5 h-0.5 bg-white opacity-60 rounded-full" />
+        <div className="absolute top-5 right-1/3 w-1 h-1 bg-white opacity-30 rounded-full" />
+        <div className="absolute top-10 right-10 w-12 h-12 rounded-full bg-indigo-100/20 blur-xl" />
+        <div className="absolute top-12 right-12 w-8 h-8 rounded-full bg-indigo-50/80 shadow-[0_0_20px_rgba(255,255,255,0.5)]" />
+        <div className="absolute bottom-[35%] left-0 right-0 h-24 bg-slate-900 opacity-40 [clip-path:polygon(0%_100%,0%_20%,20%_0%,50%_30%,80%_10%,100%_40%,100%_100%)]" />
+        <div className="absolute bottom-[35%] left-0 right-0 h-32 flex items-end justify-center gap-1 opacity-60">
+            <div className="w-16 h-12 bg-slate-900 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
+            <div className="w-10 h-24 bg-slate-900 [clip-path:polygon(10%_100%,10%_10%,0%_10%,10%_0%,90%_0%,100%_10%,90%_10%,90%_100%)]" />
+            <div className="w-20 h-16 bg-slate-900 [clip-path:polygon(0%_100%,0%_30%,20%_30%,50%_0%,80%_30%,100%_30%,100%_100%)]" />
+            <div className="w-24" />
+            <div className="w-14 h-14 bg-slate-900 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
+        </div>
+        <div className="absolute bottom-[35%] -left-10 w-32 h-24 bg-slate-950 opacity-80 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
+        <div className="absolute bottom-[35%] -right-10 w-40 h-28 bg-slate-950 opacity-80 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
+        <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-[#3f2e18]" />
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-64 md:w-96 h-[35%] bg-[#5c4026] [clip-path:polygon(20%_0,80%_0,100%_100%,0%_100%)] opacity-80" />
+        <div className="absolute inset-0 bg-radial-gradient(circle_at_center,transparent_0%,#0f172a_100%) opacity-60" />
       </div>
     ),
     modifiers: {
@@ -166,18 +182,26 @@ const LOCATIONS = {
     id: 'inn_room',
     name: 'Rusty Spoon Inn',
     type: 'renting',
-    description: 'Lumpy Mattress (5g/day).',
-    details: "It beats the dirt. Room service available.",
+    description: 'A warm bed and a roof. Costs 5g/day.',
+    details: "A modest room. It smells of ale and old wood, but it beats the rain. Room service is available for a fee.",
     dailyCost: 5,
     hasFoodService: true, 
     tips: [
       { label: "Rest", text: "Full recovery benefits.", type: "good" },
-      { label: "Cost", text: "5 Gold deducted daily.", type: "bad" },
+      { label: "Cost", text: "5 Gold deducted daily automatically.", type: "bad" },
+      { label: "Service", text: "Can order food/drink directly.", type: "good" }
     ],
     renderBackground: () => (
       <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#1a120b]">
-         <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#3f2e18_1px,transparent_1px)] [background-size:20px_20px]" />
-         <div className="absolute top-10 left-10 w-24 h-32 bg-[#0f172a] border-4 border-[#3f2e18] rounded-t-full overflow-hidden" />
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#3f2e18_1px,transparent_1px)] [background-size:20px_20px]" />
+        <div className="absolute top-10 left-10 w-24 h-32 bg-[#0f172a] border-4 border-[#3f2e18] rounded-t-full overflow-hidden">
+           <div className="absolute top-2 right-4 w-4 h-4 bg-white rounded-full opacity-80 shadow-[0_0_10px_white]" />
+           <div className="absolute bottom-0 w-full h-1 bg-black/50" />
+           <div className="absolute w-1 h-full left-1/2 bg-[#3f2e18]" />
+           <div className="absolute h-1 w-full top-1/2 bg-[#3f2e18]" />
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-[25%] bg-[#2a1d10] border-t border-[#3f2e18]" />
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-48 h-12 bg-red-900/40 rounded-[50%]" />
       </div>
     ),
     modifiers: {
@@ -977,6 +1001,13 @@ export default function App() {
       }
   };
 
+  const resetGame = () => {
+    if (confirm("Are you sure you want to reset everything? This cannot be undone.")) {
+      localStorage.removeItem(SAVE_KEY);
+      window.location.reload();
+    }
+  };
+
   return (
     <div className="h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden flex flex-col md:flex-row">
       {activeStatInfo && (
@@ -1064,34 +1095,6 @@ export default function App() {
         </div>
       )}
 
-      {showLocationInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl relative">
-            <button onClick={() => setShowLocationInfo(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X size={20} /></button>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-indigo-900/30 rounded-full text-indigo-400"><MapPin size={24} /></div>
-              <div>
-                <h3 className="text-lg font-bold text-white">{currentLocData.name}</h3>
-                <span className="text-xs font-mono text-indigo-400 uppercase">{currentLocData.type}</span>
-              </div>
-            </div>
-            <p className="text-sm text-slate-300 mb-6 leading-relaxed">{currentLocData.details}</p>
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Effects & Modifiers</h4>
-              {currentLocData.tips && currentLocData.tips.map((tip, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                  <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-none ${tip.type === 'bad' ? 'bg-red-500' : 'bg-emerald-500'}`} />
-                  <div className="flex-1">
-                    <span className="text-xs font-bold text-slate-200 block">{tip.label}</span>
-                    <span className="text-xs text-slate-400 block">{tip.text}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="flex-1 relative bg-slate-900 flex flex-col items-center justify-center overflow-hidden">
           <CurrentSceneBackground />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50 pointer-events-none" />
@@ -1112,6 +1115,9 @@ export default function App() {
                 </div>
              </div>
              <div className="flex gap-2">
+               <button onClick={resetGame} className="p-1.5 md:p-2 bg-red-900/80 rounded-md hover:bg-red-700 text-white transition-colors border border-red-500 shadow-lg" title="Reset Save">
+                  <Trash2 size={14} className="md:w-4 md:h-4" />
+               </button>
                <button onClick={() => setShowShop(true)} className="p-1.5 md:p-2 bg-amber-600/90 rounded-md hover:bg-amber-500 text-white transition-colors border border-amber-400 shadow-lg shadow-amber-500/20">
                   <ShoppingBag size={14} className="md:w-4 md:h-4" />
                </button>
