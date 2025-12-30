@@ -6,7 +6,8 @@ import {
   ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2, Compass
 } from 'lucide-react';
 
-import CharacterSVG from './CharacterSVG';
+// FIX: Added explicit .jsx extension to help build tool resolve the file
+import CharacterSVG from './CharacterSVG.jsx';
 import { 
   ITEM_DB, 
   MAINTENANCE_ACTIONS, 
