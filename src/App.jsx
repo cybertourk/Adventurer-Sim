@@ -6,8 +6,9 @@ import {
   ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2, Compass, Plus, Minus
 } from 'lucide-react';
 
-import CharacterSVG from './CharacterSVG';
-import { getBackground } from './Backgrounds';
+// FIX: Added .jsx and .js extensions to ensure files are found
+import CharacterSVG from './CharacterSVG.jsx';
+import { getBackground } from './Backgrounds.jsx';
 import { 
   ITEM_DB, 
   MAINTENANCE_ACTIONS, 
@@ -18,11 +19,11 @@ import {
   APPEARANCE_OPTIONS, 
   SAVE_KEY, 
   MAX_STAT 
-} from './data';
+} from './data.js';
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.16 (UI Cleanup: Added CON, Removed Look Tab)
+  Version: 1.18 (Strict Imports Fix)
   -------------------------------------------------------------------------
 */
 
@@ -506,7 +507,8 @@ export default function App() {
   };
 
   const CurrentSceneBackground = getBackground(location);
-  const currentLocData = LOCATIONS[location];
+  // FIX: Added safety fallback in case location ID is invalid
+  const currentLocData = LOCATIONS[location] || LOCATIONS['village_road'];
 
   const getStatInfo = (key) => {
       switch(key) {
@@ -647,9 +649,9 @@ export default function App() {
   // --- VIEW: Main Game (Original Render Logic) ---
   return (
     <div className="h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden flex flex-col md:flex-row">
-      {/* ... [Modals] ... */}
+      {/* ... [Modals] - Updated z-index to 100 ... */}
       {activeStatInfo && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in" onClick={() => setActiveStatInfo(null)}>
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in" onClick={() => setActiveStatInfo(null)}>
               <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 shadow-2xl max-w-xs w-full text-center" onClick={e => e.stopPropagation()}>
                   <h3 className="font-bold text-lg text-white mb-1">{getStatInfo(activeStatInfo).title}</h3>
                   <p className="text-sm text-slate-400">{getStatInfo(activeStatInfo).desc}</p>
@@ -659,7 +661,7 @@ export default function App() {
       )}
 
       {showShop && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm animate-in fade-in">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm animate-in fade-in">
           <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl relative flex flex-col h-[70vh]">
             <div className="flex items-center justify-between p-4 border-b border-slate-700">
                 <div className="flex items-center gap-2">
