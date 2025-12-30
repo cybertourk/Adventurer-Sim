@@ -22,7 +22,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.22 (Quest Tabs & Tier Progression)
+  Version: 1.23 (Quest Tabs & Dynamic Daily Generation)
   -------------------------------------------------------------------------
 */
 
@@ -208,6 +208,7 @@ export default function App() {
   const generateDailyQuests = (currentTier) => {
     const getPool = (db, tier) => {
        let pool = [];
+       // Collect all quests from tier 1 up to currentTier
        for (let i = 1; i <= tier; i++) {
          if (db[`tier${i}`]) pool = [...pool, ...db[`tier${i}`]];
        }
@@ -220,10 +221,35 @@ export default function App() {
        return shuffled.slice(0, count);
     };
 
+    // Base quests: 3 from current unlocked tier (and below)
+    let laborQuests = selectRandom(getPool(JOB_DB, currentTier), 3);
+    let adventureQuests = selectRandom(getPool(ADVENTURE_DB, currentTier), 3);
+    let socialQuests = selectRandom(getPool(SOCIAL_DB, currentTier), 3);
+
+    // 20% Chance for ONE bonus quest from Next Tier for THIS DAY ONLY
+    const nextTier = currentTier + 1;
+    // Check if next tier exists in DB before trying to add
+    // Assuming max tier 3 for now based on data.js structure
+    if (Math.random() < 0.20 && nextTier <= 3) {
+       // Randomly pick which category gets the bonus quest
+       const categoryRoll = Math.random();
+       // Only add if the tier exists in the DB
+       if (categoryRoll < 0.33 && JOB_DB[`tier${nextTier}`]) {
+          const bonus = selectRandom(JOB_DB[`tier${nextTier}`], 1);
+          laborQuests = [...laborQuests, ...bonus];
+       } else if (categoryRoll < 0.66 && ADVENTURE_DB[`tier${nextTier}`]) {
+          const bonus = selectRandom(ADVENTURE_DB[`tier${nextTier}`], 1);
+          adventureQuests = [...adventureQuests, ...bonus];
+       } else if (SOCIAL_DB[`tier${nextTier}`]) {
+          const bonus = selectRandom(SOCIAL_DB[`tier${nextTier}`], 1);
+          socialQuests = [...socialQuests, ...bonus];
+       }
+    }
+
     return {
-      labor: selectRandom(getPool(JOB_DB, currentTier), 3),
-      adventure: selectRandom(getPool(ADVENTURE_DB, currentTier), 3),
-      social: selectRandom(getPool(SOCIAL_DB, currentTier), 3)
+      labor: laborQuests,
+      adventure: adventureQuests,
+      social: socialQuests
     };
   };
 
@@ -317,15 +343,21 @@ export default function App() {
       // Daily Reset Logic (Shop & Quests)
       refreshShop();
       
-      // Tier Unlocking Chance (20%)
-      let currentTier = maxTier;
-      if (Math.random() < 0.20 && currentTier < 3) { // Max tier 3 for now
-          currentTier++;
-          setMaxTier(currentTier);
-          addMessage(`New opportunities unlocked! (Tier ${currentTier})`, 'success');
+      // Permanent Tier Unlocking Chance (20%) - separate from daily bonus quest
+      // Note: User clarified they want a daily chance for a single NEXT TIER QUEST, not a permanent unlock.
+      // Adjusting logic: MaxTier only increases on major milestones (not implemented yet), 
+      // but daily generation handles the "bonus quest" chance.
+      
+      // Generate new set of quests (includes the 20% chance for a bonus quest internally)
+      const newQuests = generateDailyQuests(maxTier);
+      
+      // Check if bonus triggered for notification
+      const hasBonus = newQuests.labor.length > 3 || newQuests.adventure.length > 3 || newQuests.social.length > 3;
+      if (hasBonus) {
+          addMessage("A rare opportunity appeared! (Higher Tier Quest)", 'success');
       }
 
-      setDailyQuests(generateDailyQuests(currentTier));
+      setDailyQuests(newQuests);
   };
 
   const performAction = (action) => {
@@ -559,7 +591,6 @@ export default function App() {
   };
 
   const CurrentSceneBackground = getBackground(location);
-  // FIX: Added safety fallback in case location ID is invalid
   const currentLocData = LOCATIONS[location] || LOCATIONS['village_road'];
 
   const getStatInfo = (key) => {
