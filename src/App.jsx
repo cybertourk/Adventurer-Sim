@@ -2,12 +2,12 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { 
   Shield, Sword, VenetianMask, Shirt, RotateCcw, User, Palette, 
   Backpack, X, Heart, Zap, Sparkles, Utensils, Coins, 
-  Hammer, Tent, Scroll, Skull, Menu, Activity, Droplets, MapPin, Info, ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2
+  Hammer, Tent, Scroll, Skull, Menu, Activity, Droplets, MapPin, Info, ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2, Compass
 } from 'lucide-react';
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.12 (SRD Sync) + Visuals Restored
+  Version: 1.13 (UI Split: Actions vs Quests)
   
   This game focuses on how absolutely weird, terrible, and chaotic D&D 
   adventurers are. They make poor choices, have messy relationships, 
@@ -24,7 +24,7 @@ const ITEM_DB = {
     { id: 'leather_cap', name: 'Bad Hair Day Hider', type: 'head', stats: { ac: 1 }, cost: 25, description: 'Basic leather cap.' },
     { id: 'iron_helm', name: 'Bucket with Eye Holes', type: 'head', stats: { ac: 3, dex: -1 }, cost: 60, description: 'Heavy protection.' },
     { id: 'wizard_hat', name: 'Pointy Hat of Smartness', type: 'head', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
-    { id: 'crown', name: 'Crown', type: 'head', stats: { cha: 3 }, cost: 500, description: 'Fit for a king.' }, // Legacy/Extra
+    { id: 'crown', name: 'Crown', type: 'head', stats: { cha: 3 }, cost: 500, description: 'Fit for a king.' }, 
   ],
   body: [
     { id: 'tunic', name: 'Breezy Tunic', type: 'body', stats: { ac: 0 }, cost: 0, description: 'Drafty rags.' },
@@ -130,7 +130,7 @@ const SOCIAL_DB = {
     { id: 'soc_brawl', label: 'Brawl', icon: Zap, cost: 0, days: 1, type: 'social', description: 'Punching Contest.', message: 'Face-to-fist style.', effects: { xp: 15, health: -5, stress: -10, hunger: 10, thirst: 10 } },
   ],
   tier2: [
-    { id: 'soc_gamble', label: 'Gamble', icon: DollarSign, cost: 10, days: 1, type: 'social', description: 'Rolling the Bones.', message: 'Daddy needs a new pair of boots!', effects: { xp: 10, mood: 10, stress: 10 } }, // Logic for win/loss handled in logic layer later
+    { id: 'soc_gamble', label: 'Gamble', icon: DollarSign, cost: 10, days: 1, type: 'social', description: 'Rolling the Bones.', message: 'Daddy needs a new pair of boots!', effects: { xp: 10, mood: 10, stress: 10 } },
     { id: 'soc_bribe', label: 'Bribe Guard', icon: Coins, cost: 20, days: 1, type: 'social', description: 'Greasing Palms.', message: 'Look the other way, pal.', effects: { xp: 30, stress: -10 } },
   ]
 };
@@ -812,7 +812,6 @@ export default function App() {
     const cha = currentStats.cha;
     const stress = stats.stress;
     
-    // Updated simple logic for checks (will be Phase 3)
     if (action.type === 'labor') failChance = 0.20 - (str * 0.01) + (stress * 0.002);
     if (action.type === 'adventure') failChance = 0.50 - ((str + dex + ac) * 0.01) + (stress * 0.002);
     if (action.type === 'social') failChance = 0.30 - ((cha + int) * 0.01) + (stress * 0.002);
@@ -1170,8 +1169,12 @@ export default function App() {
 
       <div className="fixed bottom-8 left-6 right-6 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-96 h-16 bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl flex justify-around items-center z-50">
          <button onClick={() => togglePanel('actions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'actions' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
-            <Scroll size={20} />
+            <Activity size={20} />
             <span className="text-[10px] font-bold">Actions</span>
+         </button>
+         <button onClick={() => togglePanel('quests')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'quests' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
+            <Scroll size={20} />
+            <span className="text-[10px] font-bold">Quests</span>
          </button>
          <button onClick={() => togglePanel('equip')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'equip' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
             <Backpack size={20} />
@@ -1186,7 +1189,8 @@ export default function App() {
       <div className={`fixed md:relative z-40 transition-transform duration-300 ease-out bg-slate-900 border-slate-700 shadow-2xl md:w-72 md:h-full md:border-l md:translate-y-0 bottom-28 left-4 right-4 rounded-2xl border h-[55vh] ${isPanelOpen ? 'translate-y-0' : 'translate-y-[150%] md:translate-x-full md:hidden'}`}>
           <div className="flex items-center justify-between p-3 border-b border-slate-800 bg-slate-800/50 rounded-t-2xl md:rounded-none">
              <div className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                {activeTab === 'actions' && <><Scroll size={14}/> Actions</>}
+                {activeTab === 'actions' && <><Activity size={14}/> Actions</>}
+                {activeTab === 'quests' && <><Scroll size={14}/> Quests</>}
                 {activeTab === 'equip' && <><Backpack size={14}/> Equipment</>}
                 {activeTab === 'appearance' && <><User size={14}/> Appearance</>}
              </div>
@@ -1196,6 +1200,7 @@ export default function App() {
           </div>
           <div className="hidden md:flex border-b border-slate-800">
              <button onClick={() => setActiveTab('actions')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'actions' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Actions</button>
+             <button onClick={() => setActiveTab('quests')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'quests' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Quests</button>
              <button onClick={() => setActiveTab('equip')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'equip' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Gear</button>
              <button onClick={() => setActiveTab('appearance')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'appearance' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Look</button>
           </div>
@@ -1221,15 +1226,21 @@ export default function App() {
                 {MAINTENANCE_ACTIONS.map(action => (
                   <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead} />
                 ))}
-                <div className="h-px bg-slate-800 my-2" />
+              </div>
+            )}
+
+            {activeTab === 'quests' && (
+              <div className="space-y-2 animate-in fade-in duration-300">
                 <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Tier 1 Jobs</div>
                 {JOB_DB.tier1.map(action => (
                   <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead} />
                 ))}
+                <div className="h-px bg-slate-800 my-2" />
                 <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2 mt-4">Tier 1 Adventures</div>
                 {ADVENTURE_DB.tier1.map(action => (
                   <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead} />
                 ))}
+                <div className="h-px bg-slate-800 my-2" />
                 <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2 mt-4">Social</div>
                 {SOCIAL_DB.tier1.map(action => (
                   <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead} />
