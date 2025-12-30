@@ -22,7 +22,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.23 (Quest Tabs & Dynamic Daily Generation)
+  Version: 1.25 (SRD v1.12 Match - Phases 2 & 3)
   -------------------------------------------------------------------------
 */
 
@@ -306,6 +306,7 @@ export default function App() {
       }
       if (housing === 'inn' && location === 'village_road') setLocation('inn_room');
       if (housing === 'homeless' && location === 'inn_room') setLocation('village_road');
+      if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       const gameState = {
         attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, lastSave: Date.now()
@@ -327,16 +328,19 @@ export default function App() {
       setDays(prev => prev + daysPassed);
       
       // Rent Logic
-      if (rentActive && housing === 'inn') {
-          const totalRent = daysPassed * LOCATIONS.inn_room.dailyCost;
-          if (resources.gold >= totalRent) {
-              setResources(prev => ({ ...prev, gold: prev.gold - totalRent }));
-              addMessage(`Paid rent: -${totalRent}g`, 'info');
-          } else {
-              setHousing('homeless');
-              setRentActive(false);
-              setStats(prev => ({ ...prev, mood: Math.max(0, prev.mood - 20) })); 
-              addMessage("Evicted! Couldn't pay rent.", 'error');
+      if (rentActive) {
+          const locId = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : null;
+          if (locId && LOCATIONS[locId]) {
+             const totalRent = daysPassed * LOCATIONS[locId].dailyCost;
+             if (resources.gold >= totalRent) {
+                  setResources(prev => ({ ...prev, gold: prev.gold - totalRent }));
+                  addMessage(`Paid rent: -${totalRent}g`, 'info');
+             } else {
+                  setHousing('homeless');
+                  setRentActive(false);
+                  setStats(prev => ({ ...prev, mood: Math.max(0, prev.mood - 20) })); 
+                  addMessage("Evicted! Couldn't pay rent.", 'error');
+             }
           }
       }
 
@@ -423,16 +427,28 @@ export default function App() {
     let isSuccess = true;
     let failChance = 0;
     
+    // Stats for Risk Calculation (SRD v1.12)
     const ac = currentStats.ac;
     const str = currentStats.str;
     const dex = currentStats.dex;
-    const int = currentStats.int;
+    const int = currentStats.int; // Currently used for potential future magic, but good to have
+    const con = currentStats.con;
     const cha = currentStats.cha;
     const stress = stats.stress;
     
-    if (action.type === 'labor') failChance = 0.20 - (str * 0.01) + (stress * 0.002);
-    if (action.type === 'adventure') failChance = 0.50 - ((str + dex + ac) * 0.01) + (stress * 0.002);
-    if (action.type === 'social') failChance = 0.30 - ((cha + int) * 0.01) + (stress * 0.002);
+    // Updated Formulas based on Phase 3
+    if (action.type === 'labor') {
+        // Labor uses STR + CON
+        failChance = 0.20 - ((str + con) * 0.01) + (stress * 0.002);
+    }
+    else if (action.type === 'adventure') {
+        // Adventure uses STR + DEX + AC
+        failChance = 0.40 - ((str + dex + ac) * 0.01) + (stress * 0.002);
+    }
+    else if (action.type === 'social') {
+        // Social uses CHA (heavily weighted)
+        failChance = 0.20 - (cha * 0.02) + (stress * 0.002);
+    }
 
     failChance = Math.max(0.05, Math.min(0.95, failChance));
     
@@ -440,7 +456,7 @@ export default function App() {
         if (Math.random() < failChance) isSuccess = false;
     }
 
-    const currentLocId = housing === 'inn' ? 'inn_room' : 'village_road';
+    const currentLocId = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : 'village_road';
     const loc = LOCATIONS[currentLocId];
     const locMod = loc && loc.modifiers && loc.modifiers[action.id] ? loc.modifiers[action.id] : {};
 
@@ -464,6 +480,7 @@ export default function App() {
             const newXp = prev.xp + action.effects.xp;
             const newGold = prev.gold + (action.effects.gold || 0);
             let newLevel = prev.level;
+            // XP Formula: Next Level = Current Level * 100
             if (newXp >= prev.level * 100) {
               newLevel++;
               addMessage(`Level Up! You are now level ${newLevel}`, "success");
@@ -586,9 +603,9 @@ export default function App() {
   };
 
   const CurrentSceneBackground = getBackground(location);
-  // FIX: Added safety fallback in case location ID is invalid
   const currentLocData = LOCATIONS[location] || LOCATIONS['village_road'];
 
+  // Updated to match SRD v1.12 Descriptions
   const getStatInfo = (key) => {
       switch(key) {
           case 'health': return { title: 'Health', desc: 'If this reaches 0, you die.', good: 'High' };
@@ -597,11 +614,11 @@ export default function App() {
           case 'thirst': return { title: 'Thirst', desc: 'If this reaches max, you dehydrate.', good: 'Low' };
           case 'stress': return { title: 'Stress', desc: 'Mental strain. High stress triggers breakdown.', good: 'Low' };
           case 'ac': return { title: 'AC', desc: 'Armor Class. Dodge/Deflect attacks.', good: 'High' };
-          case 'str': return { title: 'STR', desc: 'Strength. Melee & Labor.', good: 'High' };
-          case 'dex': return { title: 'DEX', desc: 'Dexterity. Ranged & Dodge.', good: 'High' };
-          case 'con': return { title: 'CON', desc: 'Constitution. Health & Endurance.', good: 'High' };
-          case 'int': return { title: 'INT', desc: 'Intelligence. Magic & Smarts.', good: 'High' };
-          case 'cha': return { title: 'CHA', desc: 'Charisma. Social & Luck.', good: 'High' };
+          case 'str': return { title: 'STR', desc: 'Strength. Reduces Risk for Labor and Adventure (Melee).', good: 'High' };
+          case 'dex': return { title: 'DEX', desc: 'Dexterity. Reduces Risk for Adventure (Dodge/Traps).', good: 'High' };
+          case 'con': return { title: 'CON', desc: 'Constitution. Increases Health. Reduces Risk for Labor.', good: 'High' };
+          case 'int': return { title: 'INT', desc: 'Intelligence. Reduces Risk for Magic Jobs.', good: 'High' };
+          case 'cha': return { title: 'CHA', desc: 'Charisma. Reduces Risk for Socialize actions.', good: 'High' };
           default: return { title: key.toUpperCase(), desc: 'Attribute' };
       }
   };
@@ -727,10 +744,10 @@ export default function App() {
       );
   }
 
-  // --- VIEW: Main Game (Original Render Logic) ---
+  // --- VIEW: Main Game ---
   return (
     <div className="h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden flex flex-col md:flex-row">
-      {/* ... [Modals] - Updated z-index to 100 ... */}
+      {/* ... [Modals] ... */}
       {activeStatInfo && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in" onClick={() => setActiveStatInfo(null)}>
               <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 shadow-2xl max-w-xs w-full text-center" onClick={e => e.stopPropagation()}>
@@ -953,14 +970,14 @@ export default function App() {
           <div className="h-full overflow-y-auto custom-scrollbar p-3 pb-20 md:pb-4">
             {activeTab === 'actions' && (
               <div className="space-y-2 animate-in fade-in duration-300">
-                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Location: {housing === 'inn' ? 'Rented Room' : 'Homeless'}</div>
+                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Location: {housing === 'inn' ? 'Rented Room' : housing === 'estate' ? 'Estate' : 'Homeless'}</div>
                 {housing === 'homeless' && (
                     <button onClick={() => performAction({ id: 'rent_start' })} className="w-full flex items-center justify-between p-3 rounded-lg border border-amber-600/50 bg-amber-900/20 hover:bg-amber-900/40 text-amber-200">
                         <div className="flex flex-col text-left"><span className="text-xs font-bold">Rent Room at Inn</span><span className="text-[9px] opacity-70">Auto-pay 5g/day. Better rest.</span></div>
                         <span className="text-xs font-mono font-bold">-5g</span>
                     </button>
                 )}
-                {housing === 'inn' && (
+                {(housing === 'inn' || housing === 'estate') && (
                     <button onClick={() => performAction({ id: 'rent_stop' })} className="w-full flex items-center justify-between p-3 rounded-lg border border-slate-600 bg-slate-800 hover:bg-slate-700 text-slate-300">
                         <div className="flex flex-col text-left"><span className="text-xs font-bold">Check Out</span><span className="text-[9px] opacity-70">Stop paying rent. Become homeless.</span></div>
                         <Key size={14} />
