@@ -22,7 +22,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.25 (SRD v1.12 Match - Phases 2 & 3)
+  Version: 1.26 (Restored Eye Picker)
   -------------------------------------------------------------------------
 */
 
@@ -680,12 +680,19 @@ export default function App() {
                                         ))}
                                     </div>
                                 </div>
-                                {/* ... (Appearance controls kept same) ... */}
                                 <div>
                                     <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Skin Tone</h3>
                                     <div className="flex gap-2">
                                         {APPEARANCE_OPTIONS.skinTones.map(t => (
                                             <button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-8 h-8 rounded-full border-2 ${appearance.skinTone === t.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: t.color }} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Eye Color</h3>
+                                    <div className="flex gap-2 flex-wrap">
+                                        {APPEARANCE_OPTIONS.eyeColors.map(c => (
+                                            <button key={c.id} onClick={() => updateAppearance('eyeColor', c.id)} className={`w-6 h-6 rounded-full border-2 ${appearance.eyeColor === c.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.color }} />
                                         ))}
                                     </div>
                                 </div>
