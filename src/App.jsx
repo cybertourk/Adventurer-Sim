@@ -6,9 +6,8 @@ import {
   ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2, Compass, Plus, Minus
 } from 'lucide-react';
 
-// FIX: Added explicit extensions to ensure the build tool can find these files
-import CharacterSVG from './CharacterSVG.jsx';
-import { getBackground } from './Backgrounds.jsx';
+import CharacterSVG from './CharacterSVG';
+import { getBackground } from './Backgrounds';
 import { 
   ITEM_DB, 
   MAINTENANCE_ACTIONS, 
@@ -19,11 +18,11 @@ import {
   APPEARANCE_OPTIONS, 
   SAVE_KEY, 
   MAX_STAT 
-} from './data.js';
+} from './data';
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.15 (Phase 2: Character Creation & Attributes)
+  Version: 1.16 (UI Cleanup: Added CON, Removed Look Tab)
   -------------------------------------------------------------------------
 */
 
@@ -727,34 +726,6 @@ export default function App() {
         </div>
       )}
 
-      {showLocationInfo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl relative">
-            <button onClick={() => setShowLocationInfo(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X size={20} /></button>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-indigo-900/30 rounded-full text-indigo-400"><MapPin size={24} /></div>
-              <div>
-                <h3 className="text-lg font-bold text-white">{currentLocData.name}</h3>
-                <span className="text-xs font-mono text-indigo-400 uppercase">{currentLocData.type}</span>
-              </div>
-            </div>
-            <p className="text-sm text-slate-300 mb-6 leading-relaxed">{currentLocData.details}</p>
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Effects & Modifiers</h4>
-              {currentLocData.tips && currentLocData.tips.map((tip, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                  <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-none ${tip.type === 'bad' ? 'bg-red-500' : 'bg-emerald-500'}`} />
-                  <div className="flex-1">
-                    <span className="text-xs font-bold text-slate-200 block">{tip.label}</span>
-                    <span className="text-xs text-slate-400 block">{tip.text}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="flex-1 relative bg-slate-900 flex flex-col items-center justify-center overflow-hidden">
           <CurrentSceneBackground />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50 pointer-events-none" />
@@ -801,6 +772,7 @@ export default function App() {
                  <StatBlock label="AC" value={currentStats.ac} onClick={() => setActiveStatInfo('ac')} />
                  <StatBlock label="STR" value={currentStats.str} subValue={currentStats.str - attributes.str > 0 ? currentStats.str - attributes.str : undefined} onClick={() => setActiveStatInfo('str')} />
                  <StatBlock label="DEX" value={currentStats.dex} subValue={currentStats.dex - attributes.dex > 0 ? currentStats.dex - attributes.dex : undefined} onClick={() => setActiveStatInfo('dex')} />
+                 <StatBlock label="CON" value={currentStats.con} subValue={currentStats.con - attributes.con > 0 ? currentStats.con - attributes.con : undefined} onClick={() => setActiveStatInfo('con')} />
                  <StatBlock label="INT" value={currentStats.int} subValue={currentStats.int - attributes.int > 0 ? currentStats.int - attributes.int : undefined} onClick={() => setActiveStatInfo('int')} />
                  <StatBlock label="CHA" value={currentStats.cha} subValue={currentStats.cha - attributes.cha > 0 ? currentStats.cha - attributes.cha : undefined} onClick={() => setActiveStatInfo('cha')} />
              </div>
@@ -842,10 +814,6 @@ export default function App() {
             <Backpack size={20} />
             <span className="text-[10px] font-bold">Gear</span>
          </button>
-         <button onClick={() => togglePanel('appearance')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'appearance' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
-            <User size={20} />
-            <span className="text-[10px] font-bold">Look</span>
-         </button>
       </div>
 
       <div className={`fixed md:relative z-40 transition-transform duration-300 ease-out bg-slate-900 border-slate-700 shadow-2xl md:w-72 md:h-full md:border-l md:translate-y-0 bottom-28 left-4 right-4 rounded-2xl border h-[55vh] ${isPanelOpen ? 'translate-y-0' : 'translate-y-[150%] md:translate-x-full md:hidden'}`}>
@@ -854,7 +822,6 @@ export default function App() {
                 {activeTab === 'actions' && <><Activity size={14}/> Actions</>}
                 {activeTab === 'quests' && <><Scroll size={14}/> Quests</>}
                 {activeTab === 'equip' && <><Backpack size={14}/> Equipment</>}
-                {activeTab === 'appearance' && <><User size={14}/> Appearance</>}
              </div>
              <button onClick={() => setIsPanelOpen(false)} className="w-6 h-6 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 hover:text-white">
                <X size={14} />
@@ -864,7 +831,6 @@ export default function App() {
              <button onClick={() => setActiveTab('actions')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'actions' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Actions</button>
              <button onClick={() => setActiveTab('quests')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'quests' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Quests</button>
              <button onClick={() => setActiveTab('equip')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'equip' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Gear</button>
-             <button onClick={() => setActiveTab('appearance')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'appearance' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Look</button>
           </div>
 
           <div className="h-full overflow-y-auto custom-scrollbar p-3 pb-20 md:pb-4">
@@ -989,28 +955,6 @@ export default function App() {
                       )
                   )}
               </div>
-            )}
-            {activeTab === 'appearance' && (
-               <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="space-y-1">
-                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gender</h3>
-                    <div className="flex gap-2">
-                      {['male', 'female'].map(g => (<button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-1.5 rounded border text-[10px] font-bold uppercase ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{g}</button>))}
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Skin</h3>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {APPEARANCE_OPTIONS.skinTones.map(t => (<button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-6 h-6 rounded-full border-2 ${appearance.skinTone === t.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: t.color }} />))}
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Hair Style</h3>
-                    <div className="flex gap-2">
-                      {APPEARANCE_OPTIONS.hairStyles.map(s => (<button key={s.id} onClick={() => updateAppearance('hairStyle', s.id)} className={`flex-1 py-1 rounded border text-[10px] font-medium ${appearance.hairStyle === s.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{s.label}</button>))}
-                    </div>
-                  </div>
-               </div>
             )}
           </div>
       </div>
