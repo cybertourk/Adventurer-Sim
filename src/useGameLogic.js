@@ -6,6 +6,7 @@ import {
   SOCIAL_DB, 
   LOCATIONS, 
   AUTONOMY_EVENTS,
+  QUIRKS,
   SAVE_KEY 
 } from './data';
 
@@ -21,6 +22,8 @@ export const useGameLogic = () => {
   const [attributes, setAttributes] = useState({
     str: 10, dex: 10, con: 10, int: 10, cha: 10
   });
+
+  const [quirk, setQuirk] = useState(null); 
 
   const [stats, setStats] = useState({
     hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0   
@@ -54,7 +57,7 @@ export const useGameLogic = () => {
 
   const [messages, setMessages] = useState([]);
   const [isDead, setIsDead] = useState(false);
-  const [dailyLogs, setDailyLogs] = useState([]); // Array of Morning Reports
+  const [dailyLogs, setDailyLogs] = useState([]); 
 
   // --- Derived Stats ---
 
@@ -70,6 +73,7 @@ export const useGameLogic = () => {
 
   const currentStats = useMemo(() => {
     let total = { ...attributes, ac: 10 }; 
+    
     Object.keys(equipped).forEach(slot => {
       const itemId = equipped[slot];
       const item = ITEM_DB[slot].find(i => i.id === itemId);
@@ -80,8 +84,15 @@ export const useGameLogic = () => {
         });
       }
     });
+
+    if (quirk && quirk.effects && quirk.effects.stats) {
+        Object.entries(quirk.effects.stats).forEach(([stat, val]) => {
+            if (total[stat] !== undefined) total[stat] += val;
+        });
+    }
+
     return total;
-  }, [equipped, attributes]);
+  }, [equipped, attributes, quirk]);
 
   const maxStats = useMemo(() => calculateMaxStats(resources.level, attributes.con), [resources.level, attributes.con]);
 
@@ -93,6 +104,10 @@ export const useGameLogic = () => {
     setTimeout(() => {
       setMessages(prev => prev.filter(m => m.id !== id));
     }, 3000);
+  };
+
+  const addToLog = (logEntry) => {
+      setDailyLogs(prev => [{ ...logEntry, id: Date.now() }, ...prev]);
   };
 
   const refreshShop = () => {
@@ -140,27 +155,21 @@ export const useGameLogic = () => {
   // --- Autonomy System ---
 
   const checkAutonomy = (currentMood, currentStress) => {
-      // Safe Zone: Mood > 40 AND Stress < 60
       if (currentMood > 40 && currentStress < 60) return 'safe';
-      
-      // Crisis Zone: Mood < 10 OR Stress > 90
       if (currentMood < 10 || currentStress > 90) return 'crisis';
-      
-      // Risk Zone: Everything else (Mood < 30 OR Stress > 70 generally)
       return 'risk';
   };
 
   const runAutonomyEvent = (zone) => {
       let event = null;
       let chance = 0;
-
-      if (zone === 'safe') chance = 0.05; // 5% chance of random minor incident even when safe
-      if (zone === 'risk') chance = 0.30; // 30% chance
-      if (zone === 'crisis') chance = 0.70; // 70% chance
+      
+      if (zone === 'safe') chance = 0.05;
+      if (zone === 'risk') chance = 0.30;
+      if (zone === 'crisis') chance = 0.70;
 
       if (Math.random() > chance) return null;
 
-      // Select Event Pool
       const pool = zone === 'crisis' ? AUTONOMY_EVENTS.major : AUTONOMY_EVENTS.minor;
       event = pool[Math.floor(Math.random() * pool.length)];
 
@@ -186,6 +195,7 @@ export const useGameLogic = () => {
         setInventory(parsed.inventory || ['none', 'tunic', 'fist']);
         setMaxTier(parsed.maxTier || 1);
         setDailyLogs(parsed.dailyLogs || []);
+        setQuirk(parsed.quirk || null); 
         
         if (parsed.shopStock && parsed.shopStock.length > 0) setShopStock(parsed.shopStock);
         else refreshShop();
@@ -218,15 +228,14 @@ export const useGameLogic = () => {
       if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       const gameState = {
-        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, lastSave: Date.now()
+        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, quirk, lastSave: Date.now()
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
-  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs]);
+  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs, quirk]);
 
   // --- Actions ---
 
   const passTime = (daysPassed) => {
-      // 1. Calculate Rent / Housing Status
       let rentMsg = "No rent paid (Homeless).";
       let housingEffect = { health: 0, stress: 0 };
       
@@ -238,7 +247,6 @@ export const useGameLogic = () => {
                   setResources(prev => ({ ...prev, gold: prev.gold - totalRent }));
                   rentMsg = `Paid rent: -${totalRent}g at ${LOCATIONS[locId].name}.`;
                   
-                  // Apply Rest modifiers from location
                   if (LOCATIONS[locId].modifiers && LOCATIONS[locId].modifiers.rest) {
                       const mod = LOCATIONS[locId].modifiers.rest;
                       setStats(prev => ({
@@ -258,7 +266,6 @@ export const useGameLogic = () => {
              }
           }
       } else {
-          // Homeless Rest Modifiers
           const mod = LOCATIONS.village_road.modifiers.rest;
           setStats(prev => ({
               ...prev,
@@ -270,15 +277,13 @@ export const useGameLogic = () => {
           rentMsg = "Slept outside. It was cold.";
       }
 
-      // 2. Autonomy Check
       const zone = checkAutonomy(stats.mood, stats.stress);
       const incident = runAutonomyEvent(zone);
       let incidentMsg = "Nothing purely chaotic happened.";
       
       if (incident) {
-          incidentMsg = incident.text; // The first-person quote
+          incidentMsg = incident.text; 
           
-          // Apply Incident Effects
           const fx = incident.effects;
           if (fx) {
               setStats(prev => ({
@@ -299,13 +304,11 @@ export const useGameLogic = () => {
               }
 
               if (fx.equipmentLoss) {
-                  // Logic to lose a random item
                   const slots = ['head', 'body', 'mainHand', 'offHand'];
                   const randomSlot = slots[Math.floor(Math.random() * slots.length)];
                   const itemId = equipped[randomSlot];
                   if (itemId !== 'none' && itemId !== 'fist' && itemId !== 'tunic') {
-                      setEquipped(prev => ({ ...prev, [randomSlot]: 'none' })); // Unequip
-                      // Ideally remove from inventory too, but keeping it simple: just unequip/lost
+                      setEquipped(prev => ({ ...prev, [randomSlot]: 'none' })); 
                       incidentMsg += ` (Lost ${itemId})`;
                   }
               }
@@ -313,23 +316,22 @@ export const useGameLogic = () => {
           addMessage("Something happened last night...", "warning");
       }
 
-      // 3. Generate Report
-      const report = {
-          id: Date.now(), // Unique ID
+      if (quirk && quirk.id === 'kleptomaniac' && Math.random() < (quirk.effects.junkChance || 0)) {
+          incidentMsg += " Also... found some shiny trash.";
+      }
+
+      addToLog({
+          type: 'morning',
           day: days,
           sleepLoc: housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Outside',
           rent: rentMsg,
           incidentTitle: incident ? incident.title : "Uneventful Night",
           incidentText: incidentMsg,
           status: `Health ${housingEffect.health > 0 ? '+' : ''}${housingEffect.health}, Stress ${housingEffect.stress}, Mood ${housingEffect.mood}`
-      };
-      
-      // Add to log history (Newest first)
-      setDailyLogs(prev => [report, ...prev]);
+      });
       
       setDays(prev => prev + daysPassed);
       
-      // 4. Daily Reset
       refreshShop();
       const newQuests = generateDailyQuests(maxTier);
       const hasBonus = newQuests.labor.length > 3 || newQuests.adventure.length > 3 || newQuests.social.length > 3;
@@ -340,12 +342,18 @@ export const useGameLogic = () => {
   const performAction = (action) => {
     if (isDead) return;
 
+    if (quirk && quirk.effects.bannedJobs && quirk.effects.bannedJobs.includes(action.id)) {
+        addMessage("I don't get it. Too complicated.", "error");
+        return;
+    }
+
     if (action.id === 'rent_start') {
         if (resources.gold >= 5) {
             setHousing('inn');
             setRentActive(true);
             setResources(prev => ({ ...prev, gold: prev.gold - 5 })); 
             addMessage("Rented room at Rusty Spoon.", 'success');
+            addToLog({ type: 'action', day: days, title: 'Housing', text: 'Rented a room at the Rusty Spoon.' });
         } else {
             addMessage("Not enough gold to rent room.", 'error');
         }
@@ -356,6 +364,7 @@ export const useGameLogic = () => {
         setHousing('homeless');
         setRentActive(false);
         addMessage("Checked out of Inn.", 'info');
+        addToLog({ type: 'action', day: days, title: 'Housing', text: 'Checked out of the inn.' });
         return;
     }
 
@@ -379,6 +388,7 @@ export const useGameLogic = () => {
                   stress: Math.max(0, Math.min(maxStats.stress, prev.stress + (effects.stress || 0)))
                 }));
                 addMessage(`Consumed ${itemToConsume.name}`, 'success');
+                addToLog({ type: 'action', day: days, title: 'Consumable', text: `Consumed ${itemToConsume.name}.` });
                 return; 
             }
         }
@@ -389,13 +399,18 @@ export const useGameLogic = () => {
         }
     }
 
-    if (action.costType === 'gp' && resources.gold < action.cost) {
+    let cost = action.cost;
+    if (quirk && quirk.id === 'lightweight' && (action.id === 'tavern' || action.id === 'drink')) {
+        cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
+    }
+
+    if (action.costType === 'gp' && resources.gold < cost) {
       addMessage("Not enough gold!", "error");
       return;
     }
 
-    if (action.cost > 0 && action.costType === 'gp') {
-      setResources(prev => ({ ...prev, gold: prev.gold - action.cost }));
+    if (cost > 0 && action.costType === 'gp') {
+      setResources(prev => ({ ...prev, gold: prev.gold - cost }));
     }
 
     if (action.days > 0) {
@@ -439,22 +454,41 @@ export const useGameLogic = () => {
     };
 
     if (isSuccess) {
+        let moodGain = getEffect('mood');
+        if (quirk && quirk.id === 'drama_queen' && moodGain > 0) {
+            moodGain *= (quirk.effects.moodMultiplier || 1);
+        }
+
         setStats(prev => ({
           health: Math.max(0, Math.min(maxStats.health, prev.health + getEffect('health'))),
-          mood: Math.max(0, Math.min(maxStats.mood, prev.mood + getEffect('mood'))),
+          mood: Math.max(0, Math.min(maxStats.mood, prev.mood + moodGain)),
           hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + getEffect('hunger'))),
           thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + getEffect('thirst'))),
           stress: Math.max(0, Math.min(maxStats.stress, prev.stress + getEffect('stress')))
         }));
 
+        let logText = action.message || "Completed action.";
+        let lootText = "";
+
         if (action.effects.xp) {
           setResources(prev => {
             const newXp = prev.xp + action.effects.xp;
-            const newGold = prev.gold + (action.effects.gold || 0);
+            let goldGain = action.effects.gold || 0;
+
+            if (action.type === 'social' && quirk && quirk.id === 'sticky_fingers') {
+                if (Math.random() < (quirk.effects.socialGoldChance || 0)) {
+                    goldGain += 5;
+                    addMessage("Swiped some extra coin!", "success");
+                    lootText += " (Bonus 5g)";
+                }
+            }
+
+            const newGold = prev.gold + goldGain;
             let newLevel = prev.level;
             if (newXp >= prev.level * 100) {
               newLevel++;
               addMessage(`Level Up! You are now level ${newLevel}`, "success");
+              lootText += " LEVEL UP!";
             }
             return { ...prev, xp: newXp, gold: newGold, level: newLevel };
           });
@@ -471,14 +505,20 @@ export const useGameLogic = () => {
              } else {
                  setInventory(prev => [...prev, foundItem.id]);
                  addMessage(`Loot: Found ${foundItem.name}!`, 'success');
+                 lootText += ` Found: ${foundItem.name}`;
              }
            }
         }
+
+        addToLog({ type: 'action', day: days, title: action.label, text: logText + lootText, status: 'Success' });
+
     } else {
         let failMsg = "Failed!";
+        let stressGain = 0;
+
         if (action.type === 'labor') {
             failMsg = "Screwed up the job. No pay.";
-            setStats(prev => ({ ...prev, stress: Math.min(100, prev.stress + 10) }));
+            stressGain = 10;
         } 
         else if (action.type === 'adventure') {
             failMsg = "Defeated! Retreated with wounds.";
@@ -494,7 +534,18 @@ export const useGameLogic = () => {
             failMsg = "Made a total fool of yourself.";
             setStats(prev => ({ ...prev, mood: Math.max(0, prev.mood - 20) }));
         }
+
+        if (quirk && quirk.id === 'drama_queen') {
+            stressGain *= (quirk.effects.stressFailureMultiplier || 1);
+        }
+        
+        if (stressGain > 0) {
+            setStats(prev => ({ ...prev, stress: Math.min(100, prev.stress + stressGain) }));
+        }
+
         addMessage(failMsg, "error");
+        addToLog({ type: 'action', day: days, title: action.label, text: failMsg, status: 'Failed' });
+
         if (action.days > 0) refreshShop();
         return; 
     }
@@ -510,13 +561,20 @@ export const useGameLogic = () => {
     setHousing('homeless'); 
     setRentActive(false);
     addMessage("Revived... destitute.", "info");
+    addToLog({ type: 'action', day: days, title: 'Revived', text: 'I have returned from the dead. Ouch.', status: 'Revived' });
   };
 
   const buyItem = (item) => {
-    if (resources.gold >= item.cost) {
-      setResources(prev => ({ ...prev, gold: prev.gold - item.cost }));
+    let cost = item.cost;
+    if (quirk && quirk.id === 'lightweight' && (item.type === 'drink' || item.id === 'ale' || item.id === 'wine')) {
+        cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
+    }
+
+    if (resources.gold >= cost) {
+      setResources(prev => ({ ...prev, gold: prev.gold - cost }));
       setInventory(prev => [...prev, item.id]);
       addMessage(`Purchased ${item.name}`, 'success');
+      addToLog({ type: 'action', day: days, title: 'Shop', text: `Bought ${item.name} for ${cost}g.` });
     } else {
       addMessage("Not enough gold!", 'error');
     }
@@ -532,6 +590,7 @@ export const useGameLogic = () => {
         setInventory(newInv);
     }
     addMessage(`Sold ${item.name} for ${sellValue}g`, 'success');
+    addToLog({ type: 'action', day: days, title: 'Shop', text: `Sold ${item.name} for ${sellValue}g.` });
   };
 
   const equipItem = (item) => {
@@ -553,6 +612,7 @@ export const useGameLogic = () => {
             stress: Math.max(0, Math.min(maxStats.stress, prev.stress + (effects.stress || 0)))
           }));
           addMessage(`Consumed ${item.name}`, 'success');
+          addToLog({ type: 'action', day: days, title: 'Inventory', text: `Ate/Drank ${item.name}.` });
       }
   };
 
@@ -573,8 +633,16 @@ export const useGameLogic = () => {
   const startGame = () => {
       const newMax = calculateMaxStats(1, attributes.con);
       setStats(prev => ({ ...prev, health: newMax.health }));
+      
+      const randomQuirk = QUIRKS[Math.floor(Math.random() * QUIRKS.length)];
+      setQuirk(randomQuirk);
+      
       setGameStarted(true);
       setDailyQuests(generateDailyQuests(1)); 
+      
+      setTimeout(() => {
+          alert(`You were born with a trait: ${randomQuirk.name}\n${randomQuirk.desc}`);
+      }, 500);
   };
 
   const resetGame = () => {
@@ -603,7 +671,8 @@ export const useGameLogic = () => {
     isDead,
     maxStats,
     currentStats,
-    dailyLogs, setDailyLogs, // Exported logs instead of log
+    dailyLogs, setDailyLogs, 
+    quirk,
     performAction,
     revive,
     buyItem,
