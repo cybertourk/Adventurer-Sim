@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   Shield, Sword, VenetianMask, Shirt, User, Backpack, X, 
   Activity, Scroll, MapPin, ShoppingBag, DollarSign, HelpCircle, 
-  Key, Apple, Beer, Wine, Heart, Trash2, Coins, Sun, Skull, Brain
+  Key, Apple, Beer, Wine, Heart, Trash2, Coins, Sun, Skull, Brain,
+  ClipboardList
 } from 'lucide-react';
 
 import CharacterSVG from './CharacterSVG';
@@ -19,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.34 (Quirk UI Integration)
+  Version: 1.35 (Merged Action Logs into Report Panel)
   -------------------------------------------------------------------------
 */
 
@@ -314,7 +315,7 @@ export default function App() {
             <span className="text-[10px] font-bold">Gear</span>
          </button>
          <button onClick={() => togglePanel('reports')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'reports' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
-            <Sun size={20} />
+            <ClipboardList size={20} />
             <span className="text-[10px] font-bold">Reports</span>
          </button>
       </div>
@@ -325,7 +326,7 @@ export default function App() {
                 {activeTab === 'actions' && <><Activity size={14}/> Actions</>}
                 {activeTab === 'quests' && <><Scroll size={14}/> Quests</>}
                 {activeTab === 'equip' && <><Backpack size={14}/> Equipment</>}
-                {activeTab === 'reports' && <><Sun size={14}/> Morning Reports</>}
+                {activeTab === 'reports' && <><ClipboardList size={14}/> Reports</>}
              </div>
              <button onClick={() => setIsPanelOpen(false)} className="w-6 h-6 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 hover:text-white">
                <X size={14} />
@@ -466,43 +467,53 @@ export default function App() {
 
             {activeTab === 'reports' && (
                 <div className="space-y-4 animate-in fade-in duration-300">
-                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">History of Incidents</div>
+                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Adventure Log</div>
                     {dailyLogs.length === 0 ? (
-                        <div className="text-xs text-slate-500 italic text-center p-4 border border-dashed border-slate-800 rounded">No incidents reported yet. Sleep more!</div>
+                        <div className="text-xs text-slate-500 italic text-center p-4 border border-dashed border-slate-800 rounded">No actions taken yet.</div>
                     ) : (
                         dailyLogs.map((log) => (
                             <div key={log.id} className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden mb-2">
-                                {/* Header - Only show Day/Loc if it's a morning report */}
-                                <div className="bg-slate-800 p-3 flex justify-between items-center">
-                                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
-                                        {log.type === 'action' ? log.title : `Day ${log.day}`}
-                                    </span>
-                                    <span className="text-[10px] text-slate-500">
-                                        {log.type === 'action' ? `Day ${log.day}` : log.sleepLoc}
-                                    </span>
-                                </div>
-                                {/* Content */}
-                                <div className="p-3 space-y-2">
-                                    {log.type === 'morning' ? (
-                                        <div className="relative pl-3 border-l-2 border-slate-600">
-                                            <p className="text-xs text-slate-300 italic font-serif leading-relaxed">
-                                                "{log.incidentText}"
+                                {/* Conditional Styling for Morning vs Action */}
+                                {log.type === 'morning' ? (
+                                    <>
+                                        <div className="bg-gradient-to-r from-amber-900/30 to-slate-800 p-2 flex justify-between items-center border-b border-slate-700/30">
+                                            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                                                <Sun size={12} /> Day {log.day} Morning
+                                            </span>
+                                            <span className="text-[10px] text-slate-500">{log.sleepLoc}</span>
+                                        </div>
+                                        <div className="p-3 space-y-2">
+                                            <div className="relative pl-3 border-l-2 border-slate-600">
+                                                <p className="text-xs text-slate-300 italic font-serif leading-relaxed">
+                                                    "{log.incidentText}"
+                                                </p>
+                                            </div>
+                                            <div className="flex justify-between items-center text-[10px] pt-2 border-t border-slate-700/30">
+                                                <span className="text-slate-400">{log.rent}</span>
+                                                <span className="text-indigo-300">{log.status}</span>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="bg-slate-800 p-2 flex justify-between items-center border-b border-slate-700/30">
+                                            <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1">
+                                                {log.status === 'Success' || log.status === 'Revived' ? (
+                                                    <span className="text-emerald-400">●</span>
+                                                ) : (
+                                                    <span className="text-red-400">●</span>
+                                                )}
+                                                {log.title}
+                                            </span>
+                                            <span className="text-[10px] text-slate-500">Day {log.day}</span>
+                                        </div>
+                                        <div className="p-2">
+                                            <p className="text-xs text-slate-300 leading-relaxed">
+                                                {log.text}
                                             </p>
                                         </div>
-                                    ) : (
-                                        <p className="text-xs text-slate-300 leading-relaxed">
-                                            {log.text}
-                                        </p>
-                                    )}
-                                    
-                                    {/* Footer stats only for morning reports */}
-                                    {log.type === 'morning' && (
-                                        <div className="flex justify-between items-center text-[10px] pt-2 border-t border-slate-700/30">
-                                            <span className="text-slate-400">{log.rent}</span>
-                                            <span className="text-indigo-300">{log.status}</span>
-                                        </div>
-                                    )}
-                                </div>
+                                    </>
+                                )}
                             </div>
                         ))
                     )}
