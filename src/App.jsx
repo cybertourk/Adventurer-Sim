@@ -22,7 +22,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.27 (Removed Look Tab)
+  Version: 1.28 (D&D Stats: Base 10 + 10 Points)
   -------------------------------------------------------------------------
 */
 
@@ -117,8 +117,9 @@ export default function App() {
   const [gameStarted, setGameStarted] = useState(false);
   const [creationStep, setCreationStep] = useState(1); // 1 = Visuals, 2 = Stats
 
+  // Base Stats: 10
   const [attributes, setAttributes] = useState({
-    str: 0, dex: 0, con: 0, int: 0, cha: 0
+    str: 10, dex: 10, con: 10, int: 10, cha: 10
   });
 
   const [stats, setStats] = useState({
@@ -166,6 +167,7 @@ export default function App() {
 
   const calculateMaxStats = (level, con) => {
       // Formula: Health = 10 + (Level * 10) + (CON * 2)
+      // Note: With Base 10 CON, Level 1 Health starts around 40+.
       return {
           health: 10 + (level * 10) + (con * 2), 
           mood: 100,
@@ -258,7 +260,8 @@ export default function App() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        setAttributes(parsed.attributes || { str: 0, dex: 0, con: 0, int: 0, cha: 0 });
+        // Default attributes updated to Base 10 if none found
+        setAttributes(parsed.attributes || { str: 10, dex: 10, con: 10, int: 10, cha: 10 });
         setStats(parsed.stats || { hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 });
         setResources(parsed.resources || { gold: 50, xp: 0, level: 1 });
         setEquipped(parsed.equipped || { head: 'none', body: 'tunic', mainHand: 'fist', offHand: 'none' });
@@ -436,18 +439,19 @@ export default function App() {
     const cha = currentStats.cha;
     const stress = stats.stress;
     
-    // Updated Formulas based on Phase 3
+    // Updated Formulas based on Phase 3 (Adjusted for Base 10 Stats)
+    // Shifted Bases: Labor (0.2 -> 0.4), Adventure (0.4 -> 0.6), Social (0.2 -> 0.4)
     if (action.type === 'labor') {
         // Labor uses STR + CON
-        failChance = 0.20 - ((str + con) * 0.01) + (stress * 0.002);
+        failChance = 0.40 - ((str + con) * 0.01) + (stress * 0.002);
     }
     else if (action.type === 'adventure') {
         // Adventure uses STR + DEX + AC
-        failChance = 0.40 - ((str + dex + ac) * 0.01) + (stress * 0.002);
+        failChance = 0.60 - ((str + dex + ac) * 0.01) + (stress * 0.002);
     }
     else if (action.type === 'social') {
         // Social uses CHA (heavily weighted)
-        failChance = 0.20 - (cha * 0.02) + (stress * 0.002);
+        failChance = 0.40 - (cha * 0.02) + (stress * 0.002);
     }
 
     failChance = Math.max(0.05, Math.min(0.95, failChance));
@@ -631,12 +635,13 @@ export default function App() {
   };
 
   // --- Character Creation Handlers ---
-  const pointsSpent = Object.values(attributes).reduce((a, b) => a + b, 0);
-  const pointsAvailable = 5 - pointsSpent;
+  const baseStatTotal = 50; // 5 stats * 10
+  const pointsSpent = Object.values(attributes).reduce((a, b) => a + b, 0) - baseStatTotal;
+  const pointsAvailable = 10 - pointsSpent;
 
   const updateAttribute = (attr, delta) => {
       if (delta > 0 && pointsAvailable <= 0) return;
-      if (delta < 0 && attributes[attr] <= 0) return;
+      if (delta < 0 && attributes[attr] <= 10) return; // Minimum 10
       setAttributes(prev => ({ ...prev, [attr]: prev[attr] + delta }));
   };
 
