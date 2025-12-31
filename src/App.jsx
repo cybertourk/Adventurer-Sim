@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Shield, Sword, VenetianMask, Shirt, User, Backpack, X, 
   Activity, Scroll, MapPin, ShoppingBag, DollarSign, HelpCircle, 
-  Key, Apple, Beer, Wine, Heart, Trash2, Coins, Sun
+  Key, Apple, Beer, Wine, Heart, Trash2, Coins, Sun, Skull
 } from 'lucide-react';
 
 import CharacterSVG from './CharacterSVG';
@@ -20,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.31 (Morning Report UI Integration)
+  Version: 1.32 (Bugfix: Added Skull Import)
   -------------------------------------------------------------------------
 */
 
@@ -48,7 +48,9 @@ export default function App() {
     isDead,
     maxStats,
     currentStats,
-    dailyLog, // The data for the report
+    dailyLogs, // Changed from dailyLog to dailyLogs (array)
+    setDailyLogs,
+    quirk, // Quirk state
     performAction,
     revive,
     buyItem,
@@ -70,12 +72,24 @@ export default function App() {
   const [activeStatInfo, setActiveStatInfo] = useState(null);
   const [isReportOpen, setIsReportOpen] = useState(false);
 
-  // Auto-open report when a new daily log is generated
+  // Auto-open report when a new daily log is added (check length change or top item id)
   useEffect(() => {
-    if (dailyLog) {
-      setIsReportOpen(true);
+    if (dailyLogs && dailyLogs.length > 0) {
+      // Logic to only open on *new* days could go here, but opening on load if logs exist might be annoying.
+      // For now, let's assume if the hook updates logs, we act. 
+      // Simple approach: If logs exist and the user hasn't seen the latest, open it.
+      // Since we don't track "seen" yet, we'll rely on the logic that `passTime` adds a log.
+      // NOTE: This effect runs on mount if logs exist. 
+      // Ideally, passTime triggers a specific "newDay" event, but watching [days] is safer.
     }
-  }, [dailyLog]);
+  }, [dailyLogs]);
+
+  // Better trigger: Watch 'days'. If day > 1, open report.
+  useEffect(() => {
+      if (days > 1) {
+          setIsReportOpen(true);
+      }
+  }, [days]);
 
   // --- View Helpers ---
 
@@ -134,9 +148,9 @@ export default function App() {
   return (
     <div className="h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden flex flex-col md:flex-row">
       
-      {/* Morning Report Modal */}
-      {isReportOpen && dailyLog && (
-        <MorningReport log={dailyLog} onClose={() => setIsReportOpen(false)} />
+      {/* Morning Report Modal (Passes the most recent log, or list logic handled inside) */}
+      {isReportOpen && dailyLogs.length > 0 && (
+        <MorningReport log={dailyLogs[0]} onClose={() => setIsReportOpen(false)} />
       )}
 
       {/* ... [Modals] ... */}
@@ -222,6 +236,7 @@ export default function App() {
           <CurrentSceneBackground />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50 pointer-events-none" />
           
+          {/* Top HUD */}
           <div className="absolute top-0 left-0 right-0 p-3 md:p-4 flex justify-between items-start z-50">
              <div className="flex gap-4">
                 <div className="flex flex-col">
@@ -258,6 +273,7 @@ export default function App() {
             ))}
           </div>
 
+          {/* Central Character & Stats */}
           <div className="flex w-full h-full max-h-[65vh] items-center justify-between px-2 md:px-8 mt-10 md:mt-0 z-10">
              <div className="flex flex-col gap-3 md:gap-4 z-10 w-12 md:w-16">
                  {/* Updated to use currentStats which includes Base + Gear */}
@@ -293,7 +309,6 @@ export default function App() {
           </div>
       </div>
 
-      {/* Bottom Navigation */}
       <div className="fixed bottom-8 left-6 right-6 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-96 h-16 bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl flex justify-around items-center z-50">
          <button onClick={() => togglePanel('actions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'actions' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
             <Activity size={20} />
@@ -307,7 +322,7 @@ export default function App() {
             <Backpack size={20} />
             <span className="text-[10px] font-bold">Gear</span>
          </button>
-         {/* Report Button - Added to Nav */}
+         {/* Report Button */}
          <button onClick={() => setIsReportOpen(true)} className={`flex flex-col items-center gap-1 p-2 ${isReportOpen ? 'text-indigo-400' : 'text-slate-500 hover:text-amber-400'}`}>
             <Sun size={20} />
             <span className="text-[10px] font-bold">Report</span>
