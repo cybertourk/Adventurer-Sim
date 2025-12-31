@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Shield, Sword, VenetianMask, Shirt, User, Backpack, X, 
   Activity, Scroll, MapPin, ShoppingBag, DollarSign, HelpCircle, 
@@ -20,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.36 (Fix: Daily Log Rendering)
+  Version: 1.38 (Fix: Removed unused useRef to pass linting)
   -------------------------------------------------------------------------
 */
 
@@ -74,9 +74,10 @@ export default function App() {
   // Auto-open Report Panel when a new day occurs
   useEffect(() => {
       if (days > 1 && gameStarted) {
-          // Only auto-open if we haven't seen it, or just notify? 
-          // For now, let's just make sure the tab is available.
-          // setActiveTab('reports'); // Optional: Force open on new day
+          // Optional: Only auto-open if it's a new day event. 
+          // For now, we will rely on the user clicking the button, 
+          // or we could uncomment the next line to force it open.
+          // setActiveTab('reports'); 
           // setIsPanelOpen(true);
       }
   }, [days, gameStarted]);
@@ -500,10 +501,11 @@ export default function App() {
                                     <>
                                         <div className="bg-slate-800 p-2 flex justify-between items-center border-b border-slate-700/30">
                                             <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1">
+                                                {/* Status Indicator Dot */}
                                                 {log.status === 'Success' || log.status === 'Revived' ? (
-                                                    <span className="text-emerald-400">●</span>
+                                                    <span className="text-emerald-400 font-bold">●</span>
                                                 ) : (
-                                                    <span className="text-red-400">●</span>
+                                                    <span className="text-red-400 font-bold">●</span>
                                                 )}
                                                 {log.title}
                                             </span>
@@ -520,6 +522,28 @@ export default function App() {
                         ))
                     )}
                 </div>
+            )}
+            {activeTab === 'appearance' && (
+               <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gender</h3>
+                    <div className="flex gap-2">
+                      {['male', 'female'].map(g => (<button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-1.5 rounded border text-[10px] font-bold uppercase ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{g}</button>))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Skin</h3>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {APPEARANCE_OPTIONS.skinTones.map(t => (<button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-6 h-6 rounded-full border-2 ${appearance.skinTone === t.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: t.color }} />))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Hair Style</h3>
+                    <div className="flex gap-2">
+                      {APPEARANCE_OPTIONS.hairStyles.map(s => (<button key={s.id} onClick={() => updateAppearance('hairStyle', s.id)} className={`flex-1 py-1 rounded border text-[10px] font-medium ${appearance.hairStyle === s.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{s.label}</button>))}
+                    </div>
+                  </div>
+               </div>
             )}
           </div>
       </div>
