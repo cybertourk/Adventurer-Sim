@@ -20,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.41 (Fix: Updated App.jsx to render detailed log breakdown)
+  Version: 1.42 (Fix: Daily Log Detailed Rendering)
   -------------------------------------------------------------------------
 */
 
