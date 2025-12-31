@@ -54,7 +54,7 @@ export const useGameLogic = () => {
 
   const [messages, setMessages] = useState([]);
   const [isDead, setIsDead] = useState(false);
-  const [dailyLog, setDailyLog] = useState(null); // The Morning Report
+  const [dailyLogs, setDailyLogs] = useState([]); // Array of Morning Reports
 
   // --- Derived Stats ---
 
@@ -185,7 +185,7 @@ export const useGameLogic = () => {
         setDays(parsed.days || 1);
         setInventory(parsed.inventory || ['none', 'tunic', 'fist']);
         setMaxTier(parsed.maxTier || 1);
-        setDailyLog(parsed.dailyLog || null);
+        setDailyLogs(parsed.dailyLogs || []);
         
         if (parsed.shopStock && parsed.shopStock.length > 0) setShopStock(parsed.shopStock);
         else refreshShop();
@@ -218,10 +218,10 @@ export const useGameLogic = () => {
       if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       const gameState = {
-        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLog, lastSave: Date.now()
+        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, lastSave: Date.now()
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
-  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLog]);
+  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs]);
 
   // --- Actions ---
 
@@ -315,6 +315,7 @@ export const useGameLogic = () => {
 
       // 3. Generate Report
       const report = {
+          id: Date.now(), // Unique ID
           day: days,
           sleepLoc: housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Outside',
           rent: rentMsg,
@@ -323,12 +324,16 @@ export const useGameLogic = () => {
           status: `Health ${housingEffect.health > 0 ? '+' : ''}${housingEffect.health}, Stress ${housingEffect.stress}, Mood ${housingEffect.mood}`
       };
       
-      setDailyLog(report);
+      // Add to log history (Newest first)
+      setDailyLogs(prev => [report, ...prev]);
+      
       setDays(prev => prev + daysPassed);
       
       // 4. Daily Reset
       refreshShop();
       const newQuests = generateDailyQuests(maxTier);
+      const hasBonus = newQuests.labor.length > 3 || newQuests.adventure.length > 3 || newQuests.social.length > 3;
+      if (hasBonus) addMessage("A rare opportunity appeared! (Higher Tier Quest)", 'success');
       setDailyQuests(newQuests);
   };
 
@@ -598,7 +603,7 @@ export const useGameLogic = () => {
     isDead,
     maxStats,
     currentStats,
-    dailyLog, setDailyLog, // Exported for UI
+    dailyLogs, setDailyLogs, // Exported logs instead of log
     performAction,
     revive,
     buyItem,
