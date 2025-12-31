@@ -5,6 +5,7 @@ import {
   ADVENTURE_DB, 
   SOCIAL_DB, 
   LOCATIONS, 
+  AUTONOMY_EVENTS,
   SAVE_KEY 
 } from './data';
 
@@ -53,6 +54,7 @@ export const useGameLogic = () => {
 
   const [messages, setMessages] = useState([]);
   const [isDead, setIsDead] = useState(false);
+  const [dailyLog, setDailyLog] = useState(null); // The Morning Report
 
   // --- Derived Stats ---
 
@@ -135,6 +137,36 @@ export const useGameLogic = () => {
     return { labor: laborQuests, adventure: adventureQuests, social: socialQuests };
   };
 
+  // --- Autonomy System ---
+
+  const checkAutonomy = (currentMood, currentStress) => {
+      // Safe Zone: Mood > 40 AND Stress < 60
+      if (currentMood > 40 && currentStress < 60) return 'safe';
+      
+      // Crisis Zone: Mood < 10 OR Stress > 90
+      if (currentMood < 10 || currentStress > 90) return 'crisis';
+      
+      // Risk Zone: Everything else (Mood < 30 OR Stress > 70 generally)
+      return 'risk';
+  };
+
+  const runAutonomyEvent = (zone) => {
+      let event = null;
+      let chance = 0;
+
+      if (zone === 'safe') chance = 0.05; // 5% chance of random minor incident even when safe
+      if (zone === 'risk') chance = 0.30; // 30% chance
+      if (zone === 'crisis') chance = 0.70; // 70% chance
+
+      if (Math.random() > chance) return null;
+
+      // Select Event Pool
+      const pool = zone === 'crisis' ? AUTONOMY_EVENTS.major : AUTONOMY_EVENTS.minor;
+      event = pool[Math.floor(Math.random() * pool.length)];
+
+      return event;
+  };
+
   // --- Effects ---
 
   useEffect(() => {
@@ -153,6 +185,7 @@ export const useGameLogic = () => {
         setDays(parsed.days || 1);
         setInventory(parsed.inventory || ['none', 'tunic', 'fist']);
         setMaxTier(parsed.maxTier || 1);
+        setDailyLog(parsed.dailyLog || null);
         
         if (parsed.shopStock && parsed.shopStock.length > 0) setShopStock(parsed.shopStock);
         else refreshShop();
@@ -185,15 +218,17 @@ export const useGameLogic = () => {
       if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       const gameState = {
-        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, lastSave: Date.now()
+        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLog, lastSave: Date.now()
       };
       localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
-  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests]);
+  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLog]);
 
   // --- Actions ---
 
   const passTime = (daysPassed) => {
-      setDays(prev => prev + daysPassed);
+      // 1. Calculate Rent / Housing Status
+      let rentMsg = "No rent paid (Homeless).";
+      let housingEffect = { health: 0, stress: 0 };
       
       if (rentActive) {
           const locId = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : null;
@@ -201,19 +236,99 @@ export const useGameLogic = () => {
              const totalRent = daysPassed * LOCATIONS[locId].dailyCost;
              if (resources.gold >= totalRent) {
                   setResources(prev => ({ ...prev, gold: prev.gold - totalRent }));
-                  addMessage(`Paid rent: -${totalRent}g`, 'info');
+                  rentMsg = `Paid rent: -${totalRent}g at ${LOCATIONS[locId].name}.`;
+                  
+                  // Apply Rest modifiers from location
+                  if (LOCATIONS[locId].modifiers && LOCATIONS[locId].modifiers.rest) {
+                      const mod = LOCATIONS[locId].modifiers.rest;
+                      setStats(prev => ({
+                          ...prev,
+                          health: Math.min(maxStats.health, prev.health + (mod.health || 0)),
+                          stress: Math.max(0, prev.stress + (mod.stress || 0)),
+                          mood: Math.min(maxStats.mood, prev.mood + (mod.mood || 0))
+                      }));
+                      housingEffect = mod;
+                  }
              } else {
                   setHousing('homeless');
                   setRentActive(false);
                   setStats(prev => ({ ...prev, mood: Math.max(0, prev.mood - 20) })); 
-                  addMessage("Evicted! Couldn't pay rent.", 'error');
+                  rentMsg = "Evicted! Couldn't pay rent. Slept in the dirt.";
+                  addMessage("Evicted!", 'error');
              }
           }
+      } else {
+          // Homeless Rest Modifiers
+          const mod = LOCATIONS.village_road.modifiers.rest;
+          setStats(prev => ({
+              ...prev,
+              health: Math.min(maxStats.health, prev.health + (mod.health || 0)),
+              stress: Math.max(0, prev.stress + (mod.stress || 0)),
+              mood: Math.max(0, prev.mood + (mod.mood || 0))
+          }));
+          housingEffect = mod;
+          rentMsg = "Slept outside. It was cold.";
       }
+
+      // 2. Autonomy Check
+      const zone = checkAutonomy(stats.mood, stats.stress);
+      const incident = runAutonomyEvent(zone);
+      let incidentMsg = "Nothing purely chaotic happened.";
+      
+      if (incident) {
+          incidentMsg = incident.text; // The first-person quote
+          
+          // Apply Incident Effects
+          const fx = incident.effects;
+          if (fx) {
+              setStats(prev => ({
+                  health: Math.max(0, Math.min(maxStats.health, prev.health + (fx.health || 0))),
+                  mood: Math.max(0, Math.min(maxStats.mood, prev.mood + (fx.mood || 0))),
+                  hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + (fx.hunger || 0))),
+                  thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + (fx.thirst || 0))),
+                  stress: Math.max(0, Math.min(maxStats.stress, prev.stress + (fx.stress || 0)))
+              }));
+
+              if (fx.gold) {
+                  setResources(prev => ({ ...prev, gold: Math.max(0, prev.gold + fx.gold) }));
+              }
+              
+              if (fx.housing === 'homeless') {
+                  setHousing('homeless');
+                  setRentActive(false);
+              }
+
+              if (fx.equipmentLoss) {
+                  // Logic to lose a random item
+                  const slots = ['head', 'body', 'mainHand', 'offHand'];
+                  const randomSlot = slots[Math.floor(Math.random() * slots.length)];
+                  const itemId = equipped[randomSlot];
+                  if (itemId !== 'none' && itemId !== 'fist' && itemId !== 'tunic') {
+                      setEquipped(prev => ({ ...prev, [randomSlot]: 'none' })); // Unequip
+                      // Ideally remove from inventory too, but keeping it simple: just unequip/lost
+                      incidentMsg += ` (Lost ${itemId})`;
+                  }
+              }
+          }
+          addMessage("Something happened last night...", "warning");
+      }
+
+      // 3. Generate Report
+      const report = {
+          day: days,
+          sleepLoc: housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Outside',
+          rent: rentMsg,
+          incidentTitle: incident ? incident.title : "Uneventful Night",
+          incidentText: incidentMsg,
+          status: `Health ${housingEffect.health > 0 ? '+' : ''}${housingEffect.health}, Stress ${housingEffect.stress}, Mood ${housingEffect.mood}`
+      };
+      
+      setDailyLog(report);
+      setDays(prev => prev + daysPassed);
+      
+      // 4. Daily Reset
       refreshShop();
       const newQuests = generateDailyQuests(maxTier);
-      const hasBonus = newQuests.labor.length > 3 || newQuests.adventure.length > 3 || newQuests.social.length > 3;
-      if (hasBonus) addMessage("A rare opportunity appeared! (Higher Tier Quest)", 'success');
       setDailyQuests(newQuests);
   };
 
@@ -483,6 +598,7 @@ export const useGameLogic = () => {
     isDead,
     maxStats,
     currentStats,
+    dailyLog, setDailyLog, // Exported for UI
     performAction,
     revive,
     buyItem,
