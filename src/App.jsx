@@ -9,7 +9,6 @@ import CharacterSVG from './CharacterSVG';
 import { getBackground } from './Backgrounds';
 import { StatBlock, ActionButton, renderItemStats } from './GameUI';
 import CreationScreen from './CreationScreen';
-import MorningReport from './components/MorningReport';
 import { useGameLogic } from './useGameLogic';
 import { 
   ITEM_DB, 
@@ -20,7 +19,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.32 (Bugfix: Added Skull Import)
+  Version: 1.33 (Report Panel Integration)
   -------------------------------------------------------------------------
 */
 
@@ -48,9 +47,9 @@ export default function App() {
     isDead,
     maxStats,
     currentStats,
-    dailyLogs, // Changed from dailyLog to dailyLogs (array)
+    dailyLogs,
     setDailyLogs,
-    quirk, // Quirk state
+    quirk, 
     performAction,
     revive,
     buyItem,
@@ -70,26 +69,14 @@ export default function App() {
   const [showShop, setShowShop] = useState(false);
   const [shopTab, setShopTab] = useState('buy');
   const [activeStatInfo, setActiveStatInfo] = useState(null);
-  const [isReportOpen, setIsReportOpen] = useState(false);
 
-  // Auto-open report when a new daily log is added (check length change or top item id)
+  // Auto-open Report Panel when a new day occurs (if game is started)
   useEffect(() => {
-    if (dailyLogs && dailyLogs.length > 0) {
-      // Logic to only open on *new* days could go here, but opening on load if logs exist might be annoying.
-      // For now, let's assume if the hook updates logs, we act. 
-      // Simple approach: If logs exist and the user hasn't seen the latest, open it.
-      // Since we don't track "seen" yet, we'll rely on the logic that `passTime` adds a log.
-      // NOTE: This effect runs on mount if logs exist. 
-      // Ideally, passTime triggers a specific "newDay" event, but watching [days] is safer.
-    }
-  }, [dailyLogs]);
-
-  // Better trigger: Watch 'days'. If day > 1, open report.
-  useEffect(() => {
-      if (days > 1) {
-          setIsReportOpen(true);
+      if (days > 1 && gameStarted) {
+          setActiveTab('reports');
+          setIsPanelOpen(true);
       }
-  }, [days]);
+  }, [days, gameStarted]);
 
   // --- View Helpers ---
 
@@ -148,11 +135,6 @@ export default function App() {
   return (
     <div className="h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden flex flex-col md:flex-row">
       
-      {/* Morning Report Modal (Passes the most recent log, or list logic handled inside) */}
-      {isReportOpen && dailyLogs.length > 0 && (
-        <MorningReport log={dailyLogs[0]} onClose={() => setIsReportOpen(false)} />
-      )}
-
       {/* ... [Modals] ... */}
       {activeStatInfo && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in" onClick={() => setActiveStatInfo(null)}>
@@ -322,10 +304,9 @@ export default function App() {
             <Backpack size={20} />
             <span className="text-[10px] font-bold">Gear</span>
          </button>
-         {/* Report Button */}
-         <button onClick={() => setIsReportOpen(true)} className={`flex flex-col items-center gap-1 p-2 ${isReportOpen ? 'text-indigo-400' : 'text-slate-500 hover:text-amber-400'}`}>
+         <button onClick={() => togglePanel('reports')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'reports' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
             <Sun size={20} />
-            <span className="text-[10px] font-bold">Report</span>
+            <span className="text-[10px] font-bold">Reports</span>
          </button>
       </div>
 
@@ -335,6 +316,7 @@ export default function App() {
                 {activeTab === 'actions' && <><Activity size={14}/> Actions</>}
                 {activeTab === 'quests' && <><Scroll size={14}/> Quests</>}
                 {activeTab === 'equip' && <><Backpack size={14}/> Equipment</>}
+                {activeTab === 'reports' && <><Sun size={14}/> Morning Reports</>}
              </div>
              <button onClick={() => setIsPanelOpen(false)} className="w-6 h-6 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 hover:text-white">
                <X size={14} />
@@ -344,6 +326,7 @@ export default function App() {
              <button onClick={() => setActiveTab('actions')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'actions' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Actions</button>
              <button onClick={() => setActiveTab('quests')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'quests' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Quests</button>
              <button onClick={() => setActiveTab('equip')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'equip' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Gear</button>
+             <button onClick={() => setActiveTab('reports')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'reports' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Reports</button>
           </div>
 
           <div className="h-full overflow-y-auto custom-scrollbar p-3 pb-20 md:pb-4">
@@ -470,6 +453,37 @@ export default function App() {
                       )
                   )}
               </div>
+            )}
+
+            {activeTab === 'reports' && (
+                <div className="space-y-4 animate-in fade-in duration-300">
+                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">History of Incidents</div>
+                    {dailyLogs.length === 0 ? (
+                        <div className="text-xs text-slate-500 italic text-center p-4 border border-dashed border-slate-800 rounded">No incidents reported yet. Sleep more!</div>
+                    ) : (
+                        dailyLogs.map((log) => (
+                            <div key={log.id} className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden mb-2">
+                                {/* Header */}
+                                <div className="bg-slate-800 p-3 flex justify-between items-center">
+                                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Day {log.day}</span>
+                                    <span className="text-[10px] text-slate-500">{log.sleepLoc}</span>
+                                </div>
+                                {/* Content */}
+                                <div className="p-3 space-y-2">
+                                    <div className="relative pl-3 border-l-2 border-slate-600">
+                                        <p className="text-xs text-slate-300 italic font-serif leading-relaxed">
+                                            "{log.incidentText}"
+                                        </p>
+                                    </div>
+                                    <div className="flex justify-between items-center text-[10px] pt-2 border-t border-slate-700/30">
+                                        <span className="text-slate-400">{log.rent}</span>
+                                        <span className="text-indigo-300">{log.status}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
             )}
           </div>
       </div>
