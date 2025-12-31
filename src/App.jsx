@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Shield, Sword, VenetianMask, Shirt, User, Backpack, X, 
   Activity, Scroll, MapPin, ShoppingBag, DollarSign, HelpCircle, 
@@ -20,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.35 (Merged Action Logs into Report Panel)
+  Version: 1.36 (Fix: Daily Log Rendering)
   -------------------------------------------------------------------------
 */
 
@@ -74,8 +74,10 @@ export default function App() {
   // Auto-open Report Panel when a new day occurs
   useEffect(() => {
       if (days > 1 && gameStarted) {
-          setActiveTab('reports');
-          setIsPanelOpen(true);
+          // Only auto-open if we haven't seen it, or just notify? 
+          // For now, let's just make sure the tab is available.
+          // setActiveTab('reports'); // Optional: Force open on new day
+          // setIsPanelOpen(true);
       }
   }, [days, gameStarted]);
 
