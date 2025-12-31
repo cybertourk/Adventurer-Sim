@@ -20,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.38 (Fix: Removed unused useRef to pass linting)
+  Version: 1.39 (Fix: Removed unused useRef to fix deployment)
   -------------------------------------------------------------------------
 */
 
