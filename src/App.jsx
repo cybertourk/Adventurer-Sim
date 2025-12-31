@@ -20,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.39 (Fix: Removed unused useRef to fix deployment)
+  Version: 1.40 (Fix: Daily Log Detailed Rendering)
   -------------------------------------------------------------------------
 */
 
@@ -491,9 +491,12 @@ export default function App() {
                                                     "{log.incidentText}"
                                                 </p>
                                             </div>
-                                            <div className="flex justify-between items-center text-[10px] pt-2 border-t border-slate-700/30">
-                                                <span className="text-slate-400">{log.rent}</span>
-                                                <span className="text-indigo-300">{log.status}</span>
+                                            <div className="text-[10px] pt-2 border-t border-slate-700/30 space-y-1">
+                                                {log.gained && <div className="text-emerald-400 font-bold">{log.gained}</div>}
+                                                {log.lost && <div className="text-red-400 font-bold">{log.lost}</div>}
+                                                <div className="text-slate-500 flex justify-between mt-1">
+                                                    <span>{log.rent}</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </>
@@ -511,10 +514,16 @@ export default function App() {
                                             </span>
                                             <span className="text-[10px] text-slate-500">Day {log.day}</span>
                                         </div>
-                                        <div className="p-2">
-                                            <p className="text-xs text-slate-300 leading-relaxed">
+                                        <div className="p-2 space-y-1">
+                                            <p className="text-xs text-slate-300 leading-relaxed italic">
                                                 {log.text}
                                             </p>
+                                            {(log.gained || log.lost) && (
+                                                <div className="text-[10px] pt-1 border-t border-slate-700/30 mt-1">
+                                                    {log.gained && <div className="text-emerald-400">{log.gained}</div>}
+                                                    {log.lost && <div className="text-red-400">{log.lost}</div>}
+                                                </div>
+                                            )}
                                         </div>
                                     </>
                                 )}
