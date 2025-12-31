@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
   GAME DATA & CONFIGURATION
-  Version: 1.12 (SRD Match)
+  Version: 1.13 (Autonomy Events Added)
 ------------------------------------------------------------------------- */
 
 export const SAVE_KEY = 'dnd_tamagotchi_v1_12'; 
@@ -124,6 +124,24 @@ export const SOCIAL_DB = {
   tier2: [
     { id: 'soc_gamble', label: 'Gamble', icon: 'DollarSign', cost: 10, days: 1, type: 'social', description: 'Rolling the Bones.', message: 'Daddy needs a new pair of boots!', effects: { xp: 10, mood: 10, stress: 10 } }, 
     { id: 'soc_bribe', label: 'Bribe Guard', icon: 'Coins', cost: 20, days: 1, type: 'social', description: 'Greasing Palms.', message: 'Look the other way, pal.', effects: { xp: 30, stress: -10 } },
+  ]
+};
+
+// --- Section 7: Autonomy Events ---
+export const AUTONOMY_EVENTS = {
+  minor: [
+    { id: 'hungover', title: 'Hungover', text: '"My head is exploding... the light, it burns!"', effects: { health: -5, thirst: 20 } },
+    { id: 'overslept', title: 'Overslept', text: '"Just five more minutes... or hours. Who counts?"', effects: { hunger: 10, thirst: 10 } }, // Logic will handle 'skip turn' mostly by just wasting resources
+    { id: 'impulse_buy', title: 'Impulse Buy', text: '"I bought a rock that looks like a duck! It was 10 gold. Worth it."', effects: { gold: -10, mood: 10 } },
+    { id: 'bad_romance', title: 'Bad Romance', text: '"I tried to wink at someone and got a drink thrown in my face."', effects: { mood: -10, stress: 10 } },
+    { id: 'stress_eating', title: 'Stress Eating', text: '"I ate everything. All of it. I have no regrets. Okay, some regrets."', effects: { hunger: -100 } }, // Logic will need to clear food inventory
+  ],
+  major: [
+    { id: 'gambling_debt', title: 'Gambling Debt', text: '"I bet my pants... and lost. I am not a smart man."', effects: { equipmentLoss: true } }, // Logic handles item loss
+    { id: 'bar_fight', title: 'Bar Fight', text: '"He looked at me funny! So I hit him with a chair."', effects: { health: -30, gold: -20 } },
+    { id: 'walk_shame', title: 'The Walk of Shame', text: '"I woke up in a haystack three towns over. Don\'t ask."', effects: { housing: 'homeless' } },
+    { id: 'paranoid', title: 'Paranoid Episode', text: '"The innkeeper is a mimic! I\'m sleeping in a tree!"', effects: { housing: 'homeless', stress: 20 } },
+    { id: 'charity', title: 'Charity Case', text: '"I gave it all away! I am a golden god of generosity!"', effects: { gold: -9999 } }, // Sets to 0
   ]
 };
 
