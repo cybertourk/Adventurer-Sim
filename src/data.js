@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
   GAME DATA & CONFIGURATION
-  Version: 1.13 (Autonomy Events Added)
+  Version: 1.14 (Quirks Added - Re-applied)
 ------------------------------------------------------------------------- */
 
 export const SAVE_KEY = 'dnd_tamagotchi_v1_12'; 
@@ -144,6 +144,40 @@ export const AUTONOMY_EVENTS = {
     { id: 'charity', title: 'Charity Case', text: '"I gave it all away! I am a golden god of generosity!"', effects: { gold: -9999 } }, // Sets to 0
   ]
 };
+
+// --- Section 9: Traits & Quirks ---
+export const QUIRKS = [
+  { 
+    id: 'sticky_fingers', 
+    name: 'Sticky Fingers', 
+    desc: '10% chance to find Gold on Social interactions. Banned from Guard jobs.', 
+    effects: { socialGoldChance: 0.1, bannedJobs: ['job_guard'] }
+  },
+  { 
+    id: 'meathead', 
+    name: 'Meathead', 
+    desc: '+2 STR, -2 INT. Cannot perform Magic jobs.', 
+    effects: { stats: { str: 2, int: -2 }, bannedJobs: ['job_scribe'] } // 'job_scribe' placeholder for magic/smart jobs
+  },
+  { 
+    id: 'drama_queen', 
+    name: 'Drama Queen', 
+    desc: 'Double Mood gain from Flirt/Tavern. Double Stress from failures.', 
+    effects: { moodMultiplier: 2, stressFailureMultiplier: 2 }
+  },
+  { 
+    id: 'lightweight', 
+    name: 'Lightweight', 
+    desc: 'Ale/Wine cost 50% less. Higher hangover chance.', 
+    effects: { drinkCostMultiplier: 0.5, hangoverChance: 0.5 }
+  },
+  { 
+    id: 'kleptomaniac', 
+    name: 'Kleptomaniac', 
+    desc: 'Randomly finds "Junk" items. Junk fills inventory.', 
+    effects: { junkChance: 0.2 }
+  }
+];
 
 // --- Section 4: Locations ---
 export const LOCATIONS = {
