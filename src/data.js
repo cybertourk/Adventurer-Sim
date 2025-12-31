@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
   GAME DATA & CONFIGURATION
-  Version: 1.14 (Quirks Added - Re-applied)
+  Version: 1.15 (Fix: Added QUIRKS export)
 ------------------------------------------------------------------------- */
 
 export const SAVE_KEY = 'dnd_tamagotchi_v1_12'; 
