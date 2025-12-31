@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Shield, Sword, VenetianMask, Shirt, User, Backpack, X, 
   Activity, Scroll, MapPin, ShoppingBag, DollarSign, HelpCircle, 
-  Key, Apple, Beer, Wine, Heart, Trash2, Coins
+  Key, Apple, Beer, Wine, Heart, Trash2, Coins, Sun
 } from 'lucide-react';
 
 import CharacterSVG from './CharacterSVG';
 import { getBackground } from './Backgrounds';
 import { StatBlock, ActionButton, renderItemStats } from './GameUI';
 import CreationScreen from './CreationScreen';
+import MorningReport from './components/MorningReport';
 import { useGameLogic } from './useGameLogic';
 import { 
   ITEM_DB, 
@@ -19,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.30 (Refactor: Logic & Creation Extracted)
+  Version: 1.31 (Morning Report UI Integration)
   -------------------------------------------------------------------------
 */
 
@@ -47,6 +48,7 @@ export default function App() {
     isDead,
     maxStats,
     currentStats,
+    dailyLog, // The data for the report
     performAction,
     revive,
     buyItem,
@@ -66,6 +68,14 @@ export default function App() {
   const [showShop, setShowShop] = useState(false);
   const [shopTab, setShopTab] = useState('buy');
   const [activeStatInfo, setActiveStatInfo] = useState(null);
+  const [isReportOpen, setIsReportOpen] = useState(false);
+
+  // Auto-open report when a new daily log is generated
+  useEffect(() => {
+    if (dailyLog) {
+      setIsReportOpen(true);
+    }
+  }, [dailyLog]);
 
   // --- View Helpers ---
 
@@ -123,6 +133,12 @@ export default function App() {
   // --- VIEW: Main Game ---
   return (
     <div className="h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden flex flex-col md:flex-row">
+      
+      {/* Morning Report Modal */}
+      {isReportOpen && dailyLog && (
+        <MorningReport log={dailyLog} onClose={() => setIsReportOpen(false)} />
+      )}
+
       {/* ... [Modals] ... */}
       {activeStatInfo && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in" onClick={() => setActiveStatInfo(null)}>
@@ -202,34 +218,6 @@ export default function App() {
         </div>
       )}
 
-      {showLocationInfo && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in" onClick={() => setShowLocationInfo(false)}>
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-sm w-full shadow-2xl relative" onClick={e => e.stopPropagation()}>
-            <button onClick={() => setShowLocationInfo(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white"><X size={20} /></button>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-3 bg-indigo-900/30 rounded-full text-indigo-400"><MapPin size={24} /></div>
-              <div>
-                <h3 className="text-lg font-bold text-white">{currentLocData?.name}</h3>
-                <span className="text-xs font-mono text-indigo-400 uppercase">{currentLocData?.type}</span>
-              </div>
-            </div>
-            <p className="text-sm text-slate-300 mb-6 leading-relaxed">{currentLocData?.details}</p>
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Effects & Modifiers</h4>
-              {currentLocData?.tips && currentLocData.tips.map((tip, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-2 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                  <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-none ${tip.type === 'bad' ? 'bg-red-500' : 'bg-emerald-500'}`} />
-                  <div className="flex-1">
-                    <span className="text-xs font-bold text-slate-200 block">{tip.label}</span>
-                    <span className="text-xs text-slate-400 block">{tip.text}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="flex-1 relative bg-slate-900 flex flex-col items-center justify-center overflow-hidden">
           <CurrentSceneBackground />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50 pointer-events-none" />
@@ -285,7 +273,7 @@ export default function App() {
                {isDead && (
                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl">
                    <div className="text-center p-6 bg-slate-900 border border-red-900 rounded-xl shadow-2xl">
-                     {/* Using null safe icon or hardcoded */}
+                     <Skull className="w-12 h-12 text-red-600 mx-auto mb-2" />
                      <h2 className="text-xl font-bold text-red-500 mb-1">DECEASED</h2>
                      <p className="text-slate-400 text-sm mb-4">Your adventurer perished.</p>
                      <button onClick={revive} className="px-4 py-2 bg-red-900/50 hover:bg-red-800 text-red-200 rounded-md border border-red-700 transition-colors">
@@ -305,6 +293,7 @@ export default function App() {
           </div>
       </div>
 
+      {/* Bottom Navigation */}
       <div className="fixed bottom-8 left-6 right-6 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-96 h-16 bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl flex justify-around items-center z-50">
          <button onClick={() => togglePanel('actions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'actions' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
             <Activity size={20} />
@@ -317,6 +306,11 @@ export default function App() {
          <button onClick={() => togglePanel('equip')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'equip' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
             <Backpack size={20} />
             <span className="text-[10px] font-bold">Gear</span>
+         </button>
+         {/* Report Button - Added to Nav */}
+         <button onClick={() => setIsReportOpen(true)} className={`flex flex-col items-center gap-1 p-2 ${isReportOpen ? 'text-indigo-400' : 'text-slate-500 hover:text-amber-400'}`}>
+            <Sun size={20} />
+            <span className="text-[10px] font-bold">Report</span>
          </button>
       </div>
 
