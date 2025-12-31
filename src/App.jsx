@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Shield, Sword, VenetianMask, Shirt, User, Backpack, X, 
   Activity, Scroll, MapPin, ShoppingBag, DollarSign, HelpCircle, 
-  Key, Apple, Beer, Wine, Heart, Trash2, Coins, Sun, Skull
+  Key, Apple, Beer, Wine, Heart, Trash2, Coins, Sun, Skull, Brain
 } from 'lucide-react';
 
 import CharacterSVG from './CharacterSVG';
@@ -19,7 +19,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.33 (Report Panel Integration)
+  Version: 1.34 (Quirk UI Integration)
   -------------------------------------------------------------------------
 */
 
@@ -49,7 +49,7 @@ export default function App() {
     currentStats,
     dailyLogs,
     setDailyLogs,
-    quirk, 
+    quirk, // Active Quirk
     performAction,
     revive,
     buyItem,
@@ -70,7 +70,7 @@ export default function App() {
   const [shopTab, setShopTab] = useState('buy');
   const [activeStatInfo, setActiveStatInfo] = useState(null);
 
-  // Auto-open Report Panel when a new day occurs (if game is started)
+  // Auto-open Report Panel when a new day occurs
   useEffect(() => {
       if (days > 1 && gameStarted) {
           setActiveTab('reports');
@@ -106,6 +106,7 @@ export default function App() {
           case 'con': return { title: 'CON', desc: 'Constitution. Increases Health. Reduces Risk for Labor.', good: 'High' };
           case 'int': return { title: 'INT', desc: 'Intelligence. Reduces Risk for Magic Jobs.', good: 'High' };
           case 'cha': return { title: 'CHA', desc: 'Charisma. Reduces Risk for Socialize actions.', good: 'High' };
+          case 'quirk': return { title: quirk ? quirk.name : 'None', desc: quirk ? quirk.desc : 'No active trait.' };
           default: return { title: key.toUpperCase(), desc: 'Attribute' };
       }
   };
@@ -258,7 +259,7 @@ export default function App() {
           {/* Central Character & Stats */}
           <div className="flex w-full h-full max-h-[65vh] items-center justify-between px-2 md:px-8 mt-10 md:mt-0 z-10">
              <div className="flex flex-col gap-3 md:gap-4 z-10 w-12 md:w-16">
-                 {/* Updated to use currentStats which includes Base + Gear */}
+                 {/* Stats Column */}
                  <StatBlock label="AC" value={currentStats.ac} onClick={() => setActiveStatInfo('ac')} />
                  <StatBlock label="STR" value={currentStats.str} subValue={currentStats.str - attributes.str > 0 ? currentStats.str - attributes.str : undefined} onClick={() => setActiveStatInfo('str')} />
                  <StatBlock label="DEX" value={currentStats.dex} subValue={currentStats.dex - attributes.dex > 0 ? currentStats.dex - attributes.dex : undefined} onClick={() => setActiveStatInfo('dex')} />
@@ -266,8 +267,16 @@ export default function App() {
                  <StatBlock label="INT" value={currentStats.int} subValue={currentStats.int - attributes.int > 0 ? currentStats.int - attributes.int : undefined} onClick={() => setActiveStatInfo('int')} />
                  <StatBlock label="CHA" value={currentStats.cha} subValue={currentStats.cha - attributes.cha > 0 ? currentStats.cha - attributes.cha : undefined} onClick={() => setActiveStatInfo('cha')} />
              </div>
-             <div className="flex-1 h-full max-w-md relative mx-auto">
+             
+             <div className="flex-1 h-full max-w-md relative mx-auto flex flex-col justify-center">
+               {quirk && (
+                   <button onClick={() => setActiveStatInfo('quirk')} className="absolute top-0 right-0 m-4 z-20 flex items-center gap-1 px-2 py-1 bg-indigo-900/50 border border-indigo-500/30 rounded-full text-[10px] text-indigo-300 font-bold hover:bg-indigo-800 transition-colors">
+                       <Brain size={12} />
+                       {quirk.name}
+                   </button>
+               )}
                <CharacterSVG equipped={equipped} appearance={appearance} isAlive={!isDead} />
+               
                {isDead && (
                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl">
                    <div className="text-center p-6 bg-slate-900 border border-red-900 rounded-xl shadow-2xl">
@@ -463,22 +472,36 @@ export default function App() {
                     ) : (
                         dailyLogs.map((log) => (
                             <div key={log.id} className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden mb-2">
-                                {/* Header */}
+                                {/* Header - Only show Day/Loc if it's a morning report */}
                                 <div className="bg-slate-800 p-3 flex justify-between items-center">
-                                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">Day {log.day}</span>
-                                    <span className="text-[10px] text-slate-500">{log.sleepLoc}</span>
+                                    <span className="text-xs font-bold text-amber-400 uppercase tracking-wider">
+                                        {log.type === 'action' ? log.title : `Day ${log.day}`}
+                                    </span>
+                                    <span className="text-[10px] text-slate-500">
+                                        {log.type === 'action' ? `Day ${log.day}` : log.sleepLoc}
+                                    </span>
                                 </div>
                                 {/* Content */}
                                 <div className="p-3 space-y-2">
-                                    <div className="relative pl-3 border-l-2 border-slate-600">
-                                        <p className="text-xs text-slate-300 italic font-serif leading-relaxed">
-                                            "{log.incidentText}"
+                                    {log.type === 'morning' ? (
+                                        <div className="relative pl-3 border-l-2 border-slate-600">
+                                            <p className="text-xs text-slate-300 italic font-serif leading-relaxed">
+                                                "{log.incidentText}"
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-slate-300 leading-relaxed">
+                                            {log.text}
                                         </p>
-                                    </div>
-                                    <div className="flex justify-between items-center text-[10px] pt-2 border-t border-slate-700/30">
-                                        <span className="text-slate-400">{log.rent}</span>
-                                        <span className="text-indigo-300">{log.status}</span>
-                                    </div>
+                                    )}
+                                    
+                                    {/* Footer stats only for morning reports */}
+                                    {log.type === 'morning' && (
+                                        <div className="flex justify-between items-center text-[10px] pt-2 border-t border-slate-700/30">
+                                            <span className="text-slate-400">{log.rent}</span>
+                                            <span className="text-indigo-300">{log.status}</span>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ))
