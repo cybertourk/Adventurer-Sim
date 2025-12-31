@@ -1,513 +1,77 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState } from 'react';
 import { 
-  Shield, Sword, VenetianMask, Shirt, RotateCcw, User, Palette, 
-  Backpack, X, Heart, Zap, Sparkles, Utensils, Coins, 
-  Hammer, Tent, Scroll, Skull, Menu, Activity, Droplets, MapPin, Info, 
-  ShoppingBag, DollarSign, HelpCircle, Frown, Clock, Key, Apple, Beer, Wine, Trash2, Compass, Plus, Minus
+  Shield, Sword, VenetianMask, Shirt, User, Backpack, X, 
+  Activity, Scroll, MapPin, ShoppingBag, DollarSign, HelpCircle, 
+  Key, Apple, Beer, Wine, Heart, Trash2, Coins
 } from 'lucide-react';
 
 import CharacterSVG from './CharacterSVG';
 import { getBackground } from './Backgrounds';
 import { StatBlock, ActionButton, renderItemStats } from './GameUI';
+import CreationScreen from './CreationScreen';
+import { useGameLogic } from './useGameLogic';
 import { 
   ITEM_DB, 
   MAINTENANCE_ACTIONS, 
-  JOB_DB, 
-  ADVENTURE_DB, 
-  SOCIAL_DB, 
   LOCATIONS, 
-  APPEARANCE_OPTIONS, 
-  SAVE_KEY, 
-  MAX_STAT 
+  APPEARANCE_OPTIONS 
 } from './data';
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.29 (Refactor: Imported UI Components)
+  Version: 1.30 (Refactor: Logic & Creation Extracted)
   -------------------------------------------------------------------------
 */
 
 const ICON_MAP = {
-  'Shield': Shield, 'Sword': Sword, 'Scroll': Scroll, 'Hammer': Hammer,
-  'Tent': Tent, 'Activity': Activity, 'Utensils': Utensils, 'Droplets': Droplets,
-  'Beer': Beer, 'Skull': Skull, 'User': User, 'Coins': Coins,
-  'Heart': Heart, 'Zap': Zap, 'DollarSign': DollarSign, 'Compass': Compass
+  'Shield': Shield, 'Sword': Sword, 'Scroll': Scroll, 'Activity': Activity, 
+  'Beer': Beer, 'User': User, 'Coins': Coins, 'Heart': Heart, 'DollarSign': DollarSign
 };
 
-// --- Main App Component ---
-
 export default function App() {
-  const [gameStarted, setGameStarted] = useState(false);
-  const [creationStep, setCreationStep] = useState(1); // 1 = Visuals, 2 = Stats
+  const {
+    gameStarted, setGameStarted,
+    creationStep, setCreationStep,
+    attributes, updateAttribute,
+    stats,
+    resources,
+    inventory,
+    shopStock,
+    equipped, equipItem,
+    appearance, updateAppearance,
+    days,
+    location,
+    housing,
+    dailyQuests,
+    messages,
+    isDead,
+    maxStats,
+    currentStats,
+    performAction,
+    revive,
+    buyItem,
+    sellItem,
+    consumeItem,
+    startGame,
+    resetGame,
+    pointsAvailable
+  } = useGameLogic();
 
-  // Base Stats: 10
-  const [attributes, setAttributes] = useState({
-    str: 10, dex: 10, con: 10, int: 10, cha: 10
-  });
-
-  const [stats, setStats] = useState({
-    hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0   
-  });
-
-  const [resources, setResources] = useState({
-    gold: 50, xp: 0, level: 1
-  });
-
-  const [inventory, setInventory] = useState(['none', 'tunic', 'fist']); 
-  const [shopStock, setShopStock] = useState([]); 
-
-  const [equipped, setEquipped] = useState({
-    head: 'none', body: 'tunic', mainHand: 'fist', offHand: 'none'
-  });
-  
-  const [appearance, setAppearance] = useState({
-    gender: 'male', skinTone: 'fair', hairColor: 'brown', eyeColor: 'brown', hairStyle: 'short'
-  });
-
-  const [days, setDays] = useState(1);
-  const [location, setLocation] = useState('village_road'); 
-  const [housing, setHousing] = useState('homeless'); 
-  const [rentActive, setRentActive] = useState(false); 
-  const [maxTier, setMaxTier] = useState(1); 
-  const [dailyQuests, setDailyQuests] = useState({
-    labor: [],
-    adventure: [],
-    social: []
-  });
-
+  // Local UI State
   const [activeTab, setActiveTab] = useState('actions');
-  const [questTab, setQuestTab] = useState('labor'); // Sub-tab for quests
+  const [questTab, setQuestTab] = useState('labor');
   const [activeSlot, setActiveSlot] = useState('head');
-  const [isPanelOpen, setIsPanelOpen] = useState(false); 
-  const [messages, setMessages] = useState([]);
-  const [isDead, setIsDead] = useState(false);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [showLocationInfo, setShowLocationInfo] = useState(false);
   const [showShop, setShowShop] = useState(false);
-  const [shopTab, setShopTab] = useState('buy'); 
-  const [activeStatInfo, setActiveStatInfo] = useState(null); 
+  const [shopTab, setShopTab] = useState('buy');
+  const [activeStatInfo, setActiveStatInfo] = useState(null);
 
-  // --- Derived Stats & Math ---
+  // --- View Helpers ---
 
-  const calculateMaxStats = (level, con) => {
-      // Formula: Health = 10 + (Level * 10) + (CON * 2)
-      return {
-          health: 10 + (level * 10) + (con * 2), 
-          mood: 100,
-          hunger: 100,
-          thirst: 100,
-          stress: 100
-      };
-  };
-
-  const currentStats = useMemo(() => {
-    // Base Attributes + Equipment Bonuses
-    let total = { ...attributes, ac: 10 }; // Base AC is 10
-    
-    // Add Equipment
-    Object.keys(equipped).forEach(slot => {
-      const itemId = equipped[slot];
-      const item = ITEM_DB[slot].find(i => i.id === itemId);
-      if (item && item.stats) {
-        Object.entries(item.stats).forEach(([stat, val]) => {
-          if (total[stat] !== undefined) total[stat] += val;
-          else total[stat] = val; // Initialize if explicit stat like 'ac'
-        });
-      }
-    });
-    return total;
-  }, [equipped, attributes]);
-
-  const maxStats = useMemo(() => calculateMaxStats(resources.level, attributes.con), [resources.level, attributes.con]);
-
-  // --- Initialization ---
-
-  const refreshShop = () => {
-    const allItems = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies];
-    const purchasable = allItems.filter(i => i.cost > 0);
-    const shuffled = [...purchasable].sort(() => 0.5 - Math.random());
-    const selection = shuffled.slice(0, 6).map(i => i.id);
-    setShopStock(selection);
-  };
-
-  const generateDailyQuests = (currentTier) => {
-    const getPool = (db, tier) => {
-       let pool = [];
-       // Collect all quests from tier 1 up to currentTier
-       for (let i = 1; i <= tier; i++) {
-         if (db[`tier${i}`]) pool = [...pool, ...db[`tier${i}`]];
-       }
-       return pool;
-    };
-
-    const selectRandom = (pool, count) => {
-       if (!pool || pool.length === 0) return [];
-       const shuffled = [...pool].sort(() => 0.5 - Math.random());
-       return shuffled.slice(0, count);
-    };
-
-    // Base quests: 3 from current unlocked tier (and below)
-    let laborQuests = selectRandom(getPool(JOB_DB, currentTier), 3);
-    let adventureQuests = selectRandom(getPool(ADVENTURE_DB, currentTier), 3);
-    let socialQuests = selectRandom(getPool(SOCIAL_DB, currentTier), 3);
-
-    // 20% Chance for ONE bonus quest from Next Tier for THIS DAY ONLY
-    const nextTier = currentTier + 1;
-    // Check if next tier exists in DB before trying to add
-    // Assuming max tier 3 for now based on data.js structure
-    if (Math.random() < 0.20 && nextTier <= 3) {
-       // Randomly pick which category gets the bonus quest
-       const categoryRoll = Math.random();
-       // Only add if the tier exists in the DB
-       if (categoryRoll < 0.33 && JOB_DB[`tier${nextTier}`]) {
-          const bonus = selectRandom(JOB_DB[`tier${nextTier}`], 1);
-          laborQuests = [...laborQuests, ...bonus];
-       } else if (categoryRoll < 0.66 && ADVENTURE_DB[`tier${nextTier}`]) {
-          const bonus = selectRandom(ADVENTURE_DB[`tier${nextTier}`], 1);
-          adventureQuests = [...adventureQuests, ...bonus];
-       } else if (SOCIAL_DB[`tier${nextTier}`]) {
-          const bonus = selectRandom(SOCIAL_DB[`tier${nextTier}`], 1);
-          socialQuests = [...socialQuests, ...bonus];
-       }
-    }
-
-    return {
-      labor: laborQuests,
-      adventure: adventureQuests,
-      social: socialQuests
-    };
-  };
-
-  useEffect(() => {
-    const saved = localStorage.getItem(SAVE_KEY);
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        setAttributes(parsed.attributes || { str: 10, dex: 10, con: 10, int: 10, cha: 10 });
-        setStats(parsed.stats || { hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 });
-        setResources(parsed.resources || { gold: 50, xp: 0, level: 1 });
-        setEquipped(parsed.equipped || { head: 'none', body: 'tunic', mainHand: 'fist', offHand: 'none' });
-        setAppearance(parsed.appearance || { gender: 'male', skinTone: 'fair', hairColor: 'brown', eyeColor: 'brown', hairStyle: 'short' });
-        setLocation(parsed.location || 'village_road');
-        setHousing(parsed.housing || 'homeless');
-        setRentActive(parsed.rentActive || false);
-        setDays(parsed.days || 1);
-        setInventory(parsed.inventory || ['none', 'tunic', 'fist']);
-        setMaxTier(parsed.maxTier || 1);
-        
-        if (parsed.shopStock && parsed.shopStock.length > 0) {
-            setShopStock(parsed.shopStock);
-        } else {
-            refreshShop();
-        }
-
-        if (parsed.dailyQuests) {
-           setDailyQuests(parsed.dailyQuests);
-        } else {
-           setDailyQuests(generateDailyQuests(parsed.maxTier || 1));
-        }
-        
-        // If we loaded data, game is started
-        setGameStarted(true);
-
-      } catch (e) {
-        console.error("Failed to load save", e);
-        refreshShop();
-        setDailyQuests(generateDailyQuests(1));
-      }
-    } else {
-        refreshShop();
-        setDailyQuests(generateDailyQuests(1));
-        setGameStarted(false); // Trigger creation screen
-    }
-  }, []);
-
-  useEffect(() => {
-      if (!gameStarted) return; // Don't save during creation
-
-      if ((stats.health <= 0 || stats.hunger >= maxStats.hunger || stats.thirst >= maxStats.thirst) && !isDead) {
-          setIsDead(true);
-          addMessage("Your adventurer has perished!", "error");
-      }
-      if (housing === 'inn' && location === 'village_road') setLocation('inn_room');
-      if (housing === 'homeless' && location === 'inn_room') setLocation('village_road');
-      if (housing === 'estate' && location === 'village_road') setLocation('estate');
-
-      const gameState = {
-        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, lastSave: Date.now()
-      };
-      localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
-  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests]);
-
-  // --- Logic Helpers ---
-
-  const addMessage = (text, type = 'info') => {
-    const id = Math.random().toString(36).substr(2, 9) + Date.now(); 
-    setMessages(prev => [...prev.slice(-4), { id, text, type }]);
-    setTimeout(() => {
-      setMessages(prev => prev.filter(m => m.id !== id));
-    }, 3000);
-  };
-
-  const passTime = (daysPassed) => {
-      setDays(prev => prev + daysPassed);
-      
-      // Rent Logic
-      if (rentActive) {
-          const locId = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : null;
-          if (locId && LOCATIONS[locId]) {
-             const totalRent = daysPassed * LOCATIONS[locId].dailyCost;
-             if (resources.gold >= totalRent) {
-                  setResources(prev => ({ ...prev, gold: prev.gold - totalRent }));
-                  addMessage(`Paid rent: -${totalRent}g`, 'info');
-             } else {
-                  setHousing('homeless');
-                  setRentActive(false);
-                  setStats(prev => ({ ...prev, mood: Math.max(0, prev.mood - 20) })); 
-                  addMessage("Evicted! Couldn't pay rent.", 'error');
-             }
-          }
-      }
-
-      // Daily Reset Logic (Shop & Quests)
-      refreshShop();
-      
-      // Generate new set of quests (includes the 20% chance for a bonus quest internally)
-      const newQuests = generateDailyQuests(maxTier);
-      
-      // Check if bonus triggered for notification (more than 3 quests in any category)
-      const hasBonus = newQuests.labor.length > 3 || newQuests.adventure.length > 3 || newQuests.social.length > 3;
-      if (hasBonus) {
-          addMessage("A rare opportunity appeared! (Higher Tier Quest)", 'success');
-      }
-
-      setDailyQuests(newQuests);
-  };
-
-  const performAction = (action) => {
-    if (isDead) return;
-
-    if (action.id === 'rent_start') {
-        if (resources.gold >= 5) {
-            setHousing('inn');
-            setRentActive(true);
-            setResources(prev => ({ ...prev, gold: prev.gold - 5 })); 
-            addMessage("Rented room at Rusty Spoon.", 'success');
-        } else {
-            addMessage("Not enough gold to rent room.", 'error');
-        }
-        return;
-    }
-    
-    if (action.id === 'rent_stop') {
-        setHousing('homeless');
-        setRentActive(false);
-        addMessage("Checked out of Inn.", 'info');
-        return;
-    }
-
-    if (action.id === 'eat' || action.id === 'drink') {
-        const itemType = action.id === 'eat' ? 'food' : 'drink';
-        const ownedSupplies = ITEM_DB.supplies.filter(i => i.type === itemType && inventory.includes(i.id));
-        
-        if (ownedSupplies.length > 0) {
-            const itemToConsume = ownedSupplies[0];
-            const idx = inventory.indexOf(itemToConsume.id);
-            if (idx > -1) {
-                const newInv = [...inventory];
-                newInv.splice(idx, 1);
-                setInventory(newInv);
-                const effects = itemToConsume.effects || {};
-                setStats(prev => ({
-                  health: Math.max(0, Math.min(maxStats.health, prev.health + (effects.health || 0))),
-                  mood: Math.max(0, Math.min(maxStats.mood, prev.mood + (effects.mood || 0))),
-                  hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + (effects.hunger || 0))),
-                  thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + (effects.thirst || 0))),
-                  stress: Math.max(0, Math.min(maxStats.stress, prev.stress + (effects.stress || 0)))
-                }));
-                addMessage(`Consumed ${itemToConsume.name}`, 'success');
-                return; 
-            }
-        }
-        const currentLoc = LOCATIONS[location]; 
-        if (!currentLoc.hasFoodService) {
-            addMessage("No food/drink here. Check shop!", 'error');
-            return;
-        }
-    }
-
-    if (action.costType === 'gp' && resources.gold < action.cost) {
-      addMessage("Not enough gold!", "error");
-      return;
-    }
-
-    if (action.cost > 0 && action.costType === 'gp') {
-      setResources(prev => ({ ...prev, gold: prev.gold - action.cost }));
-    }
-
-    if (action.days > 0) {
-        passTime(action.days);
-    }
-    
-    let isSuccess = true;
-    let failChance = 0;
-    
-    // Stats for Risk Calculation (SRD v1.12)
-    const ac = currentStats.ac;
-    const str = currentStats.str;
-    const dex = currentStats.dex;
-    const int = currentStats.int; // Currently used for potential future magic, but good to have
-    const con = currentStats.con;
-    const cha = currentStats.cha;
-    const stress = stats.stress;
-    
-    // Updated Formulas based on Phase 3 (Adjusted for Base 10 Stats)
-    // Shifted Bases: Labor (0.2 -> 0.4), Adventure (0.4 -> 0.6), Social (0.2 -> 0.4)
-    if (action.type === 'labor') {
-        // Labor uses STR + CON
-        failChance = 0.40 - ((str + con) * 0.01) + (stress * 0.002);
-    }
-    else if (action.type === 'adventure') {
-        // Adventure uses STR + DEX + AC
-        failChance = 0.60 - ((str + dex + ac) * 0.01) + (stress * 0.002);
-    }
-    else if (action.type === 'social') {
-        // Social uses CHA (heavily weighted)
-        failChance = 0.40 - (cha * 0.02) + (stress * 0.002);
-    }
-
-    failChance = Math.max(0.05, Math.min(0.95, failChance));
-    
-    if (action.type === 'labor' || action.type === 'adventure' || action.type === 'social') {
-        if (Math.random() < failChance) isSuccess = false;
-    }
-
-    const currentLocId = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : 'village_road';
-    const loc = LOCATIONS[currentLocId];
-    const locMod = loc && loc.modifiers && loc.modifiers[action.id] ? loc.modifiers[action.id] : {};
-
-    const getEffect = (stat) => {
-        let base = action.effects[stat] || 0;
-        let mod = locMod[stat] || 0;
-        return base + mod;
-    };
-
-    if (isSuccess) {
-        setStats(prev => ({
-          health: Math.max(0, Math.min(maxStats.health, prev.health + getEffect('health'))),
-          mood: Math.max(0, Math.min(maxStats.mood, prev.mood + getEffect('mood'))),
-          hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + getEffect('hunger'))),
-          thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + getEffect('thirst'))),
-          stress: Math.max(0, Math.min(maxStats.stress, prev.stress + getEffect('stress')))
-        }));
-
-        if (action.effects.xp) {
-          setResources(prev => {
-            const newXp = prev.xp + action.effects.xp;
-            const newGold = prev.gold + (action.effects.gold || 0);
-            let newLevel = prev.level;
-            // XP Formula: Next Level = Current Level * 100
-            if (newXp >= prev.level * 100) {
-              newLevel++;
-              addMessage(`Level Up! You are now level ${newLevel}`, "success");
-            }
-            return { ...prev, xp: newXp, gold: newGold, level: newLevel };
-          });
-        }
-        
-        if (action.type === 'adventure' && Math.random() < 0.15) { 
-           const allItems = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand];
-           const findableItems = allItems.filter(i => i.cost > 0);
-           if (findableItems.length > 0) {
-             const foundItem = findableItems[Math.floor(Math.random() * findableItems.length)];
-             const alreadyOwned = inventory.includes(foundItem.id);
-             if (alreadyOwned) {
-                 addMessage(`Loot: Duplicate ${foundItem.name}`, 'info');
-             } else {
-                 setInventory(prev => [...prev, foundItem.id]);
-                 addMessage(`Loot: Found ${foundItem.name}!`, 'success');
-             }
-           }
-        }
-    } else {
-        let failMsg = "Failed!";
-        if (action.type === 'labor') {
-            failMsg = "Screwed up the job. No pay.";
-            setStats(prev => ({ ...prev, stress: Math.min(100, prev.stress + 10) }));
-        } 
-        else if (action.type === 'adventure') {
-            failMsg = "Defeated! Retreated with wounds.";
-            setStats(prev => ({ 
-                ...prev, 
-                health: Math.max(0, prev.health - 20),
-                stress: Math.min(100, prev.stress + 20),
-                hunger: Math.min(100, prev.hunger + 20), 
-                thirst: Math.min(100, prev.thirst + 20)
-            }));
-        } 
-        else if (action.type === 'social') {
-            failMsg = "Made a total fool of yourself.";
-            setStats(prev => ({ ...prev, mood: Math.max(0, prev.mood - 20) }));
-        }
-        addMessage(failMsg, "error");
-        if (action.days > 0) refreshShop();
-        return; 
-    }
-
-    if (action.days > 0) refreshShop();
-    addMessage(action.message, "success");
-  };
-
-  const revive = () => {
-    setStats({ health: maxStats.health, mood: maxStats.mood, hunger: 0, thirst: 0, stress: 0 });
-    setIsDead(false);
-    setResources(prev => ({ ...prev, xp: Math.max(0, prev.xp - 50) })); 
-    setHousing('homeless'); 
-    setRentActive(false);
-    addMessage("Revived... destitute.", "info");
-  };
-
-  const buyItem = (item) => {
-    if (resources.gold >= item.cost) {
-      setResources(prev => ({ ...prev, gold: prev.gold - item.cost }));
-      setInventory(prev => [...prev, item.id]);
-      addMessage(`Purchased ${item.name}`, 'success');
-    } else {
-      addMessage("Not enough gold!", 'error');
-    }
-  };
-
-  const sellItem = (item) => {
-    const sellValue = Math.floor(item.cost / 2);
-    setResources(prev => ({ ...prev, gold: prev.gold + sellValue }));
-    const idx = inventory.indexOf(item.id);
-    if (idx > -1) {
-        const newInv = [...inventory];
-        newInv.splice(idx, 1);
-        setInventory(newInv);
-    }
-    addMessage(`Sold ${item.name} for ${sellValue}g`, 'success');
-  };
-
-  const equipItem = (item) => {
-    setEquipped(prev => ({ ...prev, [activeSlot]: item.id }));
-  };
-
-  const consumeItem = (item) => {
-      const idx = inventory.indexOf(item.id);
-      if (idx > -1) {
-          const newInv = [...inventory];
-          newInv.splice(idx, 1);
-          setInventory(newInv);
-          const effects = item.effects || {};
-          setStats(prev => ({
-            health: Math.max(0, Math.min(maxStats.health, prev.health + (effects.health || 0))),
-            mood: Math.max(0, Math.min(maxStats.mood, prev.mood + (effects.mood || 0))),
-            hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + (effects.hunger || 0))),
-            thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + (effects.thirst || 0))),
-            stress: Math.max(0, Math.min(maxStats.stress, prev.stress + (effects.stress || 0)))
-          }));
-          addMessage(`Consumed ${item.name}`, 'success');
-      }
+  const getItemById = (id) => {
+      const all = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies];
+      return all.find(i => i.id === id);
   };
 
   const togglePanel = (tab) => {
@@ -518,19 +82,6 @@ export default function App() {
     }
   };
 
-  const updateAppearance = (key, value) => {
-    setAppearance(prev => ({ ...prev, [key]: value }));
-  };
-
-  const getItemById = (id) => {
-      const all = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies];
-      return all.find(i => i.id === id);
-  };
-
-  const CurrentSceneBackground = getBackground(location);
-  const currentLocData = LOCATIONS[location] || LOCATIONS['village_road'];
-
-  // Updated to match SRD v1.12 Descriptions
   const getStatInfo = (key) => {
       switch(key) {
           case 'health': return { title: 'Health', desc: 'If this reaches 0, you die.', good: 'High' };
@@ -548,132 +99,24 @@ export default function App() {
       }
   };
 
-  const resetGame = () => {
-    if (confirm("Are you sure you want to reset everything? This cannot be undone.")) {
-      localStorage.removeItem(SAVE_KEY);
-      window.location.reload();
-    }
-  };
+  const CurrentSceneBackground = getBackground(location);
+  const currentLocData = LOCATIONS[location] || LOCATIONS['village_road'];
 
-  // --- Character Creation Handlers ---
-  const baseStatTotal = 50; // 5 stats * 10
-  const pointsSpent = Object.values(attributes).reduce((a, b) => a + b, 0) - baseStatTotal;
-  const pointsAvailable = 10 - pointsSpent;
-
-  const updateAttribute = (attr, delta) => {
-      if (delta > 0 && pointsAvailable <= 0) return;
-      if (delta < 0 && attributes[attr] <= 10) return; // Minimum 10
-      setAttributes(prev => ({ ...prev, [attr]: prev[attr] + delta }));
-  };
-
-  const startGame = () => {
-      // Recalculate health based on new CON
-      const newMax = calculateMaxStats(1, attributes.con);
-      setStats(prev => ({ ...prev, health: newMax.health }));
-      setGameStarted(true);
-      setDailyQuests(generateDailyQuests(1)); // Generate initial quests
-  };
-
-  // --- VIEW: Character Creation ---
+  // --- VIEW: Creation ---
   if (!gameStarted) {
       return (
-        <div className="h-screen bg-slate-950 text-slate-100 font-sans flex flex-col items-center justify-center p-4">
-            <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden h-[85vh]">
-                
-                {/* Left: Preview */}
-                <div className="w-full md:w-1/3 bg-slate-950/50 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-800 relative">
-                    <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest">New Adventurer</h2>
-                    <div className="w-48 h-72">
-                        <CharacterSVG equipped={equipped} appearance={appearance} isAlive={true} />
-                    </div>
-                </div>
-
-                {/* Right: Controls */}
-                <div className="flex-1 p-6 flex flex-col">
-                    <div className="flex gap-4 mb-6 border-b border-slate-800">
-                        <button onClick={() => setCreationStep(1)} className={`pb-2 text-sm font-bold uppercase tracking-wider ${creationStep === 1 ? 'text-white border-b-2 border-indigo-500' : 'text-slate-500'}`}>1. Appearance</button>
-                        <button onClick={() => setCreationStep(2)} className={`pb-2 text-sm font-bold uppercase tracking-wider ${creationStep === 2 ? 'text-white border-b-2 border-indigo-500' : 'text-slate-500'}`}>2. Attributes</button>
-                    </div>
-
-                    <div className="flex-1 overflow-y-auto">
-                        {creationStep === 1 && (
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Gender</h3>
-                                    <div className="flex gap-2">
-                                        {['male', 'female'].map(g => (
-                                            <button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-2 rounded border text-xs font-bold uppercase ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{g}</button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Skin Tone</h3>
-                                    <div className="flex gap-2">
-                                        {APPEARANCE_OPTIONS.skinTones.map(t => (
-                                            <button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-8 h-8 rounded-full border-2 ${appearance.skinTone === t.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: t.color }} />
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Eye Color</h3>
-                                    <div className="flex gap-2 flex-wrap">
-                                        {APPEARANCE_OPTIONS.eyeColors.map(c => (
-                                            <button key={c.id} onClick={() => updateAppearance('eyeColor', c.id)} className={`w-6 h-6 rounded-full border-2 ${appearance.eyeColor === c.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.color }} />
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Hair Style</h3>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {APPEARANCE_OPTIONS.hairStyles.map(s => (
-                                            <button key={s.id} onClick={() => updateAppearance('hairStyle', s.id)} className={`py-2 rounded border text-xs font-bold ${appearance.hairStyle === s.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{s.label}</button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Hair Color</h3>
-                                    <div className="flex gap-2 flex-wrap">
-                                        {APPEARANCE_OPTIONS.hairColors.map(c => (
-                                            <button key={c.id} onClick={() => updateAppearance('hairColor', c.id)} className={`w-6 h-6 rounded border-2 ${appearance.hairColor === c.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.color }} />
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {creationStep === 2 && (
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center bg-slate-800 p-3 rounded-lg mb-4">
-                                    <span className="text-sm font-bold text-slate-300">Points Available</span>
-                                    <span className={`text-xl font-mono font-bold ${pointsAvailable > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>{pointsAvailable}</span>
-                                </div>
-                                {Object.keys(attributes).map(attr => (
-                                    <div key={attr} className="flex items-center justify-between p-3 bg-slate-800/50 rounded border border-slate-700">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-white uppercase">{attr}</span>
-                                            <span className="text-[10px] text-slate-500">{getStatInfo(attr).desc.split('.')[1]}</span>
-                                        </div>
-                                        <div className="flex items-center gap-3">
-                                            <button onClick={() => updateAttribute(attr, -1)} className="p-1 bg-slate-700 rounded hover:bg-slate-600 text-slate-300"><Minus size={14} /></button>
-                                            <span className="w-4 text-center font-mono font-bold text-white">{attributes[attr]}</span>
-                                            <button onClick={() => updateAttribute(attr, 1)} className="p-1 bg-slate-700 rounded hover:bg-slate-600 text-slate-300" disabled={pointsAvailable <= 0}><Plus size={14} /></button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="mt-6 pt-4 border-t border-slate-800 flex justify-end">
-                        {creationStep === 1 ? (
-                            <button onClick={() => setCreationStep(2)} className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-colors">Next: Attributes</button>
-                        ) : (
-                            <button onClick={startGame} disabled={pointsAvailable > 0} className={`px-6 py-3 font-bold rounded-lg transition-colors ${pointsAvailable > 0 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}`}>Start Adventure</button>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
+        <CreationScreen 
+          creationStep={creationStep}
+          setCreationStep={setCreationStep}
+          appearance={appearance}
+          updateAppearance={updateAppearance}
+          equipped={equipped}
+          attributes={attributes}
+          updateAttribute={updateAttribute}
+          pointsAvailable={pointsAvailable}
+          getStatInfo={getStatInfo}
+          startGame={startGame}
+        />
       );
   }
 
@@ -842,7 +285,7 @@ export default function App() {
                {isDead && (
                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl">
                    <div className="text-center p-6 bg-slate-900 border border-red-900 rounded-xl shadow-2xl">
-                     <Skull className="w-12 h-12 text-red-600 mx-auto mb-2" />
+                     {/* Using null safe icon or hardcoded */}
                      <h2 className="text-xl font-bold text-red-500 mb-1">DECEASED</h2>
                      <p className="text-slate-400 text-sm mb-4">Your adventurer perished.</p>
                      <button onClick={revive} className="px-4 py-2 bg-red-900/50 hover:bg-red-800 text-red-200 rounded-md border border-red-700 transition-colors">
