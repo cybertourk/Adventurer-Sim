@@ -342,7 +342,6 @@ export const useGameLogic = () => {
           gained.push("Shiny Trash");
       }
 
-      // Generate a comprehensive status string for morning reports
       let gainStr = gained.length > 0 ? `Gained: ${gained.join(", ")}` : "";
       let lostStr = lost.length > 0 ? `Lost: ${lost.join(", ")}` : "";
       let fullStatus = [gainStr, lostStr].filter(Boolean).join(" | ");
@@ -424,10 +423,10 @@ export const useGameLogic = () => {
                 let gainStr = [];
                 let lossStr = [];
                 if(effects.health) (effects.health > 0 ? gainStr : lossStr).push(`${Math.abs(effects.health)} Health`);
-                if(effects.hunger) (effects.hunger < 0 ? gainStr : lossStr).push(`${Math.abs(effects.hunger)} Hunger`); // Hunger down is good
-                if(effects.thirst) (effects.thirst < 0 ? gainStr : lossStr).push(`${Math.abs(effects.thirst)} Thirst`); // Thirst down is good
+                if(effects.hunger) (effects.hunger < 0 ? gainStr : lossStr).push(`${Math.abs(effects.hunger)} Hunger`); 
+                if(effects.thirst) (effects.thirst < 0 ? gainStr : lossStr).push(`${Math.abs(effects.thirst)} Thirst`); 
                 if(effects.mood) (effects.mood > 0 ? gainStr : lossStr).push(`${Math.abs(effects.mood)} Mood`);
-                if(effects.stress) (effects.stress < 0 ? gainStr : lossStr).push(`${Math.abs(effects.stress)} Stress`); // Stress down is good
+                if(effects.stress) (effects.stress < 0 ? gainStr : lossStr).push(`${Math.abs(effects.stress)} Stress`); 
 
                 addToLog({ 
                     type: 'action', 
@@ -525,9 +524,9 @@ export const useGameLogic = () => {
 
         if(healthGain !== 0) (healthGain > 0 ? gained : lost).push(`${Math.abs(healthGain)} Health`);
         if(moodGain !== 0) (moodGain > 0 ? gained : lost).push(`${Math.abs(moodGain)} Mood`);
-        if(hungerGain !== 0) (hungerGain < 0 ? gained : lost).push(`${Math.abs(hungerGain)} Hunger`); // Negative hunger is gain (good)
-        if(thirstGain !== 0) (thirstGain < 0 ? gained : lost).push(`${Math.abs(thirstGain)} Thirst`); // Negative thirst is gain (good)
-        if(stressGain !== 0) (stressGain < 0 ? gained : lost).push(`${Math.abs(stressGain)} Stress`); // Negative stress is gain (good)
+        if(hungerGain !== 0) (hungerGain < 0 ? gained : lost).push(`${Math.abs(hungerGain)} Hunger`);
+        if(thirstGain !== 0) (thirstGain < 0 ? gained : lost).push(`${Math.abs(thirstGain)} Thirst`);
+        if(stressGain !== 0) (stressGain < 0 ? gained : lost).push(`${Math.abs(stressGain)} Stress`);
 
         let logText = action.message || "Completed action.";
         let lootText = "";
@@ -578,7 +577,6 @@ export const useGameLogic = () => {
            }
         }
 
-        // Format final strings
         let finalGained = gained.length > 0 ? `Gained: ${gained.join(", ")}` : "";
         let finalLost = lost.length > 0 ? `Lost: ${lost.join(", ")}` : "";
 
@@ -610,7 +608,7 @@ export const useGameLogic = () => {
                 thirst: Math.min(100, prev.thirst + 20)
             }));
             lost.push("20 Health");
-            gained.push("20 Stress", "20 Hunger", "20 Thirst"); // Bad things gained
+            gained.push("20 Stress", "20 Hunger", "20 Thirst");
         } 
         else if (action.type === 'social') {
             failMsg = "Made a total fool of yourself.";
