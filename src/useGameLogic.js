@@ -532,32 +532,42 @@ export const useGameLogic = () => {
         let lootText = "";
 
         if (action.effects.xp) {
+          // Pre-calculate changes before state update to ensure log is accurate
+          const newXp = resources.xp + action.effects.xp;
+          let goldGain = action.effects.gold || 0;
+
+          if (action.type === 'social' && quirk && quirk.id === 'sticky_fingers') {
+              if (Math.random() < (quirk.effects.socialGoldChance || 0)) {
+                  goldGain += 5;
+                  addMessage("Swiped some extra coin!", "success");
+                  lootText += " (Bonus 5g)";
+                  gained.push("5 Gold (Bonus)");
+              }
+          }
+
+          if(goldGain > 0) gained.push(`${goldGain} Gold`);
+          gained.push(`${action.effects.xp} XP`);
+
+          // Perform state update
           setResources(prev => {
-            const newXp = prev.xp + action.effects.xp;
-            let goldGain = action.effects.gold || 0;
-
-            if (action.type === 'social' && quirk && quirk.id === 'sticky_fingers') {
-                if (Math.random() < (quirk.effects.socialGoldChance || 0)) {
-                    goldGain += 5;
-                    addMessage("Swiped some extra coin!", "success");
-                    lootText += " (Bonus 5g)";
-                    gained.push("5 Gold (Bonus)");
-                }
+            const currentXp = prev.xp + action.effects.xp;
+            let currentGold = prev.gold + goldGain;
+            let currentLevel = prev.level;
+            
+            if (currentXp >= prev.level * 100) {
+              currentLevel++;
+              addMessage(`Level Up! You are now level ${currentLevel}`, "success");
+              // Note: We can't easily push to 'gained' here because it's inside the setter callback
+              // relying on the pre-calculation above for the log is safer.
             }
-
-            if(goldGain > 0) gained.push(`${goldGain} Gold`);
-            gained.push(`${action.effects.xp} XP`);
-
-            const newGold = prev.gold + goldGain;
-            let newLevel = prev.level;
-            if (newXp >= prev.level * 100) {
-              newLevel++;
-              addMessage(`Level Up! You are now level ${newLevel}`, "success");
-              lootText += " LEVEL UP!";
-              gained.push("Level Up");
-            }
-            return { ...prev, xp: newXp, gold: newGold, level: newLevel };
+            return { ...prev, xp: currentXp, gold: currentGold, level: currentLevel };
           });
+          
+          // Check level up separately for logging based on pre-calculation
+          if (newXp >= resources.level * 100) {
+             lootText += " LEVEL UP!";
+             gained.push("Level Up");
+          }
         }
         
         if (action.type === 'adventure' && Math.random() < 0.15) { 
