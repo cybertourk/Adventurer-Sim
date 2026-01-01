@@ -20,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.45 (Fix: Display Item Categories)
+  Version: 1.46 (Fix: Detailed Stat Info)
   -------------------------------------------------------------------------
 */
 
@@ -75,10 +75,6 @@ export default function App() {
   useEffect(() => {
       if (days > 1 && gameStarted) {
           // Optional: Only auto-open if it's a new day event. 
-          // For now, we will rely on the user clicking the button, 
-          // or we could uncomment the next line to force it open.
-          // setActiveTab('reports'); 
-          // setIsPanelOpen(true);
       }
   }, [days, gameStarted]);
 
@@ -98,19 +94,101 @@ export default function App() {
   };
 
   const getStatInfo = (key) => {
+      // Helper to determine Autonomy Zone
+      const getAutonomyZone = (m, s) => {
+          if (m > 40 && s < 60) return { label: 'Safe', chance: '5%' };
+          if (m < 10 || s > 90) return { label: 'CRISIS', chance: '70%' };
+          return { label: 'Risky', chance: '30%' };
+      };
+
+      const zone = getAutonomyZone(stats.mood, stats.stress);
+      const failureAdd = (stats.stress * 0.2).toFixed(1);
+
       switch(key) {
-          case 'health': return { title: 'Health', desc: 'If this reaches 0, you die.', good: 'High' };
-          case 'mood': return { title: 'Mood', desc: 'Mental state. Low mood triggers rebellion.', good: 'High' };
-          case 'hunger': return { title: 'Hunger', desc: 'If this reaches max, you starve.', good: 'Low' };
-          case 'thirst': return { title: 'Thirst', desc: 'If this reaches max, you dehydrate.', good: 'Low' };
-          case 'stress': return { title: 'Stress', desc: 'Mental strain. High stress triggers breakdown.', good: 'Low' };
-          case 'ac': return { title: 'AC', desc: 'Armor Class. Dodge/Deflect attacks.', good: 'High' };
-          case 'str': return { title: 'STR', desc: 'Strength. Reduces Risk for Labor and Adventure (Melee).', good: 'High' };
-          case 'dex': return { title: 'DEX', desc: 'Dexterity. Reduces Risk for Adventure (Dodge/Traps).', good: 'High' };
-          case 'con': return { title: 'CON', desc: 'Constitution. Increases Health. Reduces Risk for Labor.', good: 'High' };
-          case 'int': return { title: 'INT', desc: 'Intelligence. Reduces Risk for Magic Jobs.', good: 'High' };
-          case 'cha': return { title: 'CHA', desc: 'Charisma. Reduces Risk for Socialize actions.', good: 'High' };
-          case 'quirk': return { title: quirk ? quirk.name : 'None', desc: quirk ? quirk.desc : 'No active trait.' };
+          case 'health': 
+            return { 
+                title: 'Health', 
+                desc: 'Physical vitality.', 
+                status: stats.health === 0 ? 'Dead' : `Alive (${stats.health}/${maxStats.health})`,
+                effect: 'If 0, you die. Reviving costs XP.' 
+            };
+          case 'mood': 
+            return { 
+                title: 'Mood', 
+                desc: 'Mental stability.', 
+                status: `Current Zone: ${zone.label}`,
+                effect: `${zone.chance} chance of random chaotic events during sleep.` 
+            };
+          case 'hunger': 
+            return { 
+                title: 'Hunger', 
+                desc: 'Need for food.', 
+                status: `${stats.hunger}/${maxStats.hunger}`,
+                effect: stats.hunger >= 100 ? 'Death Imminent.' : 'Increases automatically. Eat to reduce.' 
+            };
+          case 'thirst': 
+            return { 
+                title: 'Thirst', 
+                desc: 'Need for drink.', 
+                status: `${stats.thirst}/${maxStats.thirst}`,
+                effect: stats.thirst >= 100 ? 'Death Imminent.' : 'Increases automatically. Drink to reduce.' 
+            };
+          case 'stress': 
+            return { 
+                title: 'Stress', 
+                desc: 'Mental strain.', 
+                status: `Failure Penalty: +${failureAdd}%`,
+                effect: 'Increases risk of failure for ALL actions. Can trigger Crisis events.' 
+            };
+          case 'ac': 
+            return { 
+                title: 'Armor Class', 
+                desc: 'Defensive capability.', 
+                status: `Rating: ${currentStats.ac}`,
+                effect: `Reduces risk of Adventure failure by ${currentStats.ac}%.` 
+            };
+          case 'str': 
+            return { 
+                title: 'Strength', 
+                desc: 'Physical power.', 
+                status: `Score: ${currentStats.str}`,
+                effect: `Reduces Labor & Adventure risk by ${currentStats.str}%.` 
+            };
+          case 'dex': 
+            return { 
+                title: 'Dexterity', 
+                desc: 'Agility and reflexes.', 
+                status: `Score: ${currentStats.dex}`,
+                effect: `Reduces Adventure risk by ${currentStats.dex}%.` 
+            };
+          case 'con': 
+            return { 
+                title: 'Constitution', 
+                desc: 'Endurance and health.', 
+                status: `Score: ${currentStats.con}`,
+                effect: `Reduces Labor risk by ${currentStats.con}%. Adds +${currentStats.con * 2} to Max Health.` 
+            };
+          case 'int': 
+            return { 
+                title: 'Intelligence', 
+                desc: 'Mental acuity.', 
+                status: `Score: ${currentStats.int}`,
+                effect: `Reduces Magic Job risk by ${currentStats.int * 2}%.` 
+            };
+          case 'cha': 
+            return { 
+                title: 'Charisma', 
+                desc: 'Social influence.', 
+                status: `Score: ${currentStats.cha}`,
+                effect: `Reduces Social Action risk by ${currentStats.cha * 2}%.` 
+            };
+          case 'quirk': 
+            return { 
+                title: quirk ? quirk.name : 'None', 
+                desc: quirk ? quirk.desc : 'No active trait.',
+                status: 'Active',
+                effect: 'Permanent passive effect.' 
+            };
           default: return { title: key.toUpperCase(), desc: 'Attribute' };
       }
   };
@@ -143,10 +221,27 @@ export default function App() {
       {/* ... [Modals] ... */}
       {activeStatInfo && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in" onClick={() => setActiveStatInfo(null)}>
-              <div className="bg-slate-900 border border-slate-700 rounded-xl p-4 shadow-2xl max-w-xs w-full text-center" onClick={e => e.stopPropagation()}>
-                  <h3 className="font-bold text-lg text-white mb-1">{getStatInfo(activeStatInfo).title}</h3>
-                  <p className="text-sm text-slate-400">{getStatInfo(activeStatInfo).desc}</p>
-                  <button onClick={() => setActiveStatInfo(null)} className="mt-4 px-4 py-2 bg-slate-800 rounded-lg text-xs font-bold hover:bg-slate-700">Close</button>
+              <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 shadow-2xl max-w-sm w-full text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
+                  <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500" />
+                  <h3 className="font-bold text-xl text-white mb-1 uppercase tracking-wider">{getStatInfo(activeStatInfo).title}</h3>
+                  <p className="text-xs text-slate-400 mb-4 font-medium uppercase tracking-widest">{getStatInfo(activeStatInfo).desc}</p>
+                  
+                  <div className="bg-slate-800/50 rounded-lg p-3 mb-4 space-y-2 border border-slate-700/50">
+                      {getStatInfo(activeStatInfo).status && (
+                          <div className="flex justify-between items-center text-sm">
+                              <span className="text-slate-400 font-bold">Status:</span>
+                              <span className="text-indigo-300 font-mono font-bold">{getStatInfo(activeStatInfo).status}</span>
+                          </div>
+                      )}
+                      {getStatInfo(activeStatInfo).effect && (
+                          <div className="text-left mt-2 pt-2 border-t border-slate-700/50">
+                             <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1">Effect</span>
+                             <p className="text-xs text-slate-300 leading-relaxed">{getStatInfo(activeStatInfo).effect}</p>
+                          </div>
+                      )}
+                  </div>
+
+                  <button onClick={() => setActiveStatInfo(null)} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-colors">Close</button>
               </div>
           </div>
       )}
