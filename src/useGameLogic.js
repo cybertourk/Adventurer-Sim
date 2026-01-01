@@ -474,6 +474,7 @@ export const useGameLogic = () => {
     const str = currentStats.str;
     const dex = currentStats.dex;
     const con = currentStats.con;
+    const int = currentStats.int;
     const cha = currentStats.cha;
     const stress = stats.stress;
     
@@ -486,10 +487,13 @@ export const useGameLogic = () => {
     else if (action.type === 'social') {
         failChance = 0.40 - (cha * 0.02) + (stress * 0.002);
     }
+    else if (action.type === 'magic') {
+        failChance = 0.40 - (int * 0.02) + (stress * 0.002);
+    }
 
     failChance = Math.max(0.05, Math.min(0.95, failChance));
     
-    if (['labor', 'adventure', 'social'].includes(action.type)) {
+    if (['labor', 'adventure', 'social', 'magic'].includes(action.type)) {
         if (Math.random() < failChance) isSuccess = false;
     }
 
@@ -608,6 +612,11 @@ export const useGameLogic = () => {
             failMsg = "Screwed up the job. No pay.";
             stressGain = 10;
         } 
+        else if (action.type === 'magic') {
+            failMsg = "Spell backfired! You smell like sulfur.";
+            stressGain = 15;
+            // Maybe burn some MP or Health? Let's just do stress for now per usual pattern
+        }
         else if (action.type === 'adventure') {
             failMsg = "Defeated! Retreated with wounds.";
             setStats(prev => ({ 
