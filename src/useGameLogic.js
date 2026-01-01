@@ -237,9 +237,7 @@ export const useGameLogic = () => {
 
   const passTime = (daysPassed) => {
       let rentMsg = "No rent paid (Homeless).";
-      let housingEffect = { health: 0, stress: 0 };
-      let gained = [];
-      let lost = [];
+      let changes = [];
       
       if (rentActive) {
           const locId = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : null;
@@ -248,7 +246,7 @@ export const useGameLogic = () => {
              if (resources.gold >= totalRent) {
                   setResources(prev => ({ ...prev, gold: prev.gold - totalRent }));
                   rentMsg = `Paid rent: -${totalRent}g at ${LOCATIONS[locId].name}.`;
-                  lost.push(`${totalRent} Gold (Rent)`);
+                  changes.push(`-${totalRent} Gold`);
                   
                   if (LOCATIONS[locId].modifiers && LOCATIONS[locId].modifiers.rest) {
                       const mod = LOCATIONS[locId].modifiers.rest;
@@ -258,18 +256,16 @@ export const useGameLogic = () => {
                           stress: Math.max(0, prev.stress + (mod.stress || 0)),
                           mood: Math.min(maxStats.mood, prev.mood + (mod.mood || 0))
                       }));
-                      housingEffect = mod;
-                      if(mod.health) gained.push(`${mod.health > 0 ? '+' : ''}${mod.health} Health`);
-                      if(mod.stress) gained.push(`${mod.stress > 0 ? '+' : ''}${mod.stress} Stress`);
-                      if(mod.mood) gained.push(`${mod.mood > 0 ? '+' : ''}${mod.mood} Mood`);
+                      if(mod.health) changes.push(`${mod.health > 0 ? '+' : ''}${mod.health} Health`);
+                      if(mod.stress) changes.push(`${mod.stress > 0 ? '+' : ''}${mod.stress} Stress`);
+                      if(mod.mood) changes.push(`${mod.mood > 0 ? '+' : ''}${mod.mood} Mood`);
                   }
              } else {
                   setHousing('homeless');
                   setRentActive(false);
                   setStats(prev => ({ ...prev, mood: Math.max(0, prev.mood - 20) })); 
                   rentMsg = "Evicted! Couldn't pay rent. Slept in the dirt.";
-                  lost.push("Housing (Evicted)");
-                  lost.push("20 Mood");
+                  changes.push("Evicted", "-20 Mood");
                   addMessage("Evicted!", 'error');
              }
           }
@@ -281,10 +277,9 @@ export const useGameLogic = () => {
               stress: Math.max(0, prev.stress + (mod.stress || 0)),
               mood: Math.max(0, prev.mood + (mod.mood || 0))
           }));
-          housingEffect = mod;
-          if(mod.health) gained.push(`${mod.health > 0 ? '+' : ''}${mod.health} Health`);
-          if(mod.stress) gained.push(`${mod.stress > 0 ? '+' : ''}${mod.stress} Stress`);
-          if(mod.mood) gained.push(`${mod.mood > 0 ? '+' : ''}${mod.mood} Mood`);
+          if(mod.health) changes.push(`${mod.health > 0 ? '+' : ''}${mod.health} Health`);
+          if(mod.stress) changes.push(`${mod.stress > 0 ? '+' : ''}${mod.stress} Stress`);
+          if(mod.mood) changes.push(`${mod.mood > 0 ? '+' : ''}${mod.mood} Mood`);
           rentMsg = "Slept outside. It was cold.";
       }
 
@@ -305,22 +300,21 @@ export const useGameLogic = () => {
                   stress: Math.max(0, Math.min(maxStats.stress, prev.stress + (fx.stress || 0)))
               }));
 
-              if(fx.health) (fx.health > 0 ? gained : lost).push(`${Math.abs(fx.health)} Health`);
-              if(fx.mood) (fx.mood > 0 ? gained : lost).push(`${Math.abs(fx.mood)} Mood`);
-              if(fx.hunger) (fx.hunger > 0 ? gained : lost).push(`${Math.abs(fx.hunger)} Hunger`);
-              if(fx.thirst) (fx.thirst > 0 ? gained : lost).push(`${Math.abs(fx.thirst)} Thirst`);
-              if(fx.stress) (fx.stress > 0 ? gained : lost).push(`${Math.abs(fx.stress)} Stress`);
+              if(fx.health) changes.push(`${fx.health > 0 ? '+' : ''}${fx.health} Health`);
+              if(fx.mood) changes.push(`${fx.mood > 0 ? '+' : ''}${fx.mood} Mood`);
+              if(fx.hunger) changes.push(`${fx.hunger > 0 ? '+' : ''}${fx.hunger} Hunger`);
+              if(fx.thirst) changes.push(`${fx.thirst > 0 ? '+' : ''}${fx.thirst} Thirst`);
+              if(fx.stress) changes.push(`${fx.stress > 0 ? '+' : ''}${fx.stress} Stress`);
 
               if (fx.gold) {
                   setResources(prev => ({ ...prev, gold: Math.max(0, prev.gold + fx.gold) }));
-                  if(fx.gold > 0) gained.push(`${fx.gold} Gold`);
-                  if(fx.gold < 0) lost.push(`${Math.abs(fx.gold)} Gold`);
+                  changes.push(`${fx.gold > 0 ? '+' : ''}${fx.gold} Gold`);
               }
               
               if (fx.housing === 'homeless') {
                   setHousing('homeless');
                   setRentActive(false);
-                  lost.push("Housing");
+                  changes.push("Lost Housing");
               }
 
               if (fx.equipmentLoss) {
@@ -330,7 +324,7 @@ export const useGameLogic = () => {
                   if (itemId !== 'none' && itemId !== 'fist' && itemId !== 'tunic') {
                       setEquipped(prev => ({ ...prev, [randomSlot]: 'none' })); 
                       incidentMsg += ` (Lost ${itemId})`;
-                      lost.push(itemId);
+                      changes.push(`-${itemId}`);
                   }
               }
           }
@@ -339,13 +333,10 @@ export const useGameLogic = () => {
 
       if (quirk && quirk.id === 'kleptomaniac' && Math.random() < (quirk.effects.junkChance || 0)) {
           incidentMsg += " Also... found some shiny trash.";
-          gained.push("Shiny Trash");
+          changes.push("+Shiny Trash");
       }
 
-      let gainStr = gained.length > 0 ? `Gained: ${gained.join(", ")}` : "";
-      let lostStr = lost.length > 0 ? `Lost: ${lost.join(", ")}` : "";
-      let fullStatus = [gainStr, lostStr].filter(Boolean).join(" | ");
-      if (!fullStatus) fullStatus = "No significant changes.";
+      let fullStatus = changes.length > 0 ? `Changes: ${changes.join(", ")}` : "No significant changes.";
 
       addToLog({
           type: 'morning',
@@ -374,8 +365,7 @@ export const useGameLogic = () => {
         return;
     }
 
-    let gained = [];
-    let lost = [];
+    let changes = [];
 
     if (action.id === 'rent_start') {
         if (resources.gold >= 5) {
@@ -383,7 +373,7 @@ export const useGameLogic = () => {
             setRentActive(true);
             setResources(prev => ({ ...prev, gold: prev.gold - 5 })); 
             addMessage("Rented room at Rusty Spoon.", 'success');
-            addToLog({ type: 'action', day: days, title: 'Housing', text: 'Rented a room at the Rusty Spoon.', status: 'Success', lost: '5 Gold', gained: 'Warm Bed' });
+            addToLog({ type: 'action', day: days, title: 'Housing', text: 'Rented a room at the Rusty Spoon.', status: 'Success', changes: 'Changes: -5 Gold, +Warm Bed' });
         } else {
             addMessage("Not enough gold to rent room.", 'error');
             addToLog({ type: 'action', day: days, title: 'Housing', text: 'Tried to rent a room but was too poor.', status: 'Failed' });
@@ -395,7 +385,7 @@ export const useGameLogic = () => {
         setHousing('homeless');
         setRentActive(false);
         addMessage("Checked out of Inn.", 'info');
-        addToLog({ type: 'action', day: days, title: 'Housing', text: 'Checked out of the inn.', status: 'Info', lost: 'Warm Bed' });
+        addToLog({ type: 'action', day: days, title: 'Housing', text: 'Checked out of the inn.', status: 'Info', changes: 'Changes: -Warm Bed' });
         return;
     }
 
@@ -420,13 +410,13 @@ export const useGameLogic = () => {
                 }));
                 addMessage(`Consumed ${itemToConsume.name}`, 'success');
                 
-                let gainStr = [];
-                let lossStr = [];
-                if(effects.health) (effects.health > 0 ? gainStr : lossStr).push(`${Math.abs(effects.health)} Health`);
-                if(effects.hunger) (effects.hunger < 0 ? gainStr : lossStr).push(`${Math.abs(effects.hunger)} Hunger`); 
-                if(effects.thirst) (effects.thirst < 0 ? gainStr : lossStr).push(`${Math.abs(effects.thirst)} Thirst`); 
-                if(effects.mood) (effects.mood > 0 ? gainStr : lossStr).push(`${Math.abs(effects.mood)} Mood`);
-                if(effects.stress) (effects.stress < 0 ? gainStr : lossStr).push(`${Math.abs(effects.stress)} Stress`); 
+                if(effects.health) changes.push(`${effects.health > 0 ? '+' : ''}${effects.health} Health`);
+                if(effects.hunger) changes.push(`${effects.hunger > 0 ? '+' : ''}${effects.hunger} Hunger`);
+                if(effects.thirst) changes.push(`${effects.thirst > 0 ? '+' : ''}${effects.thirst} Thirst`);
+                if(effects.mood) changes.push(`${effects.mood > 0 ? '+' : ''}${effects.mood} Mood`);
+                if(effects.stress) changes.push(`${effects.stress > 0 ? '+' : ''}${effects.stress} Stress`);
+                
+                changes.push(`-${itemToConsume.name}`);
 
                 addToLog({ 
                     type: 'action', 
@@ -434,8 +424,7 @@ export const useGameLogic = () => {
                     title: 'Consumable', 
                     text: `Consumed ${itemToConsume.name}.`, 
                     status: 'Success', 
-                    lost: `${itemToConsume.name}${lossStr.length > 0 ? ', ' + lossStr.join(", ") : ''}`, 
-                    gained: gainStr.join(", ") 
+                    changes: `Changes: ${changes.join(", ")}`
                 });
                 return; 
             }
@@ -460,7 +449,7 @@ export const useGameLogic = () => {
 
     if (cost > 0 && action.costType === 'gp') {
       setResources(prev => ({ ...prev, gold: prev.gold - cost }));
-      lost.push(`${cost} Gold`);
+      changes.push(`-${cost} Gold`);
     }
 
     if (action.days > 0) {
@@ -526,11 +515,11 @@ export const useGameLogic = () => {
           stress: Math.max(0, Math.min(maxStats.stress, prev.stress + stressGain))
         }));
 
-        if(healthGain !== 0) (healthGain > 0 ? gained : lost).push(`${Math.abs(healthGain)} Health`);
-        if(moodGain !== 0) (moodGain > 0 ? gained : lost).push(`${Math.abs(moodGain)} Mood`);
-        if(hungerGain !== 0) (hungerGain < 0 ? gained : lost).push(`${Math.abs(hungerGain)} Hunger`);
-        if(thirstGain !== 0) (thirstGain < 0 ? gained : lost).push(`${Math.abs(thirstGain)} Thirst`);
-        if(stressGain !== 0) (stressGain < 0 ? gained : lost).push(`${Math.abs(stressGain)} Stress`);
+        if(healthGain !== 0) changes.push(`${healthGain > 0 ? '+' : ''}${healthGain} Health`);
+        if(moodGain !== 0) changes.push(`${moodGain > 0 ? '+' : ''}${moodGain} Mood`);
+        if(hungerGain !== 0) changes.push(`${hungerGain > 0 ? '+' : ''}${hungerGain} Hunger`);
+        if(thirstGain !== 0) changes.push(`${thirstGain > 0 ? '+' : ''}${thirstGain} Thirst`);
+        if(stressGain !== 0) changes.push(`${stressGain > 0 ? '+' : ''}${stressGain} Stress`);
 
         let logText = action.message || "Completed action.";
         let lootText = "";
@@ -545,12 +534,12 @@ export const useGameLogic = () => {
                   goldGain += 5;
                   addMessage("Swiped some extra coin!", "success");
                   lootText += " (Bonus 5g)";
-                  gained.push("5 Gold (Bonus)");
+                  changes.push("+5 Gold (Bonus)");
               }
           }
 
-          if(goldGain > 0) gained.push(`${goldGain} Gold`);
-          gained.push(`${action.effects.xp} XP`);
+          if(goldGain > 0) changes.push(`+${goldGain} Gold`);
+          changes.push(`+${action.effects.xp} XP`);
 
           // Perform state update
           setResources(prev => {
@@ -561,16 +550,13 @@ export const useGameLogic = () => {
             if (currentXp >= prev.level * 100) {
               currentLevel++;
               addMessage(`Level Up! You are now level ${currentLevel}`, "success");
-              // Note: We can't easily push to 'gained' here because it's inside the setter callback
-              // relying on the pre-calculation above for the log is safer.
             }
             return { ...prev, xp: currentXp, gold: currentGold, level: currentLevel };
           });
           
-          // Check level up separately for logging based on pre-calculation
           if (newXp >= resources.level * 100) {
              lootText += " LEVEL UP!";
-             gained.push("Level Up");
+             changes.push("LEVEL UP");
           }
         }
         
@@ -586,13 +572,10 @@ export const useGameLogic = () => {
                  setInventory(prev => [...prev, foundItem.id]);
                  addMessage(`Loot: Found ${foundItem.name}!`, 'success');
                  lootText += ` Found: ${foundItem.name}`;
-                 gained.push(foundItem.name);
+                 changes.push(`+${foundItem.name}`);
              }
            }
         }
-
-        let finalGained = gained.length > 0 ? `Gained: ${gained.join(", ")}` : "";
-        let finalLost = lost.length > 0 ? `Lost: ${lost.join(", ")}` : "";
 
         addToLog({ 
             type: 'action', 
@@ -600,8 +583,7 @@ export const useGameLogic = () => {
             title: action.label, 
             text: logText + lootText, 
             status: 'Success',
-            gained: finalGained,
-            lost: finalLost
+            changes: changes.length > 0 ? `Changes: ${changes.join(", ")}` : ""
         });
 
     } else {
@@ -615,7 +597,6 @@ export const useGameLogic = () => {
         else if (action.type === 'magic') {
             failMsg = "Spell backfired! You smell like sulfur.";
             stressGain = 15;
-            // Maybe burn some MP or Health? Let's just do stress for now per usual pattern
         }
         else if (action.type === 'adventure') {
             failMsg = "Defeated! Retreated with wounds.";
@@ -626,13 +607,12 @@ export const useGameLogic = () => {
                 hunger: Math.min(100, prev.hunger + 20), 
                 thirst: Math.min(100, prev.thirst + 20)
             }));
-            lost.push("20 Health");
-            gained.push("20 Stress", "20 Hunger", "20 Thirst");
+            changes.push("-20 Health", "+20 Stress", "+20 Hunger", "+20 Thirst");
         } 
         else if (action.type === 'social') {
             failMsg = "Made a total fool of yourself.";
             setStats(prev => ({ ...prev, mood: Math.max(0, prev.mood - 20) }));
-            lost.push("20 Mood");
+            changes.push("-20 Mood");
         }
 
         if (quirk && quirk.id === 'drama_queen') {
@@ -641,11 +621,8 @@ export const useGameLogic = () => {
         
         if (stressGain > 0) {
             setStats(prev => ({ ...prev, stress: Math.min(100, prev.stress + stressGain) }));
-            gained.push(`${stressGain} Stress`);
+            changes.push(`+${stressGain} Stress`);
         }
-
-        let finalGained = gained.length > 0 ? `Gained: ${gained.join(", ")}` : "";
-        let finalLost = lost.length > 0 ? `Lost: ${lost.join(", ")}` : "";
 
         addMessage(failMsg, "error");
         addToLog({ 
@@ -654,8 +631,7 @@ export const useGameLogic = () => {
             title: action.label, 
             text: failMsg, 
             status: 'Failed',
-            gained: finalGained,
-            lost: finalLost
+            changes: changes.length > 0 ? `Changes: ${changes.join(", ")}` : ""
         });
 
         if (action.days > 0) refreshShop();
@@ -679,8 +655,7 @@ export const useGameLogic = () => {
         title: 'Revived', 
         text: 'I have returned from the dead. Ouch.', 
         status: 'Revived',
-        lost: 'Lost: 50 XP, Housing',
-        gained: 'Gained: Life'
+        changes: 'Changes: -50 XP, -Housing, +Life'
     });
   };
 
@@ -700,8 +675,7 @@ export const useGameLogic = () => {
           title: 'Shop', 
           text: `Bought ${item.name}.`, 
           status: 'Success',
-          lost: `Lost: ${cost} Gold`,
-          gained: `Gained: ${item.name}`
+          changes: `Changes: -${cost} Gold, +${item.name}`
       });
     } else {
       addMessage("Not enough gold!", 'error');
@@ -724,8 +698,7 @@ export const useGameLogic = () => {
         title: 'Shop', 
         text: `Sold ${item.name}.`, 
         status: 'Success',
-        lost: `Lost: ${item.name}`,
-        gained: `Gained: ${sellValue} Gold`
+        changes: `Changes: +${sellValue} Gold, -${item.name}`
     });
   };
 
@@ -749,16 +722,14 @@ export const useGameLogic = () => {
           }));
           addMessage(`Consumed ${item.name}`, 'success');
           
-          let gainStr = [];
-          let lossStr = [];
-          if(effects.health) (effects.health > 0 ? gainStr : lossStr).push(`${Math.abs(effects.health)} Health`);
-          if(effects.hunger) (effects.hunger < 0 ? gainStr : lossStr).push(`${Math.abs(effects.hunger)} Hunger`); // Less hunger is good
-          if(effects.thirst) (effects.thirst < 0 ? gainStr : lossStr).push(`${Math.abs(effects.thirst)} Thirst`);
-          if(effects.mood) (effects.mood > 0 ? gainStr : lossStr).push(`${Math.abs(effects.mood)} Mood`);
-          if(effects.stress) (effects.stress < 0 ? gainStr : lossStr).push(`${Math.abs(effects.stress)} Stress`);
-
-          let finalGained = gainStr.length > 0 ? `Gained: ${gainStr.join(", ")}` : "";
-          let finalLost = lossStr.length > 0 ? `Lost: ${lossStr.join(", ")}` : `Lost: ${item.name}`; // Always lost the item
+          let changes = [];
+          if(effects.health) changes.push(`${effects.health > 0 ? '+' : ''}${effects.health} Health`);
+          if(effects.hunger) changes.push(`${effects.hunger > 0 ? '+' : ''}${effects.hunger} Hunger`);
+          if(effects.thirst) changes.push(`${effects.thirst > 0 ? '+' : ''}${effects.thirst} Thirst`);
+          if(effects.mood) changes.push(`${effects.mood > 0 ? '+' : ''}${effects.mood} Mood`);
+          if(effects.stress) changes.push(`${effects.stress > 0 ? '+' : ''}${effects.stress} Stress`);
+          
+          changes.push(`-${item.name}`);
 
           addToLog({ 
               type: 'action', 
@@ -766,8 +737,7 @@ export const useGameLogic = () => {
               title: 'Inventory', 
               text: `Ate/Drank ${item.name}.`, 
               status: 'Success',
-              lost: finalLost,
-              gained: finalGained
+              changes: `Changes: ${changes.join(", ")}`
           });
       }
   };
