@@ -20,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.44 (Fix: Show Item Stats in Equipment Tab)
+  Version: 1.45 (Fix: Display Item Categories)
   -------------------------------------------------------------------------
 */
 
@@ -174,7 +174,10 @@ export default function App() {
                     return (
                         <div key={item.id} className="flex items-center justify-between p-3 bg-slate-800 rounded border border-slate-700">
                             <div>
-                                <div className="font-bold text-sm">{item.name}</div>
+                                <div className="font-bold text-sm flex items-center gap-2">
+                                  {item.name}
+                                  {item.category && <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold bg-slate-900 px-1.5 py-0.5 rounded">{item.category}</span>}
+                                </div>
                                 <div className="text-xs text-slate-500">{item.type}</div>
                                 {renderItemStats(item)}
                             </div>
@@ -196,7 +199,10 @@ export default function App() {
                     return (
                         <div key={`${item.id}-${index}`} className="flex items-center justify-between p-3 bg-slate-800 rounded border border-slate-700">
                             <div>
-                                <div className="font-bold text-sm">{item.name}</div>
+                                <div className="font-bold text-sm flex items-center gap-2">
+                                  {item.name}
+                                  {item.category && <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold bg-slate-900 px-1.5 py-0.5 rounded">{item.category}</span>}
+                                </div>
                                 <div className="text-xs text-slate-500">{item.type}</div>
                                 {renderItemStats(item)}
                             </div>
@@ -433,7 +439,10 @@ export default function App() {
                                       <div key={item.id} className="flex items-center gap-2 p-2 w-full rounded-lg border text-left transition-all relative overflow-hidden bg-slate-800 border-slate-700 mb-2">
                                           <div className="p-2 rounded-md bg-slate-700 text-slate-400">{item.type === 'food' ? <Apple size={14} /> : item.type === 'potion' ? <Heart size={14} /> : item.type === 'drink' ? <Wine size={14} /> : <Beer size={14} />}</div>
                                           <div className="flex-1 min-w-0">
-                                            <span className="font-bold text-xs">{item.name} <span className="text-slate-500">x{count}</span></span>
+                                            <div className="font-bold text-xs flex items-center gap-2">
+                                              {item.name} <span className="text-slate-500">x{count}</span>
+                                              {item.category && <span className="text-[8px] text-slate-400 uppercase tracking-wider border border-slate-600 px-1 rounded">{item.category}</span>}
+                                            </div>
                                             <div className="text-[10px] text-slate-500">{item.description}</div>
                                             {renderItemStats(item)}
                                           </div>
@@ -460,7 +469,12 @@ export default function App() {
                                     {activeSlot === 'offHand' && <Shield size={14} />}
                                  </div>
                                  <div className="flex flex-col min-w-0 flex-1">
-                                    <div className="flex items-center gap-2"><span className={`font-bold text-xs truncate ${isEquipped ? 'text-indigo-200' : 'text-slate-300'}`}>{item.name}</span>{count > 1 && <span className="text-[10px] text-slate-500 font-bold">x{count}</span>}{isEquipped && <span className="text-[8px] font-bold text-indigo-400 bg-indigo-950/50 px-1 py-0.5 rounded">EQUIPPED</span>}</div>
+                                    <div className="flex items-center gap-2">
+                                      <span className={`font-bold text-xs truncate ${isEquipped ? 'text-indigo-200' : 'text-slate-300'}`}>{item.name}</span>
+                                      {count > 1 && <span className="text-[10px] text-slate-500 font-bold">x{count}</span>}
+                                      {item.category && <span className="text-[8px] text-slate-500 uppercase tracking-wider border border-slate-700 px-1 rounded">{item.category}</span>}
+                                      {isEquipped && <span className="text-[8px] font-bold text-indigo-400 bg-indigo-950/50 px-1 py-0.5 rounded">EQUIPPED</span>}
+                                    </div>
                                     <span className="text-[10px] text-slate-500 truncate">{item.description}</span>
                                     {renderItemStats(item)}
                                  </div>
