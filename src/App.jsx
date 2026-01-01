@@ -20,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.43 (Fix: Daily Log Phrasing Update)
+  Version: 1.44 (Fix: Show Item Stats in Equipment Tab)
   -------------------------------------------------------------------------
 */
 
@@ -432,7 +432,11 @@ export default function App() {
                                   return (
                                       <div key={item.id} className="flex items-center gap-2 p-2 w-full rounded-lg border text-left transition-all relative overflow-hidden bg-slate-800 border-slate-700 mb-2">
                                           <div className="p-2 rounded-md bg-slate-700 text-slate-400">{item.type === 'food' ? <Apple size={14} /> : item.type === 'potion' ? <Heart size={14} /> : item.type === 'drink' ? <Wine size={14} /> : <Beer size={14} />}</div>
-                                          <div className="flex-1 min-w-0"><span className="font-bold text-xs">{item.name} <span className="text-slate-500">x{count}</span></span><div className="text-[10px] text-slate-500">{item.description}</div></div>
+                                          <div className="flex-1 min-w-0">
+                                            <span className="font-bold text-xs">{item.name} <span className="text-slate-500">x{count}</span></span>
+                                            <div className="text-[10px] text-slate-500">{item.description}</div>
+                                            {renderItemStats(item)}
+                                          </div>
                                           <button onClick={() => consumeItem(item)} className="px-2 py-1 rounded border border-slate-600 bg-slate-700 text-slate-300 text-[10px] font-bold hover:bg-emerald-900 hover:border-emerald-500 hover:text-emerald-100 transition-colors">Use</button>
                                       </div>
                                   );
@@ -458,6 +462,7 @@ export default function App() {
                                  <div className="flex flex-col min-w-0 flex-1">
                                     <div className="flex items-center gap-2"><span className={`font-bold text-xs truncate ${isEquipped ? 'text-indigo-200' : 'text-slate-300'}`}>{item.name}</span>{count > 1 && <span className="text-[10px] text-slate-500 font-bold">x{count}</span>}{isEquipped && <span className="text-[8px] font-bold text-indigo-400 bg-indigo-950/50 px-1 py-0.5 rounded">EQUIPPED</span>}</div>
                                     <span className="text-[10px] text-slate-500 truncate">{item.description}</span>
+                                    {renderItemStats(item)}
                                  </div>
                                  {!isEquipped && (<button onClick={() => equipItem(item)} className="px-2 py-1 rounded border border-slate-600 bg-slate-700 text-slate-300 text-[10px] font-bold hover:bg-slate-600 hover:text-white transition-colors">Equip</button>)}
                               </div>
