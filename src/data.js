@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
   GAME DATA & CONFIGURATION
-  Version: 1.16 (Fix: Tier 1 Adventure Duration)
+  Version: 1.17 (Fix: Added Item Categories)
 ------------------------------------------------------------------------- */
 
 export const SAVE_KEY = 'dnd_tamagotchi_v1_12'; 
@@ -9,40 +9,40 @@ export const MAX_STAT = 100;
 // --- Section 5: Equipment & Economy ---
 export const ITEM_DB = {
   head: [
-    { id: 'none', name: 'Bare', type: 'head', stats: { ac: 0 }, cost: 0, description: 'Wind in your hair.' },
-    { id: 'leather_cap', name: 'Bad Hair Day Hider', type: 'head', stats: { ac: 1 }, cost: 25, description: 'Basic leather cap.' },
-    { id: 'iron_helm', name: 'Bucket with Eye Holes', type: 'head', stats: { ac: 3, dex: -1 }, cost: 60, description: 'Heavy protection.' },
-    { id: 'wizard_hat', name: 'Pointy Hat of Smartness', type: 'head', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
+    { id: 'none', name: 'Bare', type: 'head', category: 'None', stats: { ac: 0 }, cost: 0, description: 'Wind in your hair.' },
+    { id: 'leather_cap', name: 'Bad Hair Day Hider', type: 'head', category: 'Light Helm', stats: { ac: 1 }, cost: 25, description: 'Basic leather cap.' },
+    { id: 'iron_helm', name: 'Bucket with Eye Holes', type: 'head', category: 'Heavy Helm', stats: { ac: 3, dex: -1 }, cost: 60, description: 'Heavy protection.' },
+    { id: 'wizard_hat', name: 'Pointy Hat of Smartness', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
   ],
   body: [
-    { id: 'tunic', name: 'Breezy Tunic', type: 'body', stats: { ac: 0 }, cost: 0, description: 'Drafty.' },
-    { id: 'leather_armor', name: 'Stiff Cow Skin', type: 'body', stats: { ac: 2 }, cost: 40, description: 'Smells like a tannery.' },
-    { id: 'chainmail', name: 'Jingly Shirt', type: 'body', stats: { ac: 5, dex: -2 }, cost: 150, description: 'Loud but protective.' },
-    { id: 'plate', name: 'Shiny Can Suit', type: 'body', stats: { ac: 8, dex: -4 }, cost: 500, description: 'I am invincible! (Mostly).' },
+    { id: 'tunic', name: 'Breezy Tunic', type: 'body', category: 'Clothing', stats: { ac: 0 }, cost: 0, description: 'Drafty.' },
+    { id: 'leather_armor', name: 'Stiff Cow Skin', type: 'body', category: 'Light Armor', stats: { ac: 2 }, cost: 40, description: 'Smells like a tannery.' },
+    { id: 'chainmail', name: 'Jingly Shirt', type: 'body', category: 'Medium Armor', stats: { ac: 5, dex: -2 }, cost: 150, description: 'Loud but protective.' },
+    { id: 'plate', name: 'Shiny Can Suit', type: 'body', category: 'Heavy Armor', stats: { ac: 8, dex: -4 }, cost: 500, description: 'I am invincible! (Mostly).' },
     // Kept for SVG compatibility, though not in SRD shop list explicitly
-    { id: 'robe', name: 'Mysterious Robe', type: 'body', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing fabric.' },
+    { id: 'robe', name: 'Mysterious Robe', type: 'body', category: 'Clothing', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing fabric.' },
   ],
   mainHand: [
-    { id: 'fist', name: 'These Two Hands', type: 'mainHand', stats: { str: 0 }, cost: 0, description: 'Always loaded.' },
-    { id: 'dagger', name: 'Pointy Stick', type: 'mainHand', stats: { dex: 2, str: 1 }, cost: 15, description: 'Good for cheese and goblins.' },
-    { id: 'sword', name: 'Sharp Metal Bar', type: 'mainHand', stats: { str: 2 }, cost: 50, description: 'The classic choice.' },
-    { id: 'axe', name: 'The Chopper', type: 'mainHand', stats: { str: 3 }, cost: 75, description: 'Solving problems, one swing at a time.' },
-    { id: 'staff', name: 'Wizard Twig', type: 'mainHand', stats: { int: 1, str: 1 }, cost: 60, description: 'It is just a stick, right?' },
-    { id: 'hammer', name: 'Bonk Stick', type: 'mainHand', stats: { str: 3 }, cost: 100, description: 'Unlocks smithing.' },
+    { id: 'fist', name: 'These Two Hands', type: 'mainHand', category: 'Unarmed', stats: { str: 0 }, cost: 0, description: 'Always loaded.' },
+    { id: 'dagger', name: 'Pointy Stick', type: 'mainHand', category: 'Dagger', stats: { dex: 2, str: 1 }, cost: 15, description: 'Good for cheese and goblins.' },
+    { id: 'sword', name: 'Sharp Metal Bar', type: 'mainHand', category: 'Longsword', stats: { str: 2 }, cost: 50, description: 'The classic choice.' },
+    { id: 'axe', name: 'The Chopper', type: 'mainHand', category: 'Battleaxe', stats: { str: 3 }, cost: 75, description: 'Solving problems, one swing at a time.' },
+    { id: 'staff', name: 'Wizard Twig', type: 'mainHand', category: 'Quarterstaff', stats: { int: 1, str: 1 }, cost: 60, description: 'It is just a stick, right?' },
+    { id: 'hammer', name: 'Bonk Stick', type: 'mainHand', category: 'Warhammer', stats: { str: 3 }, cost: 100, description: 'Unlocks smithing.' },
   ],
   offHand: [
     // Kept for SVG compatibility
-    { id: 'none', name: 'Empty', type: 'offHand', stats: { ac: 0 }, cost: 0, description: 'Free hand.' },
-    { id: 'wooden_shield', name: 'Plank', type: 'offHand', stats: { ac: 1 }, cost: 15, description: 'Splinters included.' },
-    { id: 'tower_shield', name: 'Wall', type: 'offHand', stats: { ac: 3, dex: -2 }, cost: 60, description: 'Portable cover.' },
-    { id: 'orb', name: 'Glowy Ball', type: 'offHand', stats: { int: 3 }, cost: 200, description: 'Ooh, shiny.' },
+    { id: 'none', name: 'Empty', type: 'offHand', category: 'None', stats: { ac: 0 }, cost: 0, description: 'Free hand.' },
+    { id: 'wooden_shield', name: 'Plank', type: 'offHand', category: 'Shield', stats: { ac: 1 }, cost: 15, description: 'Splinters included.' },
+    { id: 'tower_shield', name: 'Wall', type: 'offHand', category: 'Tower Shield', stats: { ac: 3, dex: -2 }, cost: 60, description: 'Portable cover.' },
+    { id: 'orb', name: 'Glowy Ball', type: 'offHand', category: 'Arcane Focus', stats: { int: 3 }, cost: 200, description: 'Ooh, shiny.' },
   ],
   supplies: [
-    { id: 'ration', name: 'Mystery Meat Jerky', type: 'food', cost: 3, description: 'Don\'t ask what animal it was.', effects: { hunger: -30, health: 5 } },
-    { id: 'potion', name: 'Red Goop', type: 'potion', cost: 25, description: 'Tastes like cherries and pennies.', effects: { health: 50 } },
-    { id: 'ale', name: 'Liquid Courage', type: 'drink', cost: 5, description: 'Makes everyone prettier.', effects: { thirst: -15, mood: 10, stress: -10 } },
-    { id: 'wine', name: 'Fancy Grape Juice', type: 'drink', cost: 25, description: 'Pinkies out!', effects: { thirst: -20, mood: 20, stress: -15 } },
-    { id: 'water', name: 'Water Skin', type: 'drink', cost: 0, description: 'Basic hydration.', effects: { thirst: -40 } },
+    { id: 'ration', name: 'Mystery Meat Jerky', type: 'food', category: 'Food', cost: 3, description: 'Don\'t ask what animal it was.', effects: { hunger: -30, health: 5 } },
+    { id: 'potion', name: 'Red Goop', type: 'potion', category: 'Potion', cost: 25, description: 'Tastes like cherries and pennies.', effects: { health: 50 } },
+    { id: 'ale', name: 'Liquid Courage', type: 'drink', category: 'Drink', cost: 5, description: 'Makes everyone prettier.', effects: { thirst: -15, mood: 10, stress: -10 } },
+    { id: 'wine', name: 'Fancy Grape Juice', type: 'drink', category: 'Drink', cost: 25, description: 'Pinkies out!', effects: { thirst: -20, mood: 20, stress: -15 } },
+    { id: 'water', name: 'Water Skin', type: 'drink', category: 'Drink', cost: 0, description: 'Basic hydration.', effects: { thirst: -40 } },
   ]
 };
 
