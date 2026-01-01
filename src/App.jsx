@@ -15,13 +15,12 @@ import {
   ITEM_DB, 
   MAINTENANCE_ACTIONS, 
   LOCATIONS, 
-  APPEARANCE_OPTIONS,
-  getItemName 
+  APPEARANCE_OPTIONS 
 } from './data';
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.47 (Fix: Restore Category Labels & Dynamic Names)
+  Version: 1.46 (Fix: Detailed Stat Info)
   -------------------------------------------------------------------------
 */
 
@@ -51,7 +50,7 @@ export default function App() {
     currentStats,
     dailyLogs,
     setDailyLogs,
-    quirk,
+    quirk, // Active Quirk
     performAction,
     revive,
     buyItem,
@@ -72,6 +71,13 @@ export default function App() {
   const [shopTab, setShopTab] = useState('buy');
   const [activeStatInfo, setActiveStatInfo] = useState(null);
 
+  // Auto-open Report Panel when a new day occurs
+  useEffect(() => {
+      if (days > 1 && gameStarted) {
+          // Optional: Only auto-open if it's a new day event. 
+      }
+  }, [days, gameStarted]);
+
   // --- View Helpers ---
 
   const getItemById = (id) => {
@@ -87,15 +93,8 @@ export default function App() {
     }
   };
 
-  // Helper to get display category
-  const getDisplayCategory = (item) => {
-    if (item.category) return item.category;
-    if (item.type === 'mainHand') return 'Weapon';
-    if (item.type === 'offHand') return item.id.includes('shield') ? 'Shield' : 'Off-Hand';
-    return item.type.charAt(0).toUpperCase() + item.type.slice(1);
-  };
-
   const getStatInfo = (key) => {
+      // Helper to determine Autonomy Zone
       const getAutonomyZone = (m, s) => {
           if (m > 40 && s < 60) return { label: 'Safe', chance: '5%' };
           if (m < 10 || s > 90) return { label: 'CRISIS', chance: '70%' };
@@ -106,24 +105,98 @@ export default function App() {
       const failureAdd = (stats.stress * 0.2).toFixed(1);
 
       switch(key) {
-          case 'health': return { title: 'Health', desc: 'Physical vitality.', status: stats.health === 0 ? 'Dead' : `Alive (${stats.health}/${maxStats.health})`, effect: 'If 0, you die. Reviving costs XP.' };
-          case 'mood': return { title: 'Mood', desc: 'Mental stability.', status: `Current Zone: ${zone.label}`, effect: `${zone.chance} chance of random chaotic events during sleep.` };
-          case 'hunger': return { title: 'Hunger', desc: 'Need for food.', status: `${stats.hunger}/${maxStats.hunger}`, effect: stats.hunger >= 100 ? 'Death Imminent.' : 'Increases automatically. Eat to reduce.' };
-          case 'thirst': return { title: 'Thirst', desc: 'Need for drink.', status: `${stats.thirst}/${maxStats.thirst}`, effect: stats.thirst >= 100 ? 'Death Imminent.' : 'Increases automatically. Drink to reduce.' };
-          case 'stress': return { title: 'Stress', desc: 'Mental strain.', status: `Failure Penalty: +${failureAdd}%`, effect: 'Increases risk of failure for ALL actions. Can trigger Crisis events.' };
-          case 'ac': return { title: 'Armor Class', desc: 'Defensive capability.', status: `Rating: ${currentStats.ac}`, effect: `Reduces risk of Adventure failure by ${currentStats.ac}%.` };
-          case 'str': return { title: 'Strength', desc: 'Physical power.', status: `Score: ${currentStats.str}`, effect: `Reduces Labor & Adventure risk by ${currentStats.str}%.` };
-          case 'dex': return { title: 'Dexterity', desc: 'Agility and reflexes.', status: `Score: ${currentStats.dex}`, effect: `Reduces Adventure risk by ${currentStats.dex}%.` };
-          case 'con': return { title: 'Constitution', desc: 'Endurance and health.', status: `Score: ${currentStats.con}`, effect: `Reduces Labor risk by ${currentStats.con}%. Adds +${currentStats.con * 2} to Max Health.` };
-          case 'int': return { title: 'Intelligence', desc: 'Mental acuity.', status: `Score: ${currentStats.int}`, effect: `Reduces Magic Job risk by ${currentStats.int * 2}%.` };
-          case 'cha': return { title: 'Charisma', desc: 'Social influence.', status: `Score: ${currentStats.cha}`, effect: `Reduces Social Action risk by ${currentStats.cha * 2}%.` };
-          case 'quirk': return { title: quirk ? quirk.name : 'None', desc: quirk ? quirk.desc : 'No active trait.', status: 'Active', effect: 'Permanent passive effect.' };
+          case 'health': 
+            return { 
+                title: 'Health', 
+                desc: 'Physical vitality.', 
+                status: stats.health === 0 ? 'Dead' : `Alive (${stats.health}/${maxStats.health})`,
+                effect: 'If 0, you die. Reviving costs XP.' 
+            };
+          case 'mood': 
+            return { 
+                title: 'Mood', 
+                desc: 'Mental stability.', 
+                status: `Current Zone: ${zone.label}`,
+                effect: `${zone.chance} chance of random chaotic events during sleep.` 
+            };
+          case 'hunger': 
+            return { 
+                title: 'Hunger', 
+                desc: 'Need for food.', 
+                status: `${stats.hunger}/${maxStats.hunger}`,
+                effect: stats.hunger >= 100 ? 'Death Imminent.' : 'Increases automatically. Eat to reduce.' 
+            };
+          case 'thirst': 
+            return { 
+                title: 'Thirst', 
+                desc: 'Need for drink.', 
+                status: `${stats.thirst}/${maxStats.thirst}`,
+                effect: stats.thirst >= 100 ? 'Death Imminent.' : 'Increases automatically. Drink to reduce.' 
+            };
+          case 'stress': 
+            return { 
+                title: 'Stress', 
+                desc: 'Mental strain.', 
+                status: `Failure Penalty: +${failureAdd}%`,
+                effect: 'Increases risk of failure for ALL actions. Can trigger Crisis events.' 
+            };
+          case 'ac': 
+            return { 
+                title: 'Armor Class', 
+                desc: 'Defensive capability.', 
+                status: `Rating: ${currentStats.ac}`,
+                effect: `Reduces risk of Adventure failure by ${currentStats.ac}%.` 
+            };
+          case 'str': 
+            return { 
+                title: 'Strength', 
+                desc: 'Physical power.', 
+                status: `Score: ${currentStats.str}`,
+                effect: `Reduces Labor & Adventure risk by ${currentStats.str}%.` 
+            };
+          case 'dex': 
+            return { 
+                title: 'Dexterity', 
+                desc: 'Agility and reflexes.', 
+                status: `Score: ${currentStats.dex}`,
+                effect: `Reduces Adventure risk by ${currentStats.dex}%.` 
+            };
+          case 'con': 
+            return { 
+                title: 'Constitution', 
+                desc: 'Endurance and health.', 
+                status: `Score: ${currentStats.con}`,
+                effect: `Reduces Labor risk by ${currentStats.con}%. Adds +${currentStats.con * 2} to Max Health.` 
+            };
+          case 'int': 
+            return { 
+                title: 'Intelligence', 
+                desc: 'Mental acuity.', 
+                status: `Score: ${currentStats.int}`,
+                effect: `Reduces Magic Job risk by ${currentStats.int * 2}%.` 
+            };
+          case 'cha': 
+            return { 
+                title: 'Charisma', 
+                desc: 'Social influence.', 
+                status: `Score: ${currentStats.cha}`,
+                effect: `Reduces Social Action risk by ${currentStats.cha * 2}%.` 
+            };
+          case 'quirk': 
+            return { 
+                title: quirk ? quirk.name : 'None', 
+                desc: quirk ? quirk.desc : 'No active trait.',
+                status: 'Active',
+                effect: 'Permanent passive effect.' 
+            };
           default: return { title: key.toUpperCase(), desc: 'Attribute' };
       }
   };
 
   const CurrentSceneBackground = getBackground(location);
+  const currentLocData = LOCATIONS[location] || LOCATIONS['village_road'];
 
+  // --- VIEW: Creation ---
   if (!gameStarted) {
       return (
         <CreationScreen 
@@ -141,9 +214,11 @@ export default function App() {
       );
   }
 
+  // --- VIEW: Main Game ---
   return (
     <div className="h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden flex flex-col md:flex-row">
       
+      {/* ... [Modals] ... */}
       {activeStatInfo && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in" onClick={() => setActiveStatInfo(null)}>
               <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 shadow-2xl max-w-sm w-full text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
@@ -165,6 +240,7 @@ export default function App() {
                           </div>
                       )}
                   </div>
+
                   <button onClick={() => setActiveStatInfo(null)} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-colors">Close</button>
               </div>
           </div>
@@ -189,15 +265,15 @@ export default function App() {
                     const item = getItemById(id);
                     if (!item) return null;
                     const canAfford = resources.gold >= item.cost;
-                    const isOwned = inventory.includes(item.id) && !['food', 'drink', 'potion'].includes(item.type);
+                    const isOwned = inventory.includes(item.id) && item.type !== 'food' && item.type !== 'drink' && item.type !== 'potion';
                     return (
                         <div key={item.id} className="flex items-center justify-between p-3 bg-slate-800 rounded border border-slate-700">
                             <div>
                                 <div className="font-bold text-sm flex items-center gap-2">
                                   {item.name}
-                                  <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold bg-slate-900 px-1.5 py-0.5 rounded">{getDisplayCategory(item)}</span>
+                                  {item.category && <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold bg-slate-900 px-1.5 py-0.5 rounded">{item.category}</span>}
                                 </div>
-                                <div className="text-xs text-slate-500">{item.description}</div>
+                                <div className="text-xs text-slate-500">{item.type}</div>
                                 {renderItemStats(item)}
                             </div>
                             {isOwned ? (
@@ -220,9 +296,9 @@ export default function App() {
                             <div>
                                 <div className="font-bold text-sm flex items-center gap-2">
                                   {item.name}
-                                  <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold bg-slate-900 px-1.5 py-0.5 rounded">{getDisplayCategory(item)}</span>
+                                  {item.category && <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold bg-slate-900 px-1.5 py-0.5 rounded">{item.category}</span>}
                                 </div>
-                                <div className="text-xs text-slate-500">{item.description}</div>
+                                <div className="text-xs text-slate-500">{item.type}</div>
                                 {renderItemStats(item)}
                             </div>
                             {isEquipped ? (
@@ -248,6 +324,7 @@ export default function App() {
           <CurrentSceneBackground />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50 pointer-events-none" />
           
+          {/* Top HUD */}
           <div className="absolute top-0 left-0 right-0 p-3 md:p-4 flex justify-between items-start z-50">
              <div className="flex gap-4">
                 <div className="flex flex-col">
@@ -264,9 +341,15 @@ export default function App() {
                 </div>
              </div>
              <div className="flex gap-2">
-               <button onClick={resetGame} className="p-1.5 md:p-2 bg-red-900/80 rounded-md hover:bg-red-700 text-white transition-colors border border-red-500 shadow-lg"><Trash2 size={14}/></button>
-               <button onClick={() => setShowShop(true)} className="p-1.5 md:p-2 bg-amber-600/90 rounded-md hover:bg-amber-500 text-white transition-colors border border-amber-400 shadow-lg"><ShoppingBag size={14}/></button>
-               <button onClick={() => setShowLocationInfo(true)} className="p-1.5 md:p-2 bg-indigo-600/90 rounded-md hover:bg-indigo-500 text-white transition-colors border border-indigo-400 shadow-lg"><MapPin size={14}/></button>
+               <button onClick={resetGame} className="p-1.5 md:p-2 bg-red-900/80 rounded-md hover:bg-red-700 text-white transition-colors border border-red-500 shadow-lg" title="Reset Save">
+                  <Trash2 size={14} className="md:w-4 md:h-4" />
+               </button>
+               <button onClick={() => setShowShop(true)} className="p-1.5 md:p-2 bg-amber-600/90 rounded-md hover:bg-amber-500 text-white transition-colors border border-amber-400 shadow-lg shadow-amber-500/20">
+                  <ShoppingBag size={14} className="md:w-4 md:h-4" />
+               </button>
+               <button onClick={() => setShowLocationInfo(true)} className="p-1.5 md:p-2 bg-indigo-600/90 rounded-md hover:bg-indigo-500 text-white transition-colors border border-indigo-400 shadow-lg shadow-indigo-500/20">
+                  <MapPin size={14} className="md:w-4 md:h-4" />
+               </button>
              </div>
           </div>
 
@@ -278,29 +361,36 @@ export default function App() {
             ))}
           </div>
 
+          {/* Central Character & Stats */}
           <div className="flex w-full h-full max-h-[65vh] items-center justify-between px-2 md:px-8 mt-10 md:mt-0 z-10">
              <div className="flex flex-col gap-3 md:gap-4 z-10 w-12 md:w-16">
+                 {/* Stats Column */}
                  <StatBlock label="AC" value={currentStats.ac} onClick={() => setActiveStatInfo('ac')} />
-                 <StatBlock label="STR" value={currentStats.str} onClick={() => setActiveStatInfo('str')} />
-                 <StatBlock label="DEX" value={currentStats.dex} onClick={() => setActiveStatInfo('dex')} />
-                 <StatBlock label="CON" value={currentStats.con} onClick={() => setActiveStatInfo('con')} />
-                 <StatBlock label="INT" value={currentStats.int} onClick={() => setActiveStatInfo('int')} />
-                 <StatBlock label="CHA" value={currentStats.cha} onClick={() => setActiveStatInfo('cha')} />
+                 <StatBlock label="STR" value={currentStats.str} subValue={currentStats.str - attributes.str > 0 ? currentStats.str - attributes.str : undefined} onClick={() => setActiveStatInfo('str')} />
+                 <StatBlock label="DEX" value={currentStats.dex} subValue={currentStats.dex - attributes.dex > 0 ? currentStats.dex - attributes.dex : undefined} onClick={() => setActiveStatInfo('dex')} />
+                 <StatBlock label="CON" value={currentStats.con} subValue={currentStats.con - attributes.con > 0 ? currentStats.con - attributes.con : undefined} onClick={() => setActiveStatInfo('con')} />
+                 <StatBlock label="INT" value={currentStats.int} subValue={currentStats.int - attributes.int > 0 ? currentStats.int - attributes.int : undefined} onClick={() => setActiveStatInfo('int')} />
+                 <StatBlock label="CHA" value={currentStats.cha} subValue={currentStats.cha - attributes.cha > 0 ? currentStats.cha - attributes.cha : undefined} onClick={() => setActiveStatInfo('cha')} />
              </div>
              
              <div className="flex-1 h-full max-w-md relative mx-auto flex flex-col justify-center">
                {quirk && (
                    <button onClick={() => setActiveStatInfo('quirk')} className="absolute top-0 right-0 m-4 z-20 flex items-center gap-1 px-2 py-1 bg-indigo-900/50 border border-indigo-500/30 rounded-full text-[10px] text-indigo-300 font-bold hover:bg-indigo-800 transition-colors">
-                       <Brain size={12} /> {quirk.name}
+                       <Brain size={12} />
+                       {quirk.name}
                    </button>
                )}
                <CharacterSVG equipped={equipped} appearance={appearance} isAlive={!isDead} />
+               
                {isDead && (
                  <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl">
                    <div className="text-center p-6 bg-slate-900 border border-red-900 rounded-xl shadow-2xl">
                      <Skull className="w-12 h-12 text-red-600 mx-auto mb-2" />
                      <h2 className="text-xl font-bold text-red-500 mb-1">DECEASED</h2>
-                     <button onClick={revive} className="px-4 py-2 bg-red-900/50 hover:bg-red-800 text-red-200 rounded-md border border-red-700">Revive (Lose XP)</button>
+                     <p className="text-slate-400 text-sm mb-4">Your adventurer perished.</p>
+                     <button onClick={revive} className="px-4 py-2 bg-red-900/50 hover:bg-red-800 text-red-200 rounded-md border border-red-700 transition-colors">
+                       Revive (Lose XP)
+                     </button>
                    </div>
                  </div>
                )}
@@ -316,10 +406,22 @@ export default function App() {
       </div>
 
       <div className="fixed bottom-8 left-6 right-6 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-96 h-16 bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl flex justify-around items-center z-50">
-         <button onClick={() => togglePanel('actions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'actions' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}><Activity size={20}/><span className="text-[10px] font-bold">Actions</span></button>
-         <button onClick={() => togglePanel('quests')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'quests' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}><Scroll size={20}/><span className="text-[10px] font-bold">Quests</span></button>
-         <button onClick={() => togglePanel('equip')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'equip' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}><Backpack size={20}/><span className="text-[10px] font-bold">Gear</span></button>
-         <button onClick={() => togglePanel('reports')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'reports' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}><ClipboardList size={20}/><span className="text-[10px] font-bold">Reports</span></button>
+         <button onClick={() => togglePanel('actions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'actions' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
+            <Activity size={20} />
+            <span className="text-[10px] font-bold">Actions</span>
+         </button>
+         <button onClick={() => togglePanel('quests')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'quests' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
+            <Scroll size={20} />
+            <span className="text-[10px] font-bold">Quests</span>
+         </button>
+         <button onClick={() => togglePanel('equip')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'equip' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
+            <Backpack size={20} />
+            <span className="text-[10px] font-bold">Gear</span>
+         </button>
+         <button onClick={() => togglePanel('reports')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'reports' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
+            <ClipboardList size={20} />
+            <span className="text-[10px] font-bold">Reports</span>
+         </button>
       </div>
 
       <div className={`fixed md:relative z-40 transition-transform duration-300 ease-out bg-slate-900 border-slate-700 shadow-2xl md:w-72 md:h-full md:border-l md:translate-y-0 bottom-28 left-4 right-4 rounded-2xl border h-[55vh] ${isPanelOpen ? 'translate-y-0' : 'translate-y-[150%] md:translate-x-full md:hidden'}`}>
@@ -330,14 +432,43 @@ export default function App() {
                 {activeTab === 'equip' && <><Backpack size={14}/> Equipment</>}
                 {activeTab === 'reports' && <><ClipboardList size={14}/> Reports</>}
              </div>
-             <button onClick={() => setIsPanelOpen(false)} className="w-6 h-6 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 hover:text-white"><X size={14} /></button>
+             <button onClick={() => setIsPanelOpen(false)} className="w-6 h-6 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 hover:text-white">
+               <X size={14} />
+             </button>
+          </div>
+          <div className="hidden md:flex border-b border-slate-800">
+             <button onClick={() => setActiveTab('actions')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'actions' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Actions</button>
+             <button onClick={() => setActiveTab('quests')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'quests' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Quests</button>
+             <button onClick={() => setActiveTab('equip')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'equip' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Gear</button>
+             <button onClick={() => setActiveTab('reports')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'reports' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Reports</button>
           </div>
 
           <div className="h-full overflow-y-auto custom-scrollbar p-3 pb-20 md:pb-4">
             {activeTab === 'actions' && (
               <div className="space-y-2 animate-in fade-in duration-300">
+                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Location: {housing === 'inn' ? 'Rented Room' : housing === 'estate' ? 'Estate' : 'Homeless'}</div>
+                {housing === 'homeless' && (
+                    <button onClick={() => performAction({ id: 'rent_start' })} className="w-full flex items-center justify-between p-3 rounded-lg border border-amber-600/50 bg-amber-900/20 hover:bg-amber-900/40 text-amber-200">
+                        <div className="flex flex-col text-left"><span className="text-xs font-bold">Rent Room at Inn</span><span className="text-[9px] opacity-70">Auto-pay 5g/day. Better rest.</span></div>
+                        <span className="text-xs font-mono font-bold">-5g</span>
+                    </button>
+                )}
+                {(housing === 'inn' || housing === 'estate') && (
+                    <button onClick={() => performAction({ id: 'rent_stop' })} className="w-full flex items-center justify-between p-3 rounded-lg border border-slate-600 bg-slate-800 hover:bg-slate-700 text-slate-300">
+                        <div className="flex flex-col text-left"><span className="text-xs font-bold">Check Out</span><span className="text-[9px] opacity-70">Stop paying rent. Become homeless.</span></div>
+                        <Key size={14} />
+                    </button>
+                )}
+                <div className="h-px bg-slate-800 my-2" />
+                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Maintenance</div>
                 {MAINTENANCE_ACTIONS.map(action => (
-                  <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
+                  <ActionButton 
+                    key={action.id} 
+                    {...action} 
+                    icon={ICON_MAP[action.icon] || HelpCircle} 
+                    onClick={() => performAction(action)} 
+                    disabled={isDead} 
+                  />
                 ))}
               </div>
             )}
@@ -346,12 +477,38 @@ export default function App() {
               <div className="space-y-2 animate-in fade-in duration-300">
                 <div className="flex gap-2 mb-4 p-1 bg-slate-800 rounded-lg">
                    {['labor', 'adventure', 'social'].map(qt => (
-                      <button key={qt} onClick={() => setQuestTab(qt)} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase transition-colors ${questTab === qt ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>{qt}</button>
+                      <button key={qt} onClick={() => setQuestTab(qt)} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase transition-colors ${questTab === qt ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>
+                        {qt}
+                      </button>
                    ))}
                 </div>
-                {dailyQuests[questTab]?.map(action => (
-                    <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
-                ))}
+                
+                {questTab === 'labor' && (
+                   <div className="space-y-2">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Available Jobs</div>
+                      {dailyQuests.labor.length > 0 ? dailyQuests.labor.map(action => (
+                        <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
+                      )) : <div className="text-xs text-slate-500 italic p-2">No jobs available today.</div>}
+                   </div>
+                )}
+                
+                {questTab === 'adventure' && (
+                   <div className="space-y-2">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Available Adventures</div>
+                      {dailyQuests.adventure.length > 0 ? dailyQuests.adventure.map(action => (
+                        <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
+                      )) : <div className="text-xs text-slate-500 italic p-2">No adventures available today.</div>}
+                   </div>
+                )}
+                
+                {questTab === 'social' && (
+                   <div className="space-y-2">
+                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Social Opportunities</div>
+                      {dailyQuests.social.length > 0 ? dailyQuests.social.map(action => (
+                        <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
+                      )) : <div className="text-xs text-slate-500 italic p-2">No one wants to talk to you.</div>}
+                   </div>
+                )}
               </div>
             )}
 
@@ -364,62 +521,150 @@ export default function App() {
                        </button>
                     ))}
                   </div>
-                  {inventory.filter(id => {
-                      const it = getItemById(id);
-                      return it && (activeSlot === 'supplies' ? it.type === 'food' || it.type === 'drink' || it.type === 'potion' : it.type === activeSlot);
-                  }).length === 0 ? (
-                      <div className="p-4 text-center text-xs text-slate-500 italic border border-dashed border-slate-700 rounded">No items in this slot.</div>
+                  <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Owned {activeSlot.replace(/([A-Z])/g, ' $1').trim()}</div>
+                  {activeSlot === 'supplies' ? (
+                      <div>
+                          {ITEM_DB.supplies.filter(item => inventory.includes(item.id)).length === 0 ? (
+                              <div className="p-4 text-center text-xs text-slate-500 italic border border-dashed border-slate-700 rounded">No supplies. Buy food/drink at the Shop!</div>
+                          ) : (
+                              [...new Set(inventory.filter(id => ITEM_DB.supplies.find(s => s.id === id)))].map(itemId => {
+                                  const item = getItemById(itemId);
+                                  const count = inventory.filter(id => id === itemId).length;
+                                  return (
+                                      <div key={item.id} className="flex items-center gap-2 p-2 w-full rounded-lg border text-left transition-all relative overflow-hidden bg-slate-800 border-slate-700 mb-2">
+                                          <div className="p-2 rounded-md bg-slate-700 text-slate-400">{item.type === 'food' ? <Apple size={14} /> : item.type === 'potion' ? <Heart size={14} /> : item.type === 'drink' ? <Wine size={14} /> : <Beer size={14} />}</div>
+                                          <div className="flex-1 min-w-0">
+                                            <div className="font-bold text-xs flex items-center gap-2">
+                                              {item.name} <span className="text-slate-500">x{count}</span>
+                                              {item.category && <span className="text-[8px] text-slate-400 uppercase tracking-wider border border-slate-600 px-1 rounded">{item.category}</span>}
+                                            </div>
+                                            <div className="text-[10px] text-slate-500">{item.description}</div>
+                                            {renderItemStats(item)}
+                                          </div>
+                                          <button onClick={() => consumeItem(item)} className="px-2 py-1 rounded border border-slate-600 bg-slate-700 text-slate-300 text-[10px] font-bold hover:bg-emerald-900 hover:border-emerald-500 hover:text-emerald-100 transition-colors">Use</button>
+                                      </div>
+                                  );
+                              })
+                          )}
+                      </div>
                   ) : (
-                      [...new Set(inventory)].map(itemId => {
-                          const item = getItemById(itemId);
-                          if (!item || (activeSlot === 'supplies' ? !['food', 'drink', 'potion'].includes(item.type) : item.type !== activeSlot)) return null;
-                          const isEquipped = equipped[activeSlot] === itemId;
-                          const count = inventory.filter(id => id === itemId).length;
-                          return (
-                              <div key={itemId} className={`flex items-center gap-2 p-2 w-full rounded-lg border text-left transition-all relative overflow-hidden ${isEquipped ? 'bg-indigo-900/30 border-indigo-500 shadow-sm ring-1 ring-indigo-500/30' : 'bg-slate-800 border-slate-700'} mb-2`}>
+                      ITEM_DB[activeSlot].filter(item => inventory.includes(item.id)).length === 0 ? (
+                          <div className="p-4 text-center text-xs text-slate-500 italic border border-dashed border-slate-700 rounded">No items owned in this slot. Visit the Shop to buy gear!</div>
+                      ) : (
+                          [...new Set(inventory.filter(id => ITEM_DB[activeSlot].find(i => i.id === id)))].map((itemId) => {
+                            const item = getItemById(itemId);
+                            const isEquipped = equipped[activeSlot] === itemId;
+                            const count = inventory.filter(id => id === itemId).length;
+                            return (
+                              <div key={itemId} className={`flex items-center gap-2 p-2 w-full rounded-lg border text-left transition-all relative overflow-hidden ${isEquipped ? 'bg-indigo-900/30 border-indigo-500 shadow-sm ring-1 ring-indigo-500/30' : 'bg-slate-800 border-slate-700'}`}>
                                  <div className={`p-2 rounded-md ${isEquipped ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-400'}`}>
                                     {activeSlot === 'head' && <VenetianMask size={14} />}
                                     {activeSlot === 'body' && <Shirt size={14} />}
                                     {activeSlot === 'mainHand' && <Sword size={14} />}
                                     {activeSlot === 'offHand' && <Shield size={14} />}
-                                    {activeSlot === 'supplies' && <Apple size={14} />}
                                  </div>
                                  <div className="flex flex-col min-w-0 flex-1">
                                     <div className="flex items-center gap-2">
                                       <span className={`font-bold text-xs truncate ${isEquipped ? 'text-indigo-200' : 'text-slate-300'}`}>{item.name}</span>
                                       {count > 1 && <span className="text-[10px] text-slate-500 font-bold">x{count}</span>}
-                                      <span className="text-[8px] text-slate-500 uppercase tracking-wider border border-slate-700 px-1 rounded">{getDisplayCategory(item)}</span>
+                                      {item.category && <span className="text-[8px] text-slate-500 uppercase tracking-wider border border-slate-700 px-1 rounded">{item.category}</span>}
+                                      {isEquipped && <span className="text-[8px] font-bold text-indigo-400 bg-indigo-950/50 px-1 py-0.5 rounded">EQUIPPED</span>}
                                     </div>
                                     <span className="text-[10px] text-slate-500 truncate">{item.description}</span>
                                     {renderItemStats(item)}
                                  </div>
-                                 {activeSlot === 'supplies' ? (
-                                     <button onClick={() => consumeItem(item)} className="px-2 py-1 rounded border border-slate-600 bg-slate-700 text-slate-300 text-[10px] font-bold hover:bg-emerald-900 transition-colors">Use</button>
-                                 ) : !isEquipped && (
-                                     <button onClick={() => equipItem(item)} className="px-2 py-1 rounded border border-slate-600 bg-slate-700 text-slate-300 text-[10px] font-bold hover:bg-slate-600 transition-colors">Equip</button>
-                                 )}
+                                 {!isEquipped && (<button onClick={() => equipItem(item)} className="px-2 py-1 rounded border border-slate-600 bg-slate-700 text-slate-300 text-[10px] font-bold hover:bg-slate-600 hover:text-white transition-colors">Equip</button>)}
                               </div>
-                          );
-                      })
+                            );
+                          })
+                      )
                   )}
               </div>
             )}
 
             {activeTab === 'reports' && (
                 <div className="space-y-4 animate-in fade-in duration-300">
-                    {dailyLogs.length === 0 ? <div className="text-xs text-slate-500 italic text-center p-4">No actions taken yet.</div> : dailyLogs.map((log) => (
-                        <div key={log.id} className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden mb-2">
-                            <div className="bg-slate-800 p-2 flex justify-between items-center border-b border-slate-700/30">
-                                <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider">{log.title}</span>
-                                <span className="text-[10px] text-slate-500">Day {log.day}</span>
+                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Adventure Log</div>
+                    {dailyLogs.length === 0 ? (
+                        <div className="text-xs text-slate-500 italic text-center p-4 border border-dashed border-slate-800 rounded">No actions taken yet.</div>
+                    ) : (
+                        dailyLogs.map((log) => (
+                            <div key={log.id} className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden mb-2">
+                                {/* Conditional Styling for Morning vs Action */}
+                                {log.type === 'morning' ? (
+                                    <>
+                                        <div className="bg-gradient-to-r from-amber-900/30 to-slate-800 p-2 flex justify-between items-center border-b border-slate-700/30">
+                                            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
+                                                <Sun size={12} /> Day {log.day} Morning
+                                            </span>
+                                            <span className="text-[10px] text-slate-500">{log.sleepLoc}</span>
+                                        </div>
+                                        <div className="p-3 space-y-2">
+                                            <div className="relative pl-3 border-l-2 border-slate-600">
+                                                <p className="text-xs text-slate-300 italic font-serif leading-relaxed">
+                                                    "{log.incidentText}"
+                                                </p>
+                                            </div>
+                                            <div className="text-[10px] pt-2 border-t border-slate-700/30 space-y-1">
+                                                {log.status && <div className="text-slate-300 font-medium">{log.status}</div>}
+                                                <div className="text-slate-500 flex justify-between mt-1">
+                                                    <span>{log.rent}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="bg-slate-800 p-2 flex justify-between items-center border-b border-slate-700/30">
+                                            <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1">
+                                                {/* Status Indicator Dot */}
+                                                {log.status === 'Success' || log.status === 'Revived' ? (
+                                                    <span className="text-emerald-400 font-bold">●</span>
+                                                ) : (
+                                                    <span className="text-red-400 font-bold">●</span>
+                                                )}
+                                                {log.title}
+                                            </span>
+                                            <span className="text-[10px] text-slate-500">Day {log.day}</span>
+                                        </div>
+                                        <div className="p-2 space-y-1">
+                                            <p className="text-xs text-slate-300 leading-relaxed italic">
+                                                {log.text}
+                                            </p>
+                                            {(log.changes) && (
+                                                <div className="text-[10px] pt-1 border-t border-slate-700/30 mt-1">
+                                                    <div className="text-slate-300">{log.changes}</div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
                             </div>
-                            <div className="p-2 space-y-1">
-                                <p className="text-xs text-slate-300 leading-relaxed italic">{log.text}</p>
-                                {log.changes && <div className="text-[10px] pt-1 border-t border-slate-700/30 mt-1 text-slate-300">{log.changes}</div>}
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
+            )}
+            {activeTab === 'appearance' && (
+               <div className="space-y-4 animate-in fade-in duration-300">
+                  <div className="space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gender</h3>
+                    <div className="flex gap-2">
+                      {['male', 'female'].map(g => (<button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-1.5 rounded border text-[10px] font-bold uppercase ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{g}</button>))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Skin</h3>
+                    <div className="flex gap-1.5 flex-wrap">
+                      {APPEARANCE_OPTIONS.skinTones.map(t => (<button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-6 h-6 rounded-full border-2 ${appearance.skinTone === t.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: t.color }} />))}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Hair Style</h3>
+                    <div className="flex gap-2">
+                      {APPEARANCE_OPTIONS.hairStyles.map(s => (<button key={s.id} onClick={() => updateAppearance('hairStyle', s.id)} className={`flex-1 py-1 rounded border text-[10px] font-medium ${appearance.hairStyle === s.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{s.label}</button>))}
+                    </div>
+                  </div>
+               </div>
             )}
           </div>
       </div>
