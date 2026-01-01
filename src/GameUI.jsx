@@ -8,6 +8,34 @@ import {
    Contains reusable UI elements for the Adventurer Sim to clean up App.jsx.
    ------------------------------------------------------------------------- */
 
+// Helper for rendering effects (used in ActionButton and renderItemStats)
+const renderEffectsList = (effects) => {
+    if (!effects) return null;
+    return (
+        <div className="flex flex-wrap gap-1 mt-1">
+            {Object.entries(effects).map(([key, val]) => {
+                if (val === 0) return null;
+                let isGood = false;
+                // Determine if the effect is positive or negative for the player
+                if (['health', 'mood', 'xp', 'gold', 'ac', 'str', 'dex', 'con', 'int', 'cha'].includes(key)) isGood = val > 0;
+                else if (['hunger', 'thirst', 'stress'].includes(key)) isGood = val < 0;
+                
+                // Format the label
+                let label = key.charAt(0).toUpperCase() + key.slice(1);
+                if (key === 'xp') label = 'XP';
+                if (key === 'ac') label = 'AC';
+                if (['str', 'dex', 'con', 'int', 'cha'].includes(key)) label = key.toUpperCase();
+
+                return (
+                    <span key={key} className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${isGood ? 'bg-emerald-900/30 text-emerald-400 border border-emerald-900/50' : 'bg-red-900/30 text-red-400 border border-red-900/50'}`}>
+                        {label} {val > 0 ? '+' : ''}{val}
+                    </span>
+                );
+            })}
+        </div>
+    );
+};
+
 export const StatBlock = ({ label, value, max, alert, inverted, onClick, subValue }) => (
     <button 
       onClick={onClick}
@@ -24,7 +52,7 @@ export const StatBlock = ({ label, value, max, alert, inverted, onClick, subValu
     </button>
 );
 
-export const ActionButton = ({ icon: Icon, label, days, cost, costType = 'gp', onClick, disabled, description }) => (
+export const ActionButton = ({ icon: Icon, label, days, cost, costType = 'gp', onClick, disabled, description, effects }) => (
   <button 
     onClick={onClick}
     disabled={disabled}
@@ -39,14 +67,15 @@ export const ActionButton = ({ icon: Icon, label, days, cost, costType = 'gp', o
       {Icon ? <Icon size={18} /> : <HelpCircle size={18} />}
     </div>
     <div className="flex flex-col flex-1 min-w-0">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-0.5">
         <span className="font-bold text-xs truncate">{label}</span>
         {days > 0 && <span className="text-[9px] text-slate-400 flex items-center gap-0.5"><Clock size={10}/> {days}d</span>}
       </div>
-      <span className="text-[10px] text-slate-500 truncate">{description}</span>
+      <span className="text-[10px] text-slate-500 truncate leading-tight">{description}</span>
+      {effects && renderEffectsList(effects)}
     </div>
     {cost > 0 && (
-      <div className={`text-[10px] font-mono px-2 py-1 rounded ${disabled ? 'bg-slate-700' : 'bg-black/40'} ${costType === 'gp' ? 'text-amber-400' : 'text-cyan-400'}`}>
+      <div className={`text-[10px] font-mono px-2 py-1 rounded ml-2 ${disabled ? 'bg-slate-700' : 'bg-black/40'} ${costType === 'gp' ? 'text-amber-400' : 'text-cyan-400'}`}>
         -{cost}{costType}
       </div>
     )}
@@ -54,32 +83,7 @@ export const ActionButton = ({ icon: Icon, label, days, cost, costType = 'gp', o
 );
 
 export const renderItemStats = (item) => {
-  if (item.stats) {
-    return (
-      <div className="flex flex-wrap gap-1 mt-1">
-        {Object.entries(item.stats).map(([key, val]) => (
-          <span key={key} className={`text-[9px] px-1 rounded ${val > 0 ? 'bg-slate-700 text-emerald-400' : 'bg-slate-700 text-red-400'}`}>
-            {key.toUpperCase()} {val > 0 ? '+' : ''}{val}
-          </span>
-        ))}
-      </div>
-    );
-  }
-  if (item.effects) {
-     return (
-      <div className="flex flex-wrap gap-1 mt-1">
-        {Object.entries(item.effects).map(([key, val]) => {
-           let isGood = false;
-           if (['health', 'mood', 'xp', 'gold'].includes(key)) isGood = val > 0;
-           else if (['hunger', 'thirst', 'stress'].includes(key)) isGood = val < 0;
-           return (
-              <span key={key} className={`text-[9px] px-1 rounded ${isGood ? 'bg-slate-700 text-emerald-400' : 'bg-slate-700 text-red-400'}`}>
-                {key.charAt(0).toUpperCase() + key.slice(1)} {val > 0 ? '+' : ''}{val}
-              </span>
-           );
-        })}
-      </div>
-    );
-  }
+  if (item.stats) return renderEffectsList(item.stats);
+  if (item.effects) return renderEffectsList(item.effects);
   return null;
 };
