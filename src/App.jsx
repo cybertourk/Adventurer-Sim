@@ -20,7 +20,7 @@ import {
 
 /* -------------------------------------------------------------------------
   THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.42 (Fix: Daily Log Detailed Rendering)
+  Version: 1.43 (Fix: Daily Log Phrasing Update)
   -------------------------------------------------------------------------
 */
 
@@ -492,8 +492,7 @@ export default function App() {
                                                 </p>
                                             </div>
                                             <div className="text-[10px] pt-2 border-t border-slate-700/30 space-y-1">
-                                                {log.gained && <div className="text-emerald-400 font-bold">{log.gained}</div>}
-                                                {log.lost && <div className="text-red-400 font-bold">{log.lost}</div>}
+                                                {log.status && <div className="text-slate-300 font-medium">{log.status}</div>}
                                                 <div className="text-slate-500 flex justify-between mt-1">
                                                     <span>{log.rent}</span>
                                                 </div>
@@ -518,10 +517,9 @@ export default function App() {
                                             <p className="text-xs text-slate-300 leading-relaxed italic">
                                                 {log.text}
                                             </p>
-                                            {(log.gained || log.lost) && (
+                                            {(log.changes) && (
                                                 <div className="text-[10px] pt-1 border-t border-slate-700/30 mt-1">
-                                                    {log.gained && <div className="text-emerald-400">{log.gained}</div>}
-                                                    {log.lost && <div className="text-red-400">{log.lost}</div>}
+                                                    <div className="text-slate-300">{log.changes}</div>
                                                 </div>
                                             )}
                                         </div>
