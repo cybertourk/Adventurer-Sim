@@ -1,6 +1,6 @@
 /* -------------------------------------------------------------------------
   GAME DATA & CONFIGURATION
-  Version: 1.16 (Update: Equipment Name Variations)
+  Version: 1.17 (Fix: Added Item Categories)
 ------------------------------------------------------------------------- */
 
 export const SAVE_KEY = 'dnd_tamagotchi_v1_12'; 
@@ -9,114 +9,41 @@ export const MAX_STAT = 100;
 // --- Section 5: Equipment & Economy ---
 export const ITEM_DB = {
   head: [
-    { id: 'none', name: 'Bare', type: 'head', stats: { ac: 0 }, cost: 0, description: 'Wind in your hair.' },
-    { id: 'leather_cap', name: 'Bad Hair Day Hider', type: 'head', stats: { ac: 1 }, cost: 25, description: 'Basic leather cap.' },
-    { id: 'iron_helm', name: 'Bucket with Eye Holes', type: 'head', stats: { ac: 3, dex: -1 }, cost: 60, description: 'Heavy protection.' },
-    { id: 'wizard_hat', name: 'Pointy Hat of Smartness', type: 'head', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
+    { id: 'none', name: 'Bare', type: 'head', category: 'None', stats: { ac: 0 }, cost: 0, description: 'Wind in your hair.' },
+    { id: 'leather_cap', name: 'Bad Hair Day Hider', type: 'head', category: 'Light Helm', stats: { ac: 1 }, cost: 25, description: 'Basic leather cap.' },
+    { id: 'iron_helm', name: 'Bucket with Eye Holes', type: 'head', category: 'Heavy Helm', stats: { ac: 3, dex: -1 }, cost: 60, description: 'Heavy protection.' },
+    { id: 'wizard_hat', name: 'Pointy Hat of Smartness', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
   ],
   body: [
-    { id: 'tunic', name: 'Breezy Tunic', type: 'body', stats: { ac: 0 }, cost: 0, description: 'Drafty.' },
-    { id: 'leather_armor', name: 'Stiff Cow Skin', type: 'body', stats: { ac: 2 }, cost: 40, description: 'Smells like a tannery.' },
-    { id: 'chainmail', name: 'Jingly Shirt', type: 'body', stats: { ac: 5, dex: -2 }, cost: 150, description: 'Loud but protective.' },
-    { id: 'plate', name: 'Shiny Can Suit', type: 'body', stats: { ac: 8, dex: -4 }, cost: 500, description: 'I am invincible! (Mostly).' },
-    { id: 'robe', name: 'Mysterious Robe', type: 'body', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing fabric.' },
+    { id: 'tunic', name: 'Breezy Tunic', type: 'body', category: 'Clothing', stats: { ac: 0 }, cost: 0, description: 'Drafty.' },
+    { id: 'leather_armor', name: 'Stiff Cow Skin', type: 'body', category: 'Light Armor', stats: { ac: 2 }, cost: 40, description: 'Smells like a tannery.' },
+    { id: 'chainmail', name: 'Jingly Shirt', type: 'body', category: 'Medium Armor', stats: { ac: 5, dex: -2 }, cost: 150, description: 'Loud but protective.' },
+    { id: 'plate', name: 'Shiny Can Suit', type: 'body', category: 'Heavy Armor', stats: { ac: 8, dex: -4 }, cost: 500, description: 'I am invincible! (Mostly).' },
+    // Kept for SVG compatibility, though not in SRD shop list explicitly
+    { id: 'robe', name: 'Mysterious Robe', type: 'body', category: 'Clothing', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing fabric.' },
   ],
   mainHand: [
-    { id: 'fist', name: 'These Two Hands', type: 'mainHand', stats: { str: 0 }, cost: 0, description: 'Always loaded.' },
-    { 
-      id: 'dagger', 
-      name: 'Pointy Stick', 
-      type: 'mainHand', 
-      stats: { dex: 2, str: 1 }, 
-      cost: 15, 
-      description: 'Good for cheese and goblins.',
-      randomNames: ['Letter Opener', 'The Backstabber', 'Rusty Shard']
-    },
-    { 
-      id: 'sword', 
-      name: 'Sharp Metal Bar', 
-      type: 'mainHand', 
-      stats: { str: 2 }, 
-      cost: 50, 
-      description: 'The classic choice.',
-      randomNames: ['Butter Knife', 'King-Slayer', 'Old Faithful']
-    },
-    { 
-      id: 'axe', 
-      name: 'The Chopper', 
-      type: 'mainHand', 
-      stats: { str: 3 }, 
-      cost: 75, 
-      description: 'Solving problems, one swing at a time.',
-      randomNames: ['Tree-Feller', 'The Cleaver', 'Splitting Headache']
-    },
-    { 
-      id: 'staff', 
-      name: 'Wizard Twig', 
-      type: 'mainHand', 
-      stats: { int: 1, str: 1 }, 
-      cost: 60, 
-      description: 'It is just a stick, right?',
-      randomNames: ['Gnarled Branch', 'Focusing Rod', 'The Walking Stick']
-    },
-    { 
-      id: 'hammer', 
-      name: 'Bonk Stick', 
-      type: 'mainHand', 
-      stats: { str: 3 }, 
-      cost: 100, 
-      description: 'Unlocks smithing.',
-      randomNames: ['The Tenderizer', 'Mighty Mallet', 'Skull-Cracker']
-    },
+    { id: 'fist', name: 'These Two Hands', type: 'mainHand', category: 'Unarmed', stats: { str: 0 }, cost: 0, description: 'Always loaded.' },
+    { id: 'dagger', name: 'Pointy Stick', type: 'mainHand', category: 'Dagger', stats: { dex: 2, str: 1 }, cost: 15, description: 'Good for cheese and goblins.' },
+    { id: 'sword', name: 'Sharp Metal Bar', type: 'mainHand', category: 'Longsword', stats: { str: 2 }, cost: 50, description: 'The classic choice.' },
+    { id: 'axe', name: 'The Chopper', type: 'mainHand', category: 'Battleaxe', stats: { str: 3 }, cost: 75, description: 'Solving problems, one swing at a time.' },
+    { id: 'staff', name: 'Wizard Twig', type: 'mainHand', category: 'Quarterstaff', stats: { int: 1, str: 1 }, cost: 60, description: 'It is just a stick, right?' },
+    { id: 'hammer', name: 'Bonk Stick', type: 'mainHand', category: 'Warhammer', stats: { str: 3 }, cost: 100, description: 'Unlocks smithing.' },
   ],
   offHand: [
-    { id: 'none', name: 'Empty', type: 'offHand', stats: { ac: 0 }, cost: 0, description: 'Free hand.' },
-    { 
-      id: 'wooden_shield', 
-      name: 'Plank', 
-      type: 'offHand', 
-      stats: { ac: 1 }, 
-      cost: 15, 
-      description: 'Splinters included.',
-      randomNames: ['Barrel Lid', 'The Dinner Plate', 'Old Door']
-    },
-    { 
-      id: 'tower_shield', 
-      name: 'Wall', 
-      type: 'offHand', 
-      stats: { ac: 3, dex: -2 }, 
-      cost: 60, 
-      description: 'Portable cover.',
-      randomNames: ['The Barricade', 'Solid Slab', 'Castle Gate Fragment']
-    },
-    { 
-      id: 'orb', 
-      name: 'Glowy Ball', 
-      type: 'offHand', 
-      stats: { int: 3 }, 
-      cost: 200, 
-      description: 'Ooh, shiny.',
-      randomNames: ['Fortune Teller Crystal', 'Floating Sphere', 'The Eye of Knowledge']
-    },
+    // Kept for SVG compatibility
+    { id: 'none', name: 'Empty', type: 'offHand', category: 'None', stats: { ac: 0 }, cost: 0, description: 'Free hand.' },
+    { id: 'wooden_shield', name: 'Plank', type: 'offHand', category: 'Shield', stats: { ac: 1 }, cost: 15, description: 'Splinters included.' },
+    { id: 'tower_shield', name: 'Wall', type: 'offHand', category: 'Tower Shield', stats: { ac: 3, dex: -2 }, cost: 60, description: 'Portable cover.' },
+    { id: 'orb', name: 'Glowy Ball', type: 'offHand', category: 'Arcane Focus', stats: { int: 3 }, cost: 200, description: 'Ooh, shiny.' },
   ],
   supplies: [
-    { id: 'ration', name: 'Mystery Meat Jerky', type: 'food', cost: 3, description: 'Don\'t ask what animal it was.', effects: { hunger: -30, health: 5 } },
-    { id: 'potion', name: 'Red Goop', type: 'potion', cost: 25, description: 'Tastes like cherries and pennies.', effects: { health: 50 } },
-    { id: 'ale', name: 'Liquid Courage', type: 'drink', cost: 5, description: 'Makes everyone prettier.', effects: { thirst: -15, mood: 10, stress: -10 } },
-    { id: 'wine', name: 'Fancy Grape Juice', type: 'drink', cost: 25, description: 'Pinkies out!', effects: { thirst: -20, mood: 20, stress: -15 } },
-    { id: 'water', name: 'Water Skin', type: 'drink', cost: 0, description: 'Basic hydration.', effects: { thirst: -40 } },
+    { id: 'ration', name: 'Mystery Meat Jerky', type: 'food', category: 'Food', cost: 3, description: 'Don\'t ask what animal it was.', effects: { hunger: -30, health: 5 } },
+    { id: 'potion', name: 'Red Goop', type: 'potion', category: 'Potion', cost: 25, description: 'Tastes like cherries and pennies.', effects: { health: 50 } },
+    { id: 'ale', name: 'Liquid Courage', type: 'drink', category: 'Drink', cost: 5, description: 'Makes everyone prettier.', effects: { thirst: -15, mood: 10, stress: -10 } },
+    { id: 'wine', name: 'Fancy Grape Juice', type: 'drink', category: 'Drink', cost: 25, description: 'Pinkies out!', effects: { thirst: -20, mood: 20, stress: -15 } },
+    { id: 'water', name: 'Water Skin', type: 'drink', category: 'Drink', cost: 0, description: 'Basic hydration.', effects: { thirst: -40 } },
   ]
-};
-
-/**
- * Helper to get a randomized name for an item.
- * @param {Object} item - The base item object from ITEM_DB.
- * @returns {string} - Either the base name or a random flavor name.
- */
-export const getItemName = (item) => {
-    if (!item.randomNames || Math.random() > 0.4) return item.name;
-    const randomIndex = Math.floor(Math.random() * item.randomNames.length);
-    return item.randomNames[randomIndex];
 };
 
 // --- Section 2: Maintenance Actions ---
@@ -172,8 +99,8 @@ export const JOB_DB = {
 
 export const ADVENTURE_DB = {
   tier1: [
-    { id: 'adv_rats', label: 'Giant Rats', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Rats of Unusual Size.', message: 'Why are they so big?!', effects: { gold: 15, xp: 20, hunger: 30, thirst: 30, stress: 20, health: -10 } },
-    { id: 'adv_spiders', label: 'Giant Spiders', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Too Many Legs.', message: 'Nope. Nope. Nope.', effects: { gold: 20, xp: 25, hunger: 30, thirst: 30, stress: 30, health: -15, mood: -10 } },
+    { id: 'adv_rats', label: 'Giant Rats', icon: 'Skull', cost: 0, days: 1, type: 'adventure', description: 'Rats of Unusual Size.', message: 'Why are they so big?!', effects: { gold: 15, xp: 20, hunger: 30, thirst: 30, stress: 20, health: -10 } },
+    { id: 'adv_spiders', label: 'Giant Spiders', icon: 'Skull', cost: 0, days: 1, type: 'adventure', description: 'Too Many Legs.', message: 'Nope. Nope. Nope.', effects: { gold: 20, xp: 25, hunger: 30, thirst: 30, stress: 30, health: -15, mood: -10 } },
   ],
   tier2: [
     { id: 'adv_goblins', label: 'Goblins', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Green Ankle Biters.', message: 'They travel in packs.', effects: { gold: 40, xp: 50, hunger: 40, thirst: 40, stress: 30, health: -20 } },
@@ -204,17 +131,17 @@ export const SOCIAL_DB = {
 export const AUTONOMY_EVENTS = {
   minor: [
     { id: 'hungover', title: 'Hungover', text: '"My head is exploding... the light, it burns!"', effects: { health: -5, thirst: 20 } },
-    { id: 'overslept', title: 'Overslept', text: '"Just five more minutes... or hours. Who counts?"', effects: { hunger: 10, thirst: 10 } }, 
+    { id: 'overslept', title: 'Overslept', text: '"Just five more minutes... or hours. Who counts?"', effects: { hunger: 10, thirst: 10 } }, // Logic will handle 'skip turn' mostly by just wasting resources
     { id: 'impulse_buy', title: 'Impulse Buy', text: '"I bought a rock that looks like a duck! It was 10 gold. Worth it."', effects: { gold: -10, mood: 10 } },
     { id: 'bad_romance', title: 'Bad Romance', text: '"I tried to wink at someone and got a drink thrown in my face."', effects: { mood: -10, stress: 10 } },
-    { id: 'stress_eating', title: 'Stress Eating', text: '"I ate everything. All of it. I have no regrets. Okay, some regrets."', effects: { hunger: -100 } }, 
+    { id: 'stress_eating', title: 'Stress Eating', text: '"I ate everything. All of it. I have no regrets. Okay, some regrets."', effects: { hunger: -100 } }, // Logic will need to clear food inventory
   ],
   major: [
-    { id: 'gambling_debt', title: 'Gambling Debt', text: '"I bet my pants... and lost. I am not a smart man."', effects: { equipmentLoss: true } }, 
+    { id: 'gambling_debt', title: 'Gambling Debt', text: '"I bet my pants... and lost. I am not a smart man."', effects: { equipmentLoss: true } }, // Logic handles item loss
     { id: 'bar_fight', title: 'Bar Fight', text: '"He looked at me funny! So I hit him with a chair."', effects: { health: -30, gold: -20 } },
     { id: 'walk_shame', title: 'The Walk of Shame', text: '"I woke up in a haystack three towns over. Don\'t ask."', effects: { housing: 'homeless' } },
     { id: 'paranoid', title: 'Paranoid Episode', text: '"The innkeeper is a mimic! I\'m sleeping in a tree!"', effects: { housing: 'homeless', stress: 20 } },
-    { id: 'charity', title: 'Charity Case', text: '"I gave it all away! I am a golden god of generosity!"', effects: { gold: -9999 } }, 
+    { id: 'charity', title: 'Charity Case', text: '"I gave it all away! I am a golden god of generosity!"', effects: { gold: -9999 } }, // Sets to 0
   ]
 };
 
@@ -230,7 +157,7 @@ export const QUIRKS = [
     id: 'meathead', 
     name: 'Meathead', 
     desc: '+2 STR, -2 INT. Cannot perform Magic jobs.', 
-    effects: { stats: { str: 2, int: -2 }, bannedJobs: ['job_scribe'] } 
+    effects: { stats: { str: 2, int: -2 }, bannedJobs: ['job_scribe'] } // 'job_scribe' placeholder for magic/smart jobs
   },
   { 
     id: 'drama_queen', 
