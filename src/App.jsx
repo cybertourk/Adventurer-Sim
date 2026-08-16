@@ -1,673 +1,404 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Shield, Sword, VenetianMask, Shirt, User, Backpack, X, 
-  Activity, Scroll, MapPin, ShoppingBag, DollarSign, HelpCircle, 
-  Key, Apple, Beer, Wine, Heart, Trash2, Coins, Sun, Skull, Brain,
-  ClipboardList
-} from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';import {Shield, Sword, VenetianMask, Shirt, User, Backpack, X,Activity, Scroll, MapPin, ShoppingBag, DollarSign, HelpCircle,Key, Apple, Beer, Wine, Heart, Trash2, Coins, Sun, Skull, Brain,ClipboardList, Clock, Droplets, Tent, Hammer, Zap} from 'lucide-react';/* =========================================================================PART 1: GAME DATA & CONFIGURATION========================================================================= */const SAVE_KEY = 'chaotic_adventurer_v2';const MAX_STAT = 100;const ITEM_DB = {head: [{ id: 'none', name: 'Bare', type: 'head', category: 'None', stats: { ac: 0 }, cost: 0, description: 'Wind in your hair.' },{ id: 'leather_cap', name: 'Bad Hair Day Hider', type: 'head', category: 'Light Helm', stats: { ac: 1 }, cost: 25, description: 'Basic leather cap.' },{ id: 'iron_helm', name: 'Bucket with Eye Holes', type: 'head', category: 'Heavy Helm', stats: { ac: 3, dex: -1 }, cost: 60, description: 'Heavy protection.' },{ id: 'wizard_hat', name: 'Pointy Hat of Smartness', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },],body: [{ id: 'tunic', name: 'Breezy Tunic', type: 'body', category: 'Clothing', stats: { ac: 0 }, cost: 0, description: 'Drafty.' },{ id: 'leather_armor', name: 'Stiff Cow Skin', type: 'body', category: 'Light Armor', stats: { ac: 2 }, cost: 40, description: 'Smells like a tannery.' },{ id: 'chainmail', name: 'Jingly Shirt', type: 'body', category: 'Medium Armor', stats: { ac: 5, dex: -2 }, cost: 150, description: 'Loud but protective.' },{ id: 'plate', name: 'Shiny Can Suit', type: 'body', category: 'Heavy Armor', stats: { ac: 8, dex: -4 }, cost: 500, description: 'I am invincible! (Mostly).' },{ id: 'robe', name: 'Mysterious Robe', type: 'body', category: 'Clothing', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing fabric.' },],mainHand: [{ id: 'fist', name: 'These Two Hands', type: 'mainHand', category: 'Unarmed', stats: { str: 0 }, cost: 0, description: 'Always loaded.' },{ id: 'dagger', name: 'Pointy Stick', type: 'mainHand', category: 'Dagger', stats: { dex: 2, str: 1 }, cost: 15, description: 'Good for cheese and goblins.' },{ id: 'sword', name: 'Sharp Metal Bar', type: 'mainHand', category: 'Longsword', stats: { str: 2 }, cost: 50, description: 'The classic choice.' },{ id: 'axe', name: 'The Chopper', type: 'mainHand', category: 'Battleaxe', stats: { str: 3 }, cost: 75, description: 'Solving problems, one swing at a time.' },{ id: 'staff', name: 'Wizard Twig', type: 'mainHand', category: 'Quarterstaff', stats: { int: 1, str: 1 }, cost: 60, description: 'It is just a stick, right?' },{ id: 'hammer', name: 'Bonk Stick', type: 'mainHand', category: 'Warhammer', stats: { str: 3 }, cost: 100, description: 'Unlocks smithing.' },],offHand: [{ id: 'none', name: 'Empty', type: 'offHand', category: 'None', stats: { ac: 0 }, cost: 0, description: 'Free hand.' },{ id: 'wooden_shield', name: 'Plank', type: 'offHand', category: 'Shield', stats: { ac: 1 }, cost: 15, description: 'Splinters included.' },{ id: 'tower_shield', name: 'Wall', type: 'offHand', category: 'Tower Shield', stats: { ac: 3, dex: -2 }, cost: 60, description: 'Portable cover.' },{ id: 'orb', name: 'Glowy Ball', type: 'offHand', category: 'Arcane Focus', stats: { int: 3 }, cost: 200, description: 'Ooh, shiny.' },],supplies: [{ id: 'ration', name: 'Mystery Meat Jerky', type: 'food', category: 'Food', cost: 3, description: 'Don't ask what animal it was.', effects: { hunger: -30, health: 5 } },{ id: 'potion', name: 'Red Goop', type: 'potion', category: 'Potion', cost: 25, description: 'Tastes like cherries and pennies.', effects: { health: 50 } },{ id: 'ale', name: 'Liquid Courage', type: 'drink', category: 'Drink', cost: 5, description: 'Makes everyone prettier.', effects: { thirst: -15, mood: 10, stress: -10 } },{ id: 'wine', name: 'Fancy Grape Juice', type: 'drink', category: 'Drink', cost: 25, description: 'Pinkies out!', effects: { thirst: -20, mood: 20, stress: -15 } },{ id: 'water', name: 'Water Skin', type: 'drink', category: 'Drink', cost: 0, description: 'Basic hydration.', effects: { thirst: -40 } },]};const MAINTENANCE_ACTIONS = [{ id: 'eat', label: 'Eat', icon: 'Apple', cost: 5, days: 0, costType: 'gp', description: 'Noms.', message: 'Ate something crunchy.', effects: { hunger: -30, health: 5 } },{ id: 'drink', label: 'Drink', icon: 'Droplets', cost: 0, days: 0, costType: 'gp', description: 'Glug glug.', message: 'Refreshing!', effects: { thirst: -40 } },{ id: 'sleep', label: 'Sleep', icon: 'Tent', cost: 0, days: 1, costType: 'gp', description: 'Nap time. (+Health, -Stress).', message: 'Zzz...', effects: { health: 15, stress: -20, hunger: 10, thirst: 10 } },{ id: 'train', label: 'Train', icon: 'Activity', cost: 10, days: 1, costType: 'gp', description: 'Hitting things with other things.', message: 'I feel stronger!', effects: { xp: 10, hunger: 20, thirst: 20 } },{ id: 'repair', label: 'Repair', icon: 'Hammer', cost: 5, days: 0, costType: 'gp', description: 'Fixing the dents.', message: 'Hammering out the dents.', effects: { stress: -10 } },{ id: 'tavern', label: 'Tavern', icon: 'Beer', cost: 8, days: 0, costType: 'gp', description: 'Socializing... loudly.', message: 'Huzzah!', effects: { mood: 15, stress: -15, hunger: -5, thirst: -10 } },];const JOB_DB = {tier1: [{ id: 'job_field', label: 'Field Hand', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Pulling Weeds.', message: 'Farmer Maggot yells a lot.', effects: { gold: 8, xp: 5, hunger: 10, thirst: 10, stress: 5, mood: -5 } },{ id: 'job_muck', label: 'Stable Muck', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Shoveling Poop.', message: 'It smells like success.', effects: { gold: 10, xp: 5, hunger: 10, thirst: 10, stress: 10, mood: -10 } },{ id: 'job_wood', label: 'Wood Chop', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Hitting Trees.', message: 'Like fighting, but the enemy does not move.', effects: { gold: 9, xp: 5, hunger: 15, thirst: 10, stress: 5 } },],tier2: [{ id: 'job_guard', label: 'Guard Duty', icon: 'Shield', cost: 0, days: 1, type: 'labor', description: 'Standing Around Menacingly.', message: 'Trying not to fall asleep.', effects: { gold: 15, xp: 10, hunger: 10, thirst: 10, stress: 5 } },{ id: 'job_dock', label: 'Dock Work', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Lifting Heavy Boxes.', message: 'My back hurts.', effects: { gold: 25, xp: 15, hunger: 20, thirst: 20, stress: 15, health: -5 } },]};const ADVENTURE_DB = {tier1: [{ id: 'adv_rats', label: 'Giant Rats', icon: 'Skull', cost: 0, days: 1, type: 'adventure', description: 'Rats of Unusual Size.', message: 'Why are they so big?!', effects: { gold: 15, xp: 20, hunger: 30, thirst: 30, stress: 20, health: -10 } },{ id: 'adv_spiders', label: 'Giant Spiders', icon: 'Skull', cost: 0, days: 1, type: 'adventure', description: 'Too Many Legs.', message: 'Nope. Nope. Nope.', effects: { gold: 20, xp: 25, hunger: 30, thirst: 30, stress: 30, health: -15, mood: -10 } },],tier2: [{ id: 'adv_goblins', label: 'Goblins', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Green Ankle Biters.', message: 'They travel in packs.', effects: { gold: 40, xp: 50, hunger: 40, thirst: 40, stress: 30, health: -20 } },{ id: 'adv_bandits', label: 'Bandits', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Muggers in Masks.', message: 'Hey, that is MY gold!', effects: { gold: 50, xp: 60, hunger: 40, thirst: 40, stress: 30, health: -25 } },],tier3: [{ id: 'adv_dragon', label: 'Young Dragon', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'Spicy Lizard.', message: 'Everything is on fire.', effects: { gold: 300, xp: 350, hunger: 80, thirst: 80, stress: 70, health: -60 } },]};const SOCIAL_DB = {tier1: [{ id: 'soc_gossip', label: 'Gossip', icon: 'User', cost: 0, days: 1, type: 'social', description: 'Talking Smack.', message: 'Did you hear about the miller's wife?', effects: { xp: 10, mood: 10, hunger: 5, thirst: 5 } },{ id: 'soc_beg', label: 'Begging', icon: 'Coins', cost: 0, days: 1, type: 'social', description: 'Spare a Copper?', message: 'Please? Pretty please?', effects: { gold: 5, mood: -5, hunger: 10, thirst: 10, stress: 10 } },{ id: 'soc_flirt', label: 'Flirt', icon: 'Heart', cost: 0, days: 1, type: 'social', description: 'Hey Good Lookin'.', message: 'How you doin?', effects: { mood: 20, stress: -5, xp: 5, hunger: 5, thirst: 5 } },],tier2: [{ id: 'soc_gamble', label: 'Gamble', icon: 'DollarSign', cost: 10, days: 1, type: 'social', description: 'Rolling the Bones.', message: 'Daddy needs a new pair of boots!', effects: { xp: 10, mood: 10, stress: 10 } },]};const AUTONOMY_EVENTS = {minor: [{ id: 'hungover', title: 'Hungover', text: '"My head is exploding... the light, it burns!"', effects: { health: -5, thirst: 20 } },{ id: 'overslept', title: 'Overslept', text: '"Just five more minutes... or hours. Who counts?"', effects: { hunger: 10, thirst: 10 } },{ id: 'impulse_buy', title: 'Impulse Buy', text: '"I bought a rock that looks like a duck! It was 10 gold. Worth it."', effects: { gold: -10, mood: 10 } },],major: [{ id: 'gambling_debt', title: 'Gambling Debt', text: '"I bet my pants... and lost. I am not a smart man."', effects: { equipmentLoss: true } },{ id: 'bar_fight', title: 'Bar Fight', text: '"He looked at me funny! So I hit him with a chair."', effects: { health: -30, gold: -20 } },{ id: 'walk_shame', title: 'The Walk of Shame', text: '"I woke up in a haystack three towns over. Don't ask."', effects: { housing: 'homeless' } },]};const QUIRKS = [{ id: 'sticky_fingers', name: 'Sticky Fingers', desc: '10% chance to find Gold on Social interactions.', effects: { socialGoldChance: 0.1 } },{ id: 'meathead', name: 'Meathead', desc: '+2 STR, -2 INT.', effects: { stats: { str: 2, int: -2 } } },{ id: 'drama_queen', name: 'Drama Queen', desc: 'Double Mood gain from Flirt/Tavern. Double Stress from failures.', effects: { moodMultiplier: 2, stressFailureMultiplier: 2 } },{ id: 'lightweight', name: 'Lightweight', desc: 'Ale/Wine cost 50% less.', effects: { drinkCostMultiplier: 0.5 } },];const LOCATIONS = {village_road: {id: 'village_road', name: 'Village Road', type: 'homeless', dailyCost: 0, hasFoodService: false,modifiers: { rest: { health: 5, stress: -5, mood: -10, hunger: 5, thirst: 5 } }},inn_room: {id: 'inn_room', name: 'Rusty Spoon Inn', type: 'renting', dailyCost: 5, hasFoodService: true,modifiers: { rest: { health: 15, stress: -20, mood: 5, hunger: 5, thirst: 5 } }},estate: {id: 'estate', name: 'Estate', type: 'owned', dailyCost: 50, hasFoodService: true,modifiers: { rest: { health: 30, stress: -40, mood: 20, hunger: 0, thirst: 0 } }}};const APPEARANCE_OPTIONS = {skinTones: [{ id: 'pale', label: 'Pale', color: '#f3e5dc', shadow: '#e0c8b8' },{ id: 'fair', label: 'Fair', color: '#eecfa1', shadow: '#dcb386' },{ id: 'tan', label: 'Tan', color: '#d4a373', shadow: '#b07d4e' },{ id: 'dark', label: 'Dark', color: '#8d5524', shadow: '#6e3b12' },],hairColors: [{ id: 'black', color: '#09090b' }, { id: 'brown', color: '#3f2307' }, { id: 'blonde', color: '#ca8a04' },{ id: 'red', color: '#7f1d1d' }, { id: 'white', color: '#f3f4f6' },],eyeColors: [{ id: 'blue', color: '#3b82f6' }, { id: 'green', color: '#22c55e' }, { id: 'brown', color: '#451a03' },],hairStyles: [{ id: 'bald', label: 'Bald' }, { id: 'short', label: 'Short' }, { id: 'long', label: 'Long' },]};const ICON_MAP = {'Shield': Shield, 'Sword': Sword, 'Scroll': Scroll, 'Activity': Activity, 'Apple': Apple,'Beer': Beer, 'User': User, 'Coins': Coins, 'Heart': Heart, 'DollarSign': DollarSign,'Droplets': Droplets, 'Tent': Tent, 'Hammer': Hammer, 'Zap': Zap};/* =========================================================================PART 2: GAME LOGIC HOOK========================================================================= */const useGameLogic = () => {const [gameState, setGameState] = useState(() => {const saved = localStorage.getItem(SAVE_KEY);if (saved) {try { return JSON.parse(saved); } catch (e) { console.error("Save load failed", e); }}return {gameStarted: false,creationStep: 1,attributes: { str: 10, dex: 10, con: 10, int: 10, cha: 10 },quirk: null,stats: { hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 },resources: { gold: 50, xp: 0, level: 1 },inventory: ['none', 'tunic', 'fist'],shopStock: [],equipped: { head: 'none', body: 'tunic', mainHand: 'fist', offHand: 'none' },appearance: { gender: 'male', skinTone: 'fair', hairColor: 'brown', eyeColor: 'brown', hairStyle: 'short' },days: 1,location: 'village_road',housing: 'homeless',rentActive: false,maxTier: 1,dailyQuests: { labor: [], adventure: [], social: [] },dailyLogs: [],isDead: false};});const [messages, setMessages] = useState([]);// Auto-save effectuseEffect(() => {localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));}, [gameState]);// Derived Statsconst maxStats = useMemo(() => ({health: 10 + (gameState.resources.level * 10) + (gameState.attributes.con * 2),mood: 100, hunger: 100, thirst: 100, stress: 100}), [gameState.resources.level, gameState.attributes.con]);const currentStats = useMemo(() => {let total = { ...gameState.attributes, ac: 10 };Object.keys(gameState.equipped).forEach(slot => {const itemId = gameState.equipped[slot];const item = ITEM_DB[slot].find(i => i.id === itemId);if (item?.stats) Object.entries(item.stats).forEach(([stat, val]) => { total[stat] = (total[stat] || 0) + val; });});if (gameState.quirk?.effects?.stats) {Object.entries(gameState.quirk.effects.stats).forEach(([stat, val]) => { total[stat] = (total[stat] || 0) + val; });}return total;}, [gameState.equipped, gameState.attributes, gameState.quirk]);// Actionsconst addMessage = (text, type = 'info') => {const id = Date.now() + Math.random();setMessages(prev => [...prev.slice(-3), { id, text, type }]);setTimeout(() => setMessages(prev => prev.filter(m => m.id !== id)), 3000);};const updateState = (updates) => setGameState(prev => ({ ...prev, ...updates }));const refreshShop = () => {const allItems = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies];const purchasable = allItems.filter(i => i.cost > 0);const shuffled = [...purchasable].sort(() => 0.5 - Math.random());return shuffled.slice(0, 6).map(i => i.id);};const generateDailyQuests = (tier) => {const getPool = (db) => Object.keys(db).filter(k => k.replace('tier', '') <= tier).flatMap(k => db[k]);const select = (pool, count) => [...pool].sort(() => 0.5 - Math.random()).slice(0, count);return {labor: select(getPool(JOB_DB), 3),adventure: select(getPool(ADVENTURE_DB), 3),social: select(getPool(SOCIAL_DB), 3)};};const passTime = (daysPassed) => {let rentMsg = "Slept outside.";let logs = [];let stateUpdates = { days: gameState.days + daysPassed };let newGold = gameState.resources.gold;let newHousing = gameState.housing;let newRentActive = gameState.rentActive;const mod = LOCATIONS[gameState.rentActive ? (gameState.housing === 'inn' ? 'inn_room' : 'estate') : 'village_road'].modifiers.rest;
 
-import CharacterSVG from './CharacterSVG';
-import { getBackground } from './Backgrounds';
-import { StatBlock, ActionButton, renderItemStats } from './GameUI';
-import CreationScreen from './CreationScreen';
-import { useGameLogic } from './useGameLogic';
-import { 
-  ITEM_DB, 
-  MAINTENANCE_ACTIONS, 
-  LOCATIONS, 
-  APPEARANCE_OPTIONS 
-} from './data';
+if (gameState.rentActive) {
+  const rentCost = LOCATIONS[gameState.housing === 'inn' ? 'inn_room' : 'estate'].dailyCost * daysPassed;
+  if (newGold >= rentCost) {
+    newGold -= rentCost;
+    rentMsg = `Paid rent: -${rentCost}g.`;
+  } else {
+    newHousing = 'homeless';
+    newRentActive = false;
+    rentMsg = "Evicted! Couldn't pay rent.";
+    addMessage("Evicted!", 'error');
+  }
+}
 
-/* -------------------------------------------------------------------------
-  THEME: CHAOTIC ADVENTURER SIMULATOR
-  Version: 1.46 (Fix: Detailed Stat Info)
-  -------------------------------------------------------------------------
-*/
+// Autonomy event
+const zone = gameState.stats.mood < 20 || gameState.stats.stress > 80 ? 'crisis' : 'safe';
+let incident = null;
+if (zone === 'crisis' && Math.random() < 0.4) {
+  incident = AUTONOMY_EVENTS.major[Math.floor(Math.random() * AUTONOMY_EVENTS.major.length)];
+  if(incident.effects.gold) newGold = Math.max(0, newGold + incident.effects.gold);
+  if(incident.effects.housing) { newHousing = 'homeless'; newRentActive = false; }
+}
 
-const ICON_MAP = {
-  'Shield': Shield, 'Sword': Sword, 'Scroll': Scroll, 'Activity': Activity, 
-  'Beer': Beer, 'User': User, 'Coins': Coins, 'Heart': Heart, 'DollarSign': DollarSign
+const logEntry = {
+  id: Date.now(),
+  type: 'morning',
+  day: gameState.days,
+  sleepLoc: newHousing === 'inn' ? 'Warm Inn' : 'Outside',
+  rent: rentMsg,
+  incidentText: incident ? incident.text : "A quiet, uneventful night.",
+  status: `Restored Health & Mood.`
 };
 
-export default function App() {
-  const {
-    gameStarted, setGameStarted,
-    creationStep, setCreationStep,
-    attributes, updateAttribute,
-    stats,
-    resources,
-    inventory,
-    shopStock,
-    equipped, equipItem,
-    appearance, updateAppearance,
-    days,
-    location,
-    housing,
-    dailyQuests,
-    messages,
-    isDead,
-    maxStats,
-    currentStats,
-    dailyLogs,
-    setDailyLogs,
-    quirk, // Active Quirk
-    performAction,
-    revive,
-    buyItem,
-    sellItem,
-    consumeItem,
-    startGame,
-    resetGame,
-    pointsAvailable
-  } = useGameLogic();
+updateState({
+  ...stateUpdates,
+  resources: { ...gameState.resources, gold: newGold },
+  housing: newHousing,
+  rentActive: newRentActive,
+  stats: {
+    health: Math.min(maxStats.health, gameState.stats.health + (mod.health || 0) + (incident?.effects?.health || 0)),
+    stress: Math.max(0, gameState.stats.stress + (mod.stress || 0) + (incident?.effects?.stress || 0)),
+    mood: Math.max(0, gameState.stats.mood + (mod.mood || 0) + (incident?.effects?.mood || 0)),
+    hunger: Math.min(maxStats.hunger, gameState.stats.hunger + (mod.hunger || 0)),
+    thirst: Math.min(maxStats.thirst, gameState.stats.thirst + (mod.thirst || 0))
+  },
+  shopStock: refreshShop(),
+  dailyQuests: generateDailyQuests(gameState.maxTier),
+  dailyLogs: [logEntry, ...gameState.dailyLogs]
+});
+};const performAction = (action) => {if (gameState.isDead) return;if (action.id === 'rent_start') {
+  if (gameState.resources.gold >= 5) {
+    updateState({ housing: 'inn', rentActive: true, resources: { ...gameState.resources, gold: gameState.resources.gold - 5 } });
+    addMessage("Rented room at Rusty Spoon.", 'success');
+  } else addMessage("Not enough gold.", 'error');
+  return;
+}
+if (action.id === 'rent_stop') {
+  updateState({ housing: 'homeless', rentActive: false });
+  addMessage("Checked out.", 'info');
+  return;
+}
 
-  // Local UI State
-  const [activeTab, setActiveTab] = useState('actions');
-  const [questTab, setQuestTab] = useState('labor');
-  const [activeSlot, setActiveSlot] = useState('head');
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [showLocationInfo, setShowLocationInfo] = useState(false);
-  const [showShop, setShowShop] = useState(false);
-  const [shopTab, setShopTab] = useState('buy');
-  const [activeStatInfo, setActiveStatInfo] = useState(null);
+let cost = action.cost;
+if (gameState.resources.gold < cost) {
+  addMessage("Not enough gold!", "error");
+  return;
+}
 
-  // Auto-open Report Panel when a new day occurs
-  useEffect(() => {
-      if (days > 1 && gameStarted) {
-          // Optional: Only auto-open if it's a new day event. 
+let newResources = { ...gameState.resources, gold: gameState.resources.gold - cost };
+let newStats = { ...gameState.stats };
+let isSuccess = true;
+let failChance = Math.max(0.05, Math.min(0.95, 0.4 - (currentStats.str * 0.01) + (newStats.stress * 0.002)));
+
+if (['labor', 'adventure', 'social'].includes(action.type) && Math.random() < failChance) isSuccess = false;
+
+let logText = isSuccess ? (action.message || "Completed action.") : "Failed miserably.";
+
+if (isSuccess) {
+  if (action.effects) {
+    if(action.effects.health) newStats.health = Math.max(0, Math.min(maxStats.health, newStats.health + action.effects.health));
+    if(action.effects.mood) newStats.mood = Math.max(0, Math.min(maxStats.mood, newStats.mood + action.effects.mood));
+    if(action.effects.hunger) newStats.hunger = Math.max(0, Math.min(maxStats.hunger, newStats.hunger + action.effects.hunger));
+    if(action.effects.thirst) newStats.thirst = Math.max(0, Math.min(maxStats.thirst, newStats.thirst + action.effects.thirst));
+    if(action.effects.stress) newStats.stress = Math.max(0, Math.min(maxStats.stress, newStats.stress + action.effects.stress));
+    
+    if (action.effects.gold) newResources.gold += action.effects.gold;
+    if (action.effects.xp) {
+      newResources.xp += action.effects.xp;
+      if (newResources.xp >= newResources.level * 100) {
+        newResources.level++;
+        addMessage(`Level Up! Level ${newResources.level}`, "success");
       }
-  }, [days, gameStarted]);
-
-  // --- View Helpers ---
-
-  const getItemById = (id) => {
-      const all = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies];
-      return all.find(i => i.id === id);
-  };
-
-  const togglePanel = (tab) => {
-    if (isPanelOpen && activeTab === tab) setIsPanelOpen(false);
-    else {
-      setActiveTab(tab);
-      setIsPanelOpen(true);
     }
-  };
-
-  const getStatInfo = (key) => {
-      // Helper to determine Autonomy Zone
-      const getAutonomyZone = (m, s) => {
-          if (m > 40 && s < 60) return { label: 'Safe', chance: '5%' };
-          if (m < 10 || s > 90) return { label: 'CRISIS', chance: '70%' };
-          return { label: 'Risky', chance: '30%' };
-      };
-
-      const zone = getAutonomyZone(stats.mood, stats.stress);
-      const failureAdd = (stats.stress * 0.2).toFixed(1);
-
-      switch(key) {
-          case 'health': 
-            return { 
-                title: 'Health', 
-                desc: 'Physical vitality.', 
-                status: stats.health === 0 ? 'Dead' : `Alive (${stats.health}/${maxStats.health})`,
-                effect: 'If 0, you die. Reviving costs XP.' 
-            };
-          case 'mood': 
-            return { 
-                title: 'Mood', 
-                desc: 'Mental stability.', 
-                status: `Current Zone: ${zone.label}`,
-                effect: `${zone.chance} chance of random chaotic events during sleep.` 
-            };
-          case 'hunger': 
-            return { 
-                title: 'Hunger', 
-                desc: 'Need for food.', 
-                status: `${stats.hunger}/${maxStats.hunger}`,
-                effect: stats.hunger >= 100 ? 'Death Imminent.' : 'Increases automatically. Eat to reduce.' 
-            };
-          case 'thirst': 
-            return { 
-                title: 'Thirst', 
-                desc: 'Need for drink.', 
-                status: `${stats.thirst}/${maxStats.thirst}`,
-                effect: stats.thirst >= 100 ? 'Death Imminent.' : 'Increases automatically. Drink to reduce.' 
-            };
-          case 'stress': 
-            return { 
-                title: 'Stress', 
-                desc: 'Mental strain.', 
-                status: `Failure Penalty: +${failureAdd}%`,
-                effect: 'Increases risk of failure for ALL actions. Can trigger Crisis events.' 
-            };
-          case 'ac': 
-            return { 
-                title: 'Armor Class', 
-                desc: 'Defensive capability.', 
-                status: `Rating: ${currentStats.ac}`,
-                effect: `Reduces risk of Adventure failure by ${currentStats.ac}%.` 
-            };
-          case 'str': 
-            return { 
-                title: 'Strength', 
-                desc: 'Physical power.', 
-                status: `Score: ${currentStats.str}`,
-                effect: `Reduces Labor & Adventure risk by ${currentStats.str}%.` 
-            };
-          case 'dex': 
-            return { 
-                title: 'Dexterity', 
-                desc: 'Agility and reflexes.', 
-                status: `Score: ${currentStats.dex}`,
-                effect: `Reduces Adventure risk by ${currentStats.dex}%.` 
-            };
-          case 'con': 
-            return { 
-                title: 'Constitution', 
-                desc: 'Endurance and health.', 
-                status: `Score: ${currentStats.con}`,
-                effect: `Reduces Labor risk by ${currentStats.con}%. Adds +${currentStats.con * 2} to Max Health.` 
-            };
-          case 'int': 
-            return { 
-                title: 'Intelligence', 
-                desc: 'Mental acuity.', 
-                status: `Score: ${currentStats.int}`,
-                effect: `Reduces Magic Job risk by ${currentStats.int * 2}%.` 
-            };
-          case 'cha': 
-            return { 
-                title: 'Charisma', 
-                desc: 'Social influence.', 
-                status: `Score: ${currentStats.cha}`,
-                effect: `Reduces Social Action risk by ${currentStats.cha * 2}%.` 
-            };
-          case 'quirk': 
-            return { 
-                title: quirk ? quirk.name : 'None', 
-                desc: quirk ? quirk.desc : 'No active trait.',
-                status: 'Active',
-                effect: 'Permanent passive effect.' 
-            };
-          default: return { title: key.toUpperCase(), desc: 'Attribute' };
-      }
-  };
-
-  const CurrentSceneBackground = getBackground(location);
-  const currentLocData = LOCATIONS[location] || LOCATIONS['village_road'];
-
-  // --- VIEW: Creation ---
-  if (!gameStarted) {
-      return (
-        <CreationScreen 
-          creationStep={creationStep}
-          setCreationStep={setCreationStep}
-          appearance={appearance}
-          updateAppearance={updateAppearance}
-          equipped={equipped}
-          attributes={attributes}
-          updateAttribute={updateAttribute}
-          pointsAvailable={pointsAvailable}
-          getStatInfo={getStatInfo}
-          startGame={startGame}
-        />
-      );
   }
+  addMessage("Action successful.", "success");
+} else {
+  newStats.stress = Math.min(100, newStats.stress + 15);
+  if (action.type === 'adventure') newStats.health = Math.max(0, newStats.health - 20);
+  addMessage("Action failed!", "error");
+}
 
-  // --- VIEW: Main Game ---
-  return (
-    <div className="h-screen bg-slate-950 text-slate-100 font-sans selection:bg-indigo-500/30 overflow-hidden flex flex-col md:flex-row">
-      
-      {/* ... [Modals] ... */}
-      {activeStatInfo && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in" onClick={() => setActiveStatInfo(null)}>
-              <div className="bg-slate-900 border border-slate-700 rounded-xl p-6 shadow-2xl max-w-sm w-full text-center relative overflow-hidden" onClick={e => e.stopPropagation()}>
-                  <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500" />
-                  <h3 className="font-bold text-xl text-white mb-1 uppercase tracking-wider">{getStatInfo(activeStatInfo).title}</h3>
-                  <p className="text-xs text-slate-400 mb-4 font-medium uppercase tracking-widest">{getStatInfo(activeStatInfo).desc}</p>
-                  
-                  <div className="bg-slate-800/50 rounded-lg p-3 mb-4 space-y-2 border border-slate-700/50">
-                      {getStatInfo(activeStatInfo).status && (
-                          <div className="flex justify-between items-center text-sm">
-                              <span className="text-slate-400 font-bold">Status:</span>
-                              <span className="text-indigo-300 font-mono font-bold">{getStatInfo(activeStatInfo).status}</span>
-                          </div>
-                      )}
-                      {getStatInfo(activeStatInfo).effect && (
-                          <div className="text-left mt-2 pt-2 border-t border-slate-700/50">
-                             <span className="text-[10px] text-slate-500 uppercase font-bold block mb-1">Effect</span>
-                             <p className="text-xs text-slate-300 leading-relaxed">{getStatInfo(activeStatInfo).effect}</p>
-                          </div>
-                      )}
-                  </div>
+const isDead = newStats.health <= 0 || newStats.hunger >= 100 || newStats.thirst >= 100;
+if (isDead) addMessage("You have perished.", "error");
 
-                  <button onClick={() => setActiveStatInfo(null)} className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition-colors">Close</button>
+updateState({
+  resources: newResources,
+  stats: newStats,
+  isDead,
+  dailyLogs: [{ id: Date.now(), type: 'action', day: gameState.days, title: action.label, text: logText, status: isSuccess ? 'Success' : 'Failed' }, ...gameState.dailyLogs]
+});
+
+if (action.days > 0) passTime(action.days);
+};const startGame = () => {updateState({gameStarted: true,stats: { ...gameState.stats, health: maxStats.health },quirk: QUIRKS[Math.floor(Math.random() * QUIRKS.length)],dailyQuests: generateDailyQuests(1),shopStock: refreshShop()});};return {...gameState, maxStats, currentStats, messages,updateState, performAction, startGame, addMessage};};/* =========================================================================PART 3: UI COMPONENTS========================================================================= */const StatBlock = ({ label, value, max, alert, inverted, onClick }) => (<buttononClick={onClick}className={flex flex-col items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-xl border backdrop-blur-md shadow-xl transition-all hover:scale-105 active:scale-95 ${alert ? 'border-red-500/50 bg-red-950/40 shadow-red-900/20' : inverted ? 'border-amber-500/30 bg-amber-950/30 shadow-amber-900/10' : 'border-indigo-500/30 bg-slate-900/60 shadow-indigo-900/10 hover:border-indigo-400'}}  <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-widest ${alert ? 'text-red-400' : inverted ? 'text-amber-400' : 'text-indigo-300'}`}>{label}</span>
+  <span className={`text-sm md:text-lg font-bold font-mono ${alert ? 'text-red-300' : 'text-slate-100'}`}>
+    {Math.floor(value)}{max && <span className="text-[10px] text-slate-500">/{max}</span>}
+  </span>
+const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onClick, disabled, description }) => {const Icon = ICON_MAP[IconName] || HelpCircle;return (<buttononClick={onClick} disabled={disabled}className={flex items-center gap-3 p-3 w-full rounded-xl border text-left transition-all duration-300 relative overflow-hidden group backdrop-blur-sm ${disabled ? 'bg-slate-900/40 border-slate-800 text-slate-600 cursor-not-allowed' : 'bg-slate-800/60 border-indigo-500/30 text-slate-200 hover:bg-indigo-900/40 hover:border-indigo-400 hover:shadow-[0_0_20px_rgba(99,102,241,0.15)]'}}><div className={p-2 rounded-lg ${disabled ? 'bg-slate-800' : 'bg-slate-900 shadow-inner group-hover:text-indigo-300 transition-colors'}}>{label}{days > 0 &&  {days}d}{description}{cost > 0 && (<div className={text-xs font-mono px-2 py-1 rounded-md shadow-inner ${disabled ? 'bg-slate-800 text-slate-600' : 'bg-amber-950/50 text-amber-400 border border-amber-500/20'}}>-{cost}{costType})});};const CharacterSVG = ({ equipped, appearance, isAlive }) => {const skin = APPEARANCE_OPTIONS.skinTones.find(t => t.id === appearance.skinTone) || APPEARANCE_OPTIONS.skinTones[1];const hair = APPEARANCE_OPTIONS.hairColors.find(c => c.id === appearance.hairColor)?.color || '#3f2307';return (<svg viewBox="0 0 300 450" className={w-full h-full drop-shadow-[0_0_30px_rgba(99,102,241,0.15)] transition-all duration-1000 ${isAlive ? '' : 'grayscale opacity-50 blur-[2px]'}}>  {/* Body Base */}
+  <path d="M130 200 L 130 390 L 145 390 L 145 200 Z" fill={skin.shadow} />
+  <path d="M170 200 L 170 390 L 155 390 L 155 200 Z" fill={skin.shadow} />
+  <path d="M110 90 L 100 200 L 120 200 Z" fill={skin.shadow} />
+  <path d="M190 90 L 200 200 L 180 200 Z" fill={skin.shadow} />
+  <path d="M135 90 Q 150 200 165 90 Z" fill="url(#skin-gradient)" />
+  
+  {/* Dynamic Armor */}
+  {equipped.body === 'tunic' && <path d="M120 85 L 180 85 L 170 210 L 130 210 Z" fill="#3f3f46" />}
+  {equipped.body === 'leather_armor' && <path d="M120 85 L 180 85 L 175 220 L 125 220 Z" fill="#5f370e" stroke="#3f2307" strokeWidth="2"/>}
+  {equipped.body === 'plate' && <path d="M115 80 L 185 80 L 180 220 L 120 220 Z" fill="url(#metal)" stroke="#18181b" strokeWidth="3"/>}
+
+  {/* Head & Hair */}
+  <ellipse cx="150" cy="60" rx="20" ry="25" fill="url(#skin-gradient)" />
+  {appearance.hairStyle !== 'bald' && <path d="M130 50 Q 150 20 170 50 L 165 70 L 135 70 Z" fill={hair} />}
+  
+  {/* Dynamic Helm */}
+  {equipped.head === 'leather_cap' && <path d="M125 45 Q 150 10 175 45 Z" fill="#5f370e" />}
+  {equipped.head === 'iron_helm' && <path d="M125 35 L 175 35 L 175 80 L 125 80 Z" fill="url(#metal)" />}
+
+  {/* Dynamic Weapons */}
+  {equipped.mainHand === 'sword' && <path d="M 205 190 L 210 100 L 195 100 Z" fill="url(#metal)" transform="rotate(20 200 200)"/>}
+  {equipped.mainHand === 'axe' && <path d="M 200 210 L 200 100 M 200 120 L 220 100 L 220 140 Z" stroke="#3f2307" strokeWidth="4" fill="url(#metal)" transform="rotate(10 200 200)"/>}
+  
+  {equipped.offHand === 'wooden_shield' && <circle cx="95" cy="180" r="25" fill="#5f370e" stroke="#3f2307" strokeWidth="4"/>}
+  {equipped.offHand === 'orb' && <circle cx="95" cy="160" r="15" fill="#6366f1" opacity="0.8" className="animate-pulse"/>}
+</svg>
+);};/* =========================================================================PART 4: MAIN APPLICATION COMPONENT========================================================================= */export default function App() {const game = useGameLogic();const [activeTab, setActiveTab] = useState('actions');const [isPanelOpen, setIsPanelOpen] = useState(false);// -- Creation Screen Rendering --if (!game.gameStarted) {return (ForgingFate<button onClick={() => game.updateState({creationStep: 1})} className={pb-3 text-sm font-bold uppercase tracking-widest transition-colors ${game.creationStep === 1 ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-slate-500 hover:text-slate-300'}}>1. Appearance<button onClick={() => game.updateState({creationStep: 2})} className={pb-3 text-sm font-bold uppercase tracking-widest transition-colors ${game.creationStep === 2 ? 'text-indigo-400 border-b-2 border-indigo-400' : 'text-slate-500 hover:text-slate-300'}}>2. Attributes        <div className="flex-1 overflow-y-auto space-y-6 pr-2 custom-scrollbar">
+          {game.creationStep === 1 && Object.entries(APPEARANCE_OPTIONS).map(([key, options]) => (
+            <div key={key}>
+              <h3 className="text-xs font-bold text-indigo-300/50 uppercase tracking-widest mb-3">{key.replace(/([A-Z])/g, ' $1').trim()}</h3>
+              <div className="flex gap-2 flex-wrap">
+                {options.map(opt => (
+                  <button 
+                    key={opt.id} onClick={() => game.updateState({appearance: {...game.appearance, [key.replace('s', '')]: opt.id}})}
+                    className={`px-4 py-2 rounded-xl border text-xs font-bold tracking-wide transition-all ${game.appearance[key.replace('s', '')] === opt.id ? 'bg-indigo-600/20 border-indigo-400 text-indigo-200 shadow-[0_0_15px_rgba(99,102,241,0.2)]' : 'bg-slate-900/50 border-slate-800 text-slate-400 hover:border-slate-600'}`}
+                    style={opt.color ? { backgroundColor: opt.color, color: opt.id==='white'?'black':'white' } : {}}
+                  >
+                    {opt.label || opt.id}
+                  </button>
+                ))}
               </div>
-          </div>
-      )}
+            </div>
+          ))}
 
-      {showShop && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-sm animate-in fade-in" onClick={() => setShowShop(false)}>
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl relative flex flex-col h-[70vh]" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between p-4 border-b border-slate-700">
-                <div className="flex items-center gap-2">
-                    <ShoppingBag className="text-amber-400" />
-                    <h2 className="text-lg font-bold">Village Merchant</h2>
+          {game.creationStep === 2 && (
+            <div className="space-y-4">
+              <div className="p-4 bg-indigo-950/30 border border-indigo-500/20 rounded-xl flex justify-between items-center">
+                <span className="text-sm font-bold text-indigo-200 tracking-wider">Points Available</span>
+                <span className="text-2xl font-mono text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]">
+                  {10 - (Object.values(game.attributes).reduce((a,b)=>a+b,0) - 50)}
+                </span>
+              </div>
+              {Object.keys(game.attributes).map(attr => (
+                <div key={attr} className="flex justify-between items-center p-4 bg-slate-900/40 border border-slate-800 rounded-xl hover:border-indigo-500/30 transition-colors">
+                  <span className="font-bold uppercase tracking-widest text-slate-300">{attr}</span>
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => game.updateState({attributes: {...game.attributes, [attr]: Math.max(10, game.attributes[attr]-1)}})} className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white flex items-center justify-center">-</button>
+                    <span className="w-6 text-center font-mono text-lg font-bold">{game.attributes[attr]}</span>
+                    <button onClick={() => game.updateState({attributes: {...game.attributes, [attr]: game.attributes[attr]+1}})} className="w-8 h-8 rounded-lg bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white flex items-center justify-center">+</button>
+                  </div>
                 </div>
-                <button onClick={() => setShowShop(false)}><X className="text-slate-500 hover:text-white" /></button>
+              ))}
             </div>
-            <div className="flex p-2 bg-slate-800/50 gap-2">
-                <button onClick={() => setShopTab('buy')} className={`flex-1 py-2 rounded text-sm font-bold ${shopTab === 'buy' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-400'}`}>Buy</button>
-                <button onClick={() => setShopTab('sell')} className={`flex-1 py-2 rounded text-sm font-bold ${shopTab === 'sell' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-400'}`}>Sell</button>
-            </div>
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
-                {shopTab === 'buy' && shopStock.map(id => {
-                    const item = getItemById(id);
-                    if (!item) return null;
-                    const canAfford = resources.gold >= item.cost;
-                    const isOwned = inventory.includes(item.id) && item.type !== 'food' && item.type !== 'drink' && item.type !== 'potion';
-                    return (
-                        <div key={item.id} className="flex items-center justify-between p-3 bg-slate-800 rounded border border-slate-700">
-                            <div>
-                                <div className="font-bold text-sm flex items-center gap-2">
-                                  {item.name}
-                                  {item.category && <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold bg-slate-900 px-1.5 py-0.5 rounded">{item.category}</span>}
-                                </div>
-                                <div className="text-xs text-slate-500">{item.type}</div>
-                                {renderItemStats(item)}
-                            </div>
-                            {isOwned ? (
-                                <span className="text-xs font-bold text-slate-500 px-3 py-1 bg-slate-900 rounded">Owned</span>
-                            ) : (
-                                <button onClick={() => buyItem(item)} disabled={!canAfford} className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-bold ${canAfford ? 'bg-amber-600 text-white hover:bg-amber-500' : 'bg-slate-700 text-slate-500 cursor-not-allowed'}`}>
-                                    {item.cost} <Coins size={12}/>
-                                </button>
-                            )}
-                        </div>
-                    );
-                })}
-                {shopTab === 'sell' && inventory.map((id, index) => {
-                    const item = getItemById(id);
-                    if (!item || item.cost === 0) return null; 
-                    const isEquipped = Object.values(equipped).includes(item.id);
-                    const sellPrice = Math.floor(item.cost / 2);
-                    return (
-                        <div key={`${item.id}-${index}`} className="flex items-center justify-between p-3 bg-slate-800 rounded border border-slate-700">
-                            <div>
-                                <div className="font-bold text-sm flex items-center gap-2">
-                                  {item.name}
-                                  {item.category && <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold bg-slate-900 px-1.5 py-0.5 rounded">{item.category}</span>}
-                                </div>
-                                <div className="text-xs text-slate-500">{item.type}</div>
-                                {renderItemStats(item)}
-                            </div>
-                            {isEquipped ? (
-                                <span className="text-xs text-indigo-400 font-bold px-2">Equipped</span>
-                            ) : (
-                                <button onClick={() => sellItem(item)} className="flex items-center gap-1 px-3 py-1.5 rounded text-xs font-bold bg-red-900/30 text-red-400 border border-red-900/50 hover:bg-red-900/50">
-                                    +{sellPrice} <DollarSign size={12}/>
-                                </button>
-                            )}
-                        </div>
-                    );
-                })}
-            </div>
-            <div className="p-4 bg-slate-900 border-t border-slate-700 flex justify-between items-center text-sm font-bold">
-                <span className="text-slate-400">Your Gold:</span>
-                <span className="text-amber-400 flex items-center gap-1">{resources.gold} <Coins size={14}/></span>
-            </div>
+          )}
+        </div>
+        
+        <div className="mt-8 pt-6 border-t border-slate-800/50 flex justify-end">
+          <button onClick={game.startGame} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-widest uppercase rounded-xl shadow-[0_0_20px_rgba(99,102,241,0.4)] transition-all hover:scale-105 active:scale-95">
+            Begin Journey
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+}// -- Main Game UI Rendering --return (  {/* Background Layer */}
+  <div className="absolute inset-0 z-0 opacity-40 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/20 via-slate-950 to-black pointer-events-none" />
+  <div className="absolute bottom-0 w-full h-[40vh] bg-gradient-to-t from-black via-slate-950/80 to-transparent z-0 pointer-events-none" />
+
+  {/* Top HUD */}
+  <header className="absolute top-0 w-full p-4 md:p-6 flex justify-between items-start z-40">
+    <div className="flex gap-4 md:gap-8 bg-slate-900/50 backdrop-blur-md px-6 py-3 rounded-2xl border border-slate-700/50 shadow-xl">
+      <div className="flex flex-col">
+        <span className="text-[10px] text-indigo-300/70 font-bold uppercase tracking-widest">Gold</span>
+        <span className="text-lg md:text-2xl font-mono text-amber-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.3)]">{game.resources.gold}</span>
+      </div>
+      <div className="w-px bg-slate-700/50" />
+      <div className="flex flex-col">
+        <span className="text-[10px] text-indigo-300/70 font-bold uppercase tracking-widest">Day</span>
+        <span className="text-lg md:text-2xl font-mono text-slate-100">{game.days}</span>
+      </div>
+    </div>
+    <button onClick={() => { localStorage.removeItem(SAVE_KEY); window.location.reload(); }} className="p-3 bg-red-950/40 border border-red-900/50 rounded-xl text-red-400 hover:bg-red-900 hover:text-white transition-all backdrop-blur-md">
+      <Trash2 size={18} />
+    </button>
+  </header>
+
+  {/* Toast Messages */}
+  <div className="absolute top-24 right-6 z-50 flex flex-col gap-2 items-end pointer-events-none">
+    {game.messages.map(m => (
+      <div key={m.id} className={`px-4 py-2 rounded-lg shadow-2xl text-xs font-bold tracking-wide border backdrop-blur-md animate-in slide-in-from-right fade-in duration-300 ${m.type === 'error' ? 'bg-red-950/80 border-red-500/50 text-red-200' : 'bg-indigo-900/80 border-indigo-500/50 text-indigo-100'}`}>
+        {m.text}
+      </div>
+    ))}
+  </div>
+
+  {/* Main Stage (Character & Stats) */}
+  <main className="flex-1 w-full max-w-5xl mx-auto flex items-center justify-between px-4 z-10 pt-16">
+    
+    {/* Left Stats */}
+    <div className="flex flex-col gap-3 md:gap-4 z-20">
+      <StatBlock label="AC" value={game.currentStats.ac} />
+      <StatBlock label="STR" value={game.currentStats.str} />
+      <StatBlock label="DEX" value={game.currentStats.dex} />
+      <StatBlock label="CON" value={game.currentStats.con} />
+      <StatBlock label="INT" value={game.currentStats.int} />
+    </div>
+
+    {/* Character Avatar */}
+    <div className="flex-1 h-[50vh] md:h-[60vh] relative flex flex-col justify-center items-center">
+      {game.quirk && (
+        <div className="absolute top-0 flex items-center gap-2 px-3 py-1.5 bg-indigo-950/60 border border-indigo-500/30 rounded-full text-xs text-indigo-200 font-bold backdrop-blur-md shadow-xl">
+          <Brain size={14} className="text-indigo-400" /> {game.quirk.name}
+        </div>
+      )}
+      <CharacterSVG equipped={game.equipped} appearance={game.appearance} isAlive={!game.isDead} />
+      
+      {game.isDead && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 backdrop-blur-sm rounded-3xl z-50">
+          <div className="text-center p-8 bg-slate-900 border border-red-900/50 rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.2)]">
+            <Skull className="w-16 h-16 text-red-500 mx-auto mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]" />
+            <h2 className="text-2xl font-bold text-red-400 mb-2 tracking-widest uppercase">Perished</h2>
+            <button onClick={() => game.updateState({stats: {...game.stats, health: game.maxStats.health}, isDead: false})} className="mt-6 px-6 py-3 bg-red-950 hover:bg-red-900 text-red-200 font-bold uppercase tracking-wider rounded-xl border border-red-800 transition-all">
+              Revive (-50 XP)
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+
+    {/* Right Stats */}
+    <div className="flex flex-col gap-3 md:gap-4 z-20">
+      <StatBlock label="HP" value={game.stats.health} max={game.maxStats.health} alert={game.stats.health < 10} />
+      <StatBlock label="Mood" value={game.stats.mood} max={100} alert={game.stats.mood < 30} />
+      <StatBlock label="Hunger" value={game.stats.hunger} max={100} alert={game.stats.hunger > 80} inverted />
+      <StatBlock label="Thirst" value={game.stats.thirst} max={100} alert={game.stats.thirst > 80} inverted />
+      <StatBlock label="Stress" value={game.stats.stress} max={100} alert={game.stats.stress > 80} inverted />
+    </div>
+  </main>
+
+  {/* Bottom Navigation */}
+  <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] md:w-[600px] h-20 bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex justify-around items-center z-50 px-2">
+     {[
+       { id: 'actions', icon: Activity, label: 'Actions' },
+       { id: 'quests', icon: Scroll, label: 'Quests' },
+       { id: 'equip', icon: Backpack, label: 'Gear' },
+       { id: 'reports', icon: ClipboardList, label: 'Logs' }
+     ].map(tab => (
+       <button 
+         key={tab.id} onClick={() => { setActiveTab(tab.id); setIsPanelOpen(true); }}
+         className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl w-20 transition-all ${activeTab === tab.id && isPanelOpen ? 'text-indigo-300 bg-indigo-950/50 shadow-inner' : 'text-slate-500 hover:text-slate-300 hover:bg-slate-800/50'}`}
+       >
+         <tab.icon size={22} className={activeTab === tab.id && isPanelOpen ? 'drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]' : ''} />
+         <span className="text-[10px] font-bold uppercase tracking-wider">{tab.label}</span>
+       </button>
+     ))}
+  </nav>
+
+  {/* Action Drawer Panel */}
+  <div className={`fixed z-40 transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)] bg-slate-900/95 backdrop-blur-2xl border border-slate-700/50 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] w-full md:w-[450px] md:h-[calc(100vh-2rem)] md:top-4 md:right-4 md:bottom-auto bottom-0 rounded-t-3xl md:rounded-3xl flex flex-col ${isPanelOpen ? 'translate-y-0 md:translate-x-0' : 'translate-y-full md:translate-y-0 md:translate-x-[120%]'}`} style={!isPanelOpen ? { height: '60vh'} : { height: '60vh' }}>
+    
+    {/* Panel Header */}
+    <div className="flex items-center justify-between p-5 border-b border-slate-800/50">
+      <h2 className="text-sm font-bold uppercase tracking-widest text-indigo-300 flex items-center gap-2">
+        {activeTab === 'actions' && <Activity size={16}/>}
+        {activeTab === 'quests' && <Scroll size={16}/>}
+        {activeTab === 'equip' && <Backpack size={16}/>}
+        {activeTab === 'reports' && <ClipboardList size={16}/>}
+        {activeTab}
+      </h2>
+      <button onClick={() => setIsPanelOpen(false)} className="p-2 bg-slate-800/50 rounded-full text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
+        <X size={16} />
+      </button>
+    </div>
+
+    {/* Panel Content Area */}
+    <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar pb-32 md:pb-6">
+      
+      {/* ACTIONS TAB */}
+      {activeTab === 'actions' && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-slate-950/50 border border-slate-800 rounded-2xl p-4">
+            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-3 block">Housing Status</span>
+            {game.housing === 'homeless' ? (
+              <button onClick={() => game.performAction({ id: 'rent_start' })} className="w-full flex items-center justify-between p-4 rounded-xl border border-amber-600/30 bg-amber-950/20 hover:bg-amber-900/40 text-amber-200 transition-colors">
+                <div className="flex flex-col text-left"><span className="text-sm font-bold">Rent Inn Room</span><span className="text-[10px] opacity-70 mt-0.5">5g/day. Safe rest.</span></div>
+                <span className="text-xs font-mono font-bold bg-amber-950/50 px-2 py-1 rounded">-5g</span>
+              </button>
+            ) : (
+              <button onClick={() => game.performAction({ id: 'rent_stop' })} className="w-full flex items-center justify-between p-4 rounded-xl border border-indigo-500/30 bg-indigo-950/30 hover:bg-indigo-900/50 text-indigo-200 transition-colors">
+                <div className="flex flex-col text-left"><span className="text-sm font-bold">Check Out</span><span className="text-[10px] opacity-70 mt-0.5">Stop paying rent.</span></div>
+                <Key size={16} className="opacity-70"/>
+              </button>
+            )}
+          </div>
+          <div className="h-px bg-slate-800 w-full" />
+          <div className="space-y-2">
+            {MAINTENANCE_ACTIONS.map(action => <ActionButton key={action.id} {...action} onClick={() => game.performAction(action)} disabled={game.isDead} />)}
           </div>
         </div>
       )}
 
-      <div className="flex-1 relative bg-slate-900 flex flex-col items-center justify-center overflow-hidden">
-          <CurrentSceneBackground />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-slate-950/50 pointer-events-none" />
-          
-          {/* Top HUD */}
-          <div className="absolute top-0 left-0 right-0 p-3 md:p-4 flex justify-between items-start z-50">
-             <div className="flex gap-4">
-                <div className="flex flex-col">
-                   <span className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase">Gold</span>
-                   <span className="text-sm md:text-xl font-mono text-amber-400 flex items-center gap-1"><Coins size={12}/> {resources.gold}</span>
-                </div>
-                <div className="flex flex-col">
-                   <span className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase">Level</span>
-                   <span className="text-sm md:text-xl font-mono text-indigo-400">{resources.level}</span>
-                </div>
-                <div className="flex flex-col w-20 md:w-24">
-                   <span className="text-[8px] md:text-[10px] text-slate-500 font-bold uppercase">Day</span>
-                   <span className="text-sm md:text-xl font-mono text-indigo-200">{days}</span>
-                </div>
-             </div>
-             <div className="flex gap-2">
-               <button onClick={resetGame} className="p-1.5 md:p-2 bg-red-900/80 rounded-md hover:bg-red-700 text-white transition-colors border border-red-500 shadow-lg" title="Reset Save">
-                  <Trash2 size={14} className="md:w-4 md:h-4" />
-               </button>
-               <button onClick={() => setShowShop(true)} className="p-1.5 md:p-2 bg-amber-600/90 rounded-md hover:bg-amber-500 text-white transition-colors border border-amber-400 shadow-lg shadow-amber-500/20">
-                  <ShoppingBag size={14} className="md:w-4 md:h-4" />
-               </button>
-               <button onClick={() => setShowLocationInfo(true)} className="p-1.5 md:p-2 bg-indigo-600/90 rounded-md hover:bg-indigo-500 text-white transition-colors border border-indigo-400 shadow-lg shadow-indigo-500/20">
-                  <MapPin size={14} className="md:w-4 md:h-4" />
-               </button>
-             </div>
+      {/* QUESTS TAB */}
+      {activeTab === 'quests' && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-2">
+            <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest block pl-2">Daily Labor</span>
+            {game.dailyQuests.labor.map(action => <ActionButton key={action.id} {...action} onClick={() => game.performAction(action)} disabled={game.isDead} />)}
           </div>
-
-          <div className="absolute top-16 right-4 z-50 flex flex-col gap-2 items-end pointer-events-none">
-            {messages.map(m => (
-              <div key={m.id} className={`px-3 py-1.5 rounded-lg shadow-xl text-xs font-medium animate-in slide-in-from-right fade-in duration-300 ${m.type === 'error' ? 'bg-red-500/90 text-white' : 'bg-indigo-600/90 text-white'}`}>
-                {m.text}
-              </div>
-            ))}
+          <div className="space-y-2 pt-2">
+            <span className="text-[10px] text-red-400 font-bold uppercase tracking-widest block pl-2">Adventures</span>
+            {game.dailyQuests.adventure.map(action => <ActionButton key={action.id} {...action} onClick={() => game.performAction(action)} disabled={game.isDead} />)}
           </div>
-
-          {/* Central Character & Stats */}
-          <div className="flex w-full h-full max-h-[65vh] items-center justify-between px-2 md:px-8 mt-10 md:mt-0 z-10">
-             <div className="flex flex-col gap-3 md:gap-4 z-10 w-12 md:w-16">
-                 {/* Stats Column */}
-                 <StatBlock label="AC" value={currentStats.ac} onClick={() => setActiveStatInfo('ac')} />
-                 <StatBlock label="STR" value={currentStats.str} subValue={currentStats.str - attributes.str > 0 ? currentStats.str - attributes.str : undefined} onClick={() => setActiveStatInfo('str')} />
-                 <StatBlock label="DEX" value={currentStats.dex} subValue={currentStats.dex - attributes.dex > 0 ? currentStats.dex - attributes.dex : undefined} onClick={() => setActiveStatInfo('dex')} />
-                 <StatBlock label="CON" value={currentStats.con} subValue={currentStats.con - attributes.con > 0 ? currentStats.con - attributes.con : undefined} onClick={() => setActiveStatInfo('con')} />
-                 <StatBlock label="INT" value={currentStats.int} subValue={currentStats.int - attributes.int > 0 ? currentStats.int - attributes.int : undefined} onClick={() => setActiveStatInfo('int')} />
-                 <StatBlock label="CHA" value={currentStats.cha} subValue={currentStats.cha - attributes.cha > 0 ? currentStats.cha - attributes.cha : undefined} onClick={() => setActiveStatInfo('cha')} />
-             </div>
-             
-             <div className="flex-1 h-full max-w-md relative mx-auto flex flex-col justify-center">
-               {quirk && (
-                   <button onClick={() => setActiveStatInfo('quirk')} className="absolute top-0 right-0 m-4 z-20 flex items-center gap-1 px-2 py-1 bg-indigo-900/50 border border-indigo-500/30 rounded-full text-[10px] text-indigo-300 font-bold hover:bg-indigo-800 transition-colors">
-                       <Brain size={12} />
-                       {quirk.name}
-                   </button>
-               )}
-               <CharacterSVG equipped={equipped} appearance={appearance} isAlive={!isDead} />
-               
-               {isDead && (
-                 <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl">
-                   <div className="text-center p-6 bg-slate-900 border border-red-900 rounded-xl shadow-2xl">
-                     <Skull className="w-12 h-12 text-red-600 mx-auto mb-2" />
-                     <h2 className="text-xl font-bold text-red-500 mb-1">DECEASED</h2>
-                     <p className="text-slate-400 text-sm mb-4">Your adventurer perished.</p>
-                     <button onClick={revive} className="px-4 py-2 bg-red-900/50 hover:bg-red-800 text-red-200 rounded-md border border-red-700 transition-colors">
-                       Revive (Lose XP)
-                     </button>
-                   </div>
-                 </div>
-               )}
-             </div>
-             <div className="flex flex-col gap-3 md:gap-4 z-10 w-12 md:w-16 items-center">
-                 <StatBlock label="Health" value={stats.health} max={maxStats.health} alert={stats.health < (maxStats.health * 0.3)} onClick={() => setActiveStatInfo('health')} />
-                 <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} onClick={() => setActiveStatInfo('mood')} />
-                 <StatBlock label="Hunger" value={stats.hunger} max={maxStats.hunger} alert={stats.hunger > 80} inverted={true} onClick={() => setActiveStatInfo('hunger')} />
-                 <StatBlock label="Thirst" value={stats.thirst} max={maxStats.thirst} alert={stats.thirst > 80} inverted={true} onClick={() => setActiveStatInfo('thirst')} />
-                 <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 80} inverted={true} onClick={() => setActiveStatInfo('stress')} />
-             </div>
+          <div className="space-y-2 pt-2">
+            <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest block pl-2">Socializing</span>
+            {game.dailyQuests.social.map(action => <ActionButton key={action.id} {...action} onClick={() => game.performAction(action)} disabled={game.isDead} />)}
           </div>
-      </div>
+        </div>
+      )}
 
-      <div className="fixed bottom-8 left-6 right-6 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-96 h-16 bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-2xl shadow-2xl flex justify-around items-center z-50">
-         <button onClick={() => togglePanel('actions')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'actions' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
-            <Activity size={20} />
-            <span className="text-[10px] font-bold">Actions</span>
-         </button>
-         <button onClick={() => togglePanel('quests')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'quests' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
-            <Scroll size={20} />
-            <span className="text-[10px] font-bold">Quests</span>
-         </button>
-         <button onClick={() => togglePanel('equip')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'equip' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
-            <Backpack size={20} />
-            <span className="text-[10px] font-bold">Gear</span>
-         </button>
-         <button onClick={() => togglePanel('reports')} className={`flex flex-col items-center gap-1 p-2 ${activeTab === 'reports' && isPanelOpen ? 'text-indigo-400' : 'text-slate-500'}`}>
-            <ClipboardList size={20} />
-            <span className="text-[10px] font-bold">Reports</span>
-         </button>
-      </div>
-
-      <div className={`fixed md:relative z-40 transition-transform duration-300 ease-out bg-slate-900 border-slate-700 shadow-2xl md:w-72 md:h-full md:border-l md:translate-y-0 bottom-28 left-4 right-4 rounded-2xl border h-[55vh] ${isPanelOpen ? 'translate-y-0' : 'translate-y-[150%] md:translate-x-full md:hidden'}`}>
-          <div className="flex items-center justify-between p-3 border-b border-slate-800 bg-slate-800/50 rounded-t-2xl md:rounded-none">
-             <div className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-2">
-                {activeTab === 'actions' && <><Activity size={14}/> Actions</>}
-                {activeTab === 'quests' && <><Scroll size={14}/> Quests</>}
-                {activeTab === 'equip' && <><Backpack size={14}/> Equipment</>}
-                {activeTab === 'reports' && <><ClipboardList size={14}/> Reports</>}
-             </div>
-             <button onClick={() => setIsPanelOpen(false)} className="w-6 h-6 flex items-center justify-center bg-slate-800 rounded-full text-slate-400 hover:text-white">
-               <X size={14} />
-             </button>
-          </div>
-          <div className="hidden md:flex border-b border-slate-800">
-             <button onClick={() => setActiveTab('actions')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'actions' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Actions</button>
-             <button onClick={() => setActiveTab('quests')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'quests' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Quests</button>
-             <button onClick={() => setActiveTab('equip')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'equip' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Gear</button>
-             <button onClick={() => setActiveTab('reports')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider ${activeTab === 'reports' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-slate-800/50' : 'text-slate-500 hover:text-slate-300'}`}>Reports</button>
-          </div>
-
-          <div className="h-full overflow-y-auto custom-scrollbar p-3 pb-20 md:pb-4">
-            {activeTab === 'actions' && (
-              <div className="space-y-2 animate-in fade-in duration-300">
-                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Location: {housing === 'inn' ? 'Rented Room' : housing === 'estate' ? 'Estate' : 'Homeless'}</div>
-                {housing === 'homeless' && (
-                    <button onClick={() => performAction({ id: 'rent_start' })} className="w-full flex items-center justify-between p-3 rounded-lg border border-amber-600/50 bg-amber-900/20 hover:bg-amber-900/40 text-amber-200">
-                        <div className="flex flex-col text-left"><span className="text-xs font-bold">Rent Room at Inn</span><span className="text-[9px] opacity-70">Auto-pay 5g/day. Better rest.</span></div>
-                        <span className="text-xs font-mono font-bold">-5g</span>
-                    </button>
-                )}
-                {(housing === 'inn' || housing === 'estate') && (
-                    <button onClick={() => performAction({ id: 'rent_stop' })} className="w-full flex items-center justify-between p-3 rounded-lg border border-slate-600 bg-slate-800 hover:bg-slate-700 text-slate-300">
-                        <div className="flex flex-col text-left"><span className="text-xs font-bold">Check Out</span><span className="text-[9px] opacity-70">Stop paying rent. Become homeless.</span></div>
-                        <Key size={14} />
-                    </button>
-                )}
-                <div className="h-px bg-slate-800 my-2" />
-                <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Maintenance</div>
-                {MAINTENANCE_ACTIONS.map(action => (
-                  <ActionButton 
-                    key={action.id} 
-                    {...action} 
-                    icon={ICON_MAP[action.icon] || HelpCircle} 
-                    onClick={() => performAction(action)} 
-                    disabled={isDead} 
-                  />
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'quests' && (
-              <div className="space-y-2 animate-in fade-in duration-300">
-                <div className="flex gap-2 mb-4 p-1 bg-slate-800 rounded-lg">
-                   {['labor', 'adventure', 'social'].map(qt => (
-                      <button key={qt} onClick={() => setQuestTab(qt)} className={`flex-1 py-1.5 rounded-md text-[10px] font-bold uppercase transition-colors ${questTab === qt ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>
-                        {qt}
-                      </button>
-                   ))}
-                </div>
-                
-                {questTab === 'labor' && (
-                   <div className="space-y-2">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Available Jobs</div>
-                      {dailyQuests.labor.length > 0 ? dailyQuests.labor.map(action => (
-                        <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
-                      )) : <div className="text-xs text-slate-500 italic p-2">No jobs available today.</div>}
-                   </div>
-                )}
-                
-                {questTab === 'adventure' && (
-                   <div className="space-y-2">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Available Adventures</div>
-                      {dailyQuests.adventure.length > 0 ? dailyQuests.adventure.map(action => (
-                        <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
-                      )) : <div className="text-xs text-slate-500 italic p-2">No adventures available today.</div>}
-                   </div>
-                )}
-                
-                {questTab === 'social' && (
-                   <div className="space-y-2">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Social Opportunities</div>
-                      {dailyQuests.social.length > 0 ? dailyQuests.social.map(action => (
-                        <ActionButton key={action.id} {...action} icon={ICON_MAP[action.icon] || HelpCircle} onClick={() => performAction(action)} disabled={isDead} />
-                      )) : <div className="text-xs text-slate-500 italic p-2">No one wants to talk to you.</div>}
-                   </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'equip' && (
-              <div className="space-y-2 animate-in fade-in duration-300">
-                  <div className="flex gap-1 mb-4 p-1 bg-slate-800 rounded-lg overflow-x-auto">
-                    {['head', 'body', 'mainHand', 'offHand', 'supplies'].map(slot => (
-                       <button key={slot} onClick={() => setActiveSlot(slot)} className={`flex-1 min-w-[60px] py-1.5 rounded-md text-[10px] font-bold uppercase transition-colors ${activeSlot === slot ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-400 hover:text-slate-200'}`}>
-                         {slot.replace('Hand', '').replace('supplies', 'Supplies')}
-                       </button>
-                    ))}
-                  </div>
-                  <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Owned {activeSlot.replace(/([A-Z])/g, ' $1').trim()}</div>
-                  {activeSlot === 'supplies' ? (
-                      <div>
-                          {ITEM_DB.supplies.filter(item => inventory.includes(item.id)).length === 0 ? (
-                              <div className="p-4 text-center text-xs text-slate-500 italic border border-dashed border-slate-700 rounded">No supplies. Buy food/drink at the Shop!</div>
-                          ) : (
-                              [...new Set(inventory.filter(id => ITEM_DB.supplies.find(s => s.id === id)))].map(itemId => {
-                                  const item = getItemById(itemId);
-                                  const count = inventory.filter(id => id === itemId).length;
-                                  return (
-                                      <div key={item.id} className="flex items-center gap-2 p-2 w-full rounded-lg border text-left transition-all relative overflow-hidden bg-slate-800 border-slate-700 mb-2">
-                                          <div className="p-2 rounded-md bg-slate-700 text-slate-400">{item.type === 'food' ? <Apple size={14} /> : item.type === 'potion' ? <Heart size={14} /> : item.type === 'drink' ? <Wine size={14} /> : <Beer size={14} />}</div>
-                                          <div className="flex-1 min-w-0">
-                                            <div className="font-bold text-xs flex items-center gap-2">
-                                              {item.name} <span className="text-slate-500">x{count}</span>
-                                              {item.category && <span className="text-[8px] text-slate-400 uppercase tracking-wider border border-slate-600 px-1 rounded">{item.category}</span>}
-                                            </div>
-                                            <div className="text-[10px] text-slate-500">{item.description}</div>
-                                            {renderItemStats(item)}
-                                          </div>
-                                          <button onClick={() => consumeItem(item)} className="px-2 py-1 rounded border border-slate-600 bg-slate-700 text-slate-300 text-[10px] font-bold hover:bg-emerald-900 hover:border-emerald-500 hover:text-emerald-100 transition-colors">Use</button>
-                                      </div>
-                                  );
-                              })
-                          )}
-                      </div>
-                  ) : (
-                      ITEM_DB[activeSlot].filter(item => inventory.includes(item.id)).length === 0 ? (
-                          <div className="p-4 text-center text-xs text-slate-500 italic border border-dashed border-slate-700 rounded">No items owned in this slot. Visit the Shop to buy gear!</div>
-                      ) : (
-                          [...new Set(inventory.filter(id => ITEM_DB[activeSlot].find(i => i.id === id)))].map((itemId) => {
-                            const item = getItemById(itemId);
-                            const isEquipped = equipped[activeSlot] === itemId;
-                            const count = inventory.filter(id => id === itemId).length;
-                            return (
-                              <div key={itemId} className={`flex items-center gap-2 p-2 w-full rounded-lg border text-left transition-all relative overflow-hidden ${isEquipped ? 'bg-indigo-900/30 border-indigo-500 shadow-sm ring-1 ring-indigo-500/30' : 'bg-slate-800 border-slate-700'}`}>
-                                 <div className={`p-2 rounded-md ${isEquipped ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-400'}`}>
-                                    {activeSlot === 'head' && <VenetianMask size={14} />}
-                                    {activeSlot === 'body' && <Shirt size={14} />}
-                                    {activeSlot === 'mainHand' && <Sword size={14} />}
-                                    {activeSlot === 'offHand' && <Shield size={14} />}
-                                 </div>
-                                 <div className="flex flex-col min-w-0 flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <span className={`font-bold text-xs truncate ${isEquipped ? 'text-indigo-200' : 'text-slate-300'}`}>{item.name}</span>
-                                      {count > 1 && <span className="text-[10px] text-slate-500 font-bold">x{count}</span>}
-                                      {item.category && <span className="text-[8px] text-slate-500 uppercase tracking-wider border border-slate-700 px-1 rounded">{item.category}</span>}
-                                      {isEquipped && <span className="text-[8px] font-bold text-indigo-400 bg-indigo-950/50 px-1 py-0.5 rounded">EQUIPPED</span>}
-                                    </div>
-                                    <span className="text-[10px] text-slate-500 truncate">{item.description}</span>
-                                    {renderItemStats(item)}
-                                 </div>
-                                 {!isEquipped && (<button onClick={() => equipItem(item)} className="px-2 py-1 rounded border border-slate-600 bg-slate-700 text-slate-300 text-[10px] font-bold hover:bg-slate-600 hover:text-white transition-colors">Equip</button>)}
-                              </div>
-                            );
-                          })
-                      )
-                  )}
-              </div>
-            )}
-
-            {activeTab === 'reports' && (
-                <div className="space-y-4 animate-in fade-in duration-300">
-                    <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2">Adventure Log</div>
-                    {dailyLogs.length === 0 ? (
-                        <div className="text-xs text-slate-500 italic text-center p-4 border border-dashed border-slate-800 rounded">No actions taken yet.</div>
-                    ) : (
-                        dailyLogs.map((log) => (
-                            <div key={log.id} className="bg-slate-800/50 rounded-lg border border-slate-700/50 overflow-hidden mb-2">
-                                {/* Conditional Styling for Morning vs Action */}
-                                {log.type === 'morning' ? (
-                                    <>
-                                        <div className="bg-gradient-to-r from-amber-900/30 to-slate-800 p-2 flex justify-between items-center border-b border-slate-700/30">
-                                            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
-                                                <Sun size={12} /> Day {log.day} Morning
-                                            </span>
-                                            <span className="text-[10px] text-slate-500">{log.sleepLoc}</span>
-                                        </div>
-                                        <div className="p-3 space-y-2">
-                                            <div className="relative pl-3 border-l-2 border-slate-600">
-                                                <p className="text-xs text-slate-300 italic font-serif leading-relaxed">
-                                                    "{log.incidentText}"
-                                                </p>
-                                            </div>
-                                            <div className="text-[10px] pt-2 border-t border-slate-700/30 space-y-1">
-                                                {log.status && <div className="text-slate-300 font-medium">{log.status}</div>}
-                                                <div className="text-slate-500 flex justify-between mt-1">
-                                                    <span>{log.rent}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <div className="bg-slate-800 p-2 flex justify-between items-center border-b border-slate-700/30">
-                                            <span className="text-[10px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1">
-                                                {/* Status Indicator Dot */}
-                                                {log.status === 'Success' || log.status === 'Revived' ? (
-                                                    <span className="text-emerald-400 font-bold">●</span>
-                                                ) : (
-                                                    <span className="text-red-400 font-bold">●</span>
-                                                )}
-                                                {log.title}
-                                            </span>
-                                            <span className="text-[10px] text-slate-500">Day {log.day}</span>
-                                        </div>
-                                        <div className="p-2 space-y-1">
-                                            <p className="text-xs text-slate-300 leading-relaxed italic">
-                                                {log.text}
-                                            </p>
-                                            {(log.changes) && (
-                                                <div className="text-[10px] pt-1 border-t border-slate-700/30 mt-1">
-                                                    <div className="text-slate-300">{log.changes}</div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        ))
-                    )}
-                </div>
-            )}
-            {activeTab === 'appearance' && (
-               <div className="space-y-4 animate-in fade-in duration-300">
-                  <div className="space-y-1">
-                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Gender</h3>
-                    <div className="flex gap-2">
-                      {['male', 'female'].map(g => (<button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-1.5 rounded border text-[10px] font-bold uppercase ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{g}</button>))}
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Skin</h3>
-                    <div className="flex gap-1.5 flex-wrap">
-                      {APPEARANCE_OPTIONS.skinTones.map(t => (<button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-6 h-6 rounded-full border-2 ${appearance.skinTone === t.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: t.color }} />))}
-                    </div>
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Hair Style</h3>
-                    <div className="flex gap-2">
-                      {APPEARANCE_OPTIONS.hairStyles.map(s => (<button key={s.id} onClick={() => updateAppearance('hairStyle', s.id)} className={`flex-1 py-1 rounded border text-[10px] font-medium ${appearance.hairStyle === s.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{s.label}</button>))}
-                    </div>
-                  </div>
+      {/* EQUIPMENT TAB */}
+      {activeTab === 'equip' && (
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+           {['head', 'body', 'mainHand', 'offHand'].map(slot => (
+             <div key={slot} className="bg-slate-950/50 border border-slate-800 rounded-2xl p-4">
+               <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-3">{slot.replace('Hand', ' Hand')}</span>
+               <div className="flex items-center justify-between">
+                 <span className="text-sm font-bold text-indigo-200 tracking-wide">
+                    {ITEM_DB[slot].find(i => i.id === game.equipped[slot])?.name || 'Empty'}
+                 </span>
+                 <span className="text-[10px] font-bold text-indigo-500 bg-indigo-950/50 px-2 py-1 rounded border border-indigo-900/50">EQUIPPED</span>
                </div>
-            )}
-          </div>
-      </div>
+             </div>
+           ))}
+        </div>
+      )}
+
+      {/* REPORTS TAB */}
+      {activeTab === 'reports' && (
+        <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {game.dailyLogs.length === 0 ? (
+            <div className="text-center p-8 text-slate-500 text-sm font-medium italic border border-dashed border-slate-800 rounded-2xl">The pages are blank. Go do something.</div>
+          ) : game.dailyLogs.map(log => (
+            <div key={log.id} className="bg-slate-900/60 rounded-2xl border border-slate-700/50 overflow-hidden backdrop-blur-sm">
+              {log.type === 'morning' ? (
+                <>
+                  <div className="bg-gradient-to-r from-amber-950/40 to-slate-900 p-3 border-b border-slate-800 flex justify-between items-center">
+                     <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest flex items-center gap-2"><Sun size={12} /> Day {log.day} Dawn</span>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <p className="text-sm text-slate-300 italic font-serif border-l-2 border-slate-700 pl-3">"{log.incidentText}"</p>
+                    <div className="text-xs text-slate-500 flex justify-between pt-2 border-t border-slate-800/50">
+                      <span>{log.sleepLoc}</span><span>{log.rent}</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs font-bold text-indigo-300 flex items-center gap-2">
+                       <span className={log.status === 'Success' ? 'text-emerald-400' : 'text-red-400'}>●</span> {log.title}
+                    </span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Day {log.day}</span>
+                  </div>
+                  <p className="text-sm text-slate-400 leading-relaxed">{log.text}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
     </div>
-  );
-}
+  </div>
+</div>
+);}
