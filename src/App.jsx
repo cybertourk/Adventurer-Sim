@@ -827,7 +827,6 @@ const App = () => {
     buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
   } = useGameLogic();
 
-  // Replaced activeTab with openPanel (null means all closed, showing full screen background)
   const [openPanel, setOpenPanel] = useState(null);
   const [showMorningReport, setShowMorningReport] = useState(false);
 
@@ -932,7 +931,6 @@ const App = () => {
         </div>
       </div>
 
-      {/* 3. Centered Character Layer */}
       <div className="absolute inset-0 z-0 flex flex-col items-center justify-center pt-20 pb-20 pointer-events-none">
           {quirk && (
              <div className="absolute top-36 md:top-40 bg-indigo-900/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 text-[10px] px-3 py-1 rounded-full font-bold shadow-lg shadow-indigo-500/20 z-10">
@@ -981,7 +979,6 @@ const App = () => {
           </div>
       </div>
 
-      {/* 5. Overlay Modal Panels */}
       {openPanel && (
           <div className="absolute inset-0 z-30 pointer-events-none flex justify-center items-end sm:items-center p-2 sm:p-6 pb-28 sm:pb-6">
               
