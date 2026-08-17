@@ -869,8 +869,8 @@ const App = () => {
       {/* Morning Report Overlay */}
       {showMorningReport && dailyLogs[0] && ( <MorningReport log={dailyLogs[0]} onClose={() => setShowMorningReport(false)} /> )}
 
-      {/* Messages Toast */}
-      <div className="absolute top-20 md:top-24 left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-auto w-full max-w-sm px-4">
+      {/* Messages Toast - Lowered slightly to clear the newly sized meters */}
+      <div className="absolute top-[180px] md:top-[200px] left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-auto w-full max-w-sm px-4">
         {messages.map(m => (
           <div key={m.id} className={`p-3 rounded-lg shadow-lg text-sm font-bold text-center animate-in slide-in-from-top-4 fade-in backdrop-blur-md border ${
             m.type === 'error' ? 'bg-red-900/80 border-red-500/50 text-red-100' :
@@ -931,9 +931,15 @@ const App = () => {
         </div>
       </div>
 
-      <div className="absolute inset-0 z-0 flex flex-col items-center justify-center pt-20 pb-20 pointer-events-none">
+      {}
+      {/* 
+        This is the layout fix. It uses flex and justify-end to ensure the character's feet 
+        stay near the dirt road in the background, while the top padding guarantees the 
+        HUD never covers the character's head on any device resolution.
+      */}
+      <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[220px] pb-[120px] md:pt-[260px] md:pb-[140px] pointer-events-none">
           {quirk && (
-             <div className="absolute top-36 md:top-40 bg-indigo-900/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 text-[10px] px-3 py-1 rounded-full font-bold shadow-lg shadow-indigo-500/20 z-10">
+             <div className="absolute top-[180px] md:top-[220px] bg-indigo-900/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 text-[10px] px-3 py-1 rounded-full font-bold shadow-lg shadow-indigo-500/20 z-10">
                 Trait: {quirk.name}
              </div>
           )}
@@ -944,12 +950,16 @@ const App = () => {
                 <button onClick={revive} className="px-8 py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-lg rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all hover:scale-105 active:scale-95">Revive (Cost: 50 XP)</button>
              </div>
           )}
-          {/* Main SVG Container */}
-          <div className="w-64 h-96 md:w-80 md:h-[30rem] lg:w-96 lg:h-[36rem] transition-all duration-500 mt-4 md:mt-8">
-             <CharacterSVG equipped={equipped} appearance={appearance} isAlive={!isDead} />
+          
+          {/* Main SVG Container - Flexbox resizing to fit available space perfectly */}
+          <div className="w-full h-full flex items-end justify-center transition-all duration-500">
+             <div className="w-auto h-full max-h-[600px] aspect-[2/3] max-w-[95vw]">
+                <CharacterSVG equipped={equipped} appearance={appearance} isAlive={!isDead} />
+             </div>
           </div>
       </div>
 
+      {}
       {/* 4. Bottom Navigation Bar */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
           <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 p-2 rounded-2xl shadow-2xl flex gap-2 shadow-black/50">
