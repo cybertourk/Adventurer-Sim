@@ -159,9 +159,7 @@ const APPEARANCE_OPTIONS = {
   ]
 };
 
-const IconMap = {
-    Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils
-};
+const IconMap = { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List };
 
 const useGameLogic = () => {
   const [gameStarted, setGameStarted] = useState(false);
@@ -527,10 +525,10 @@ const renderEffectsList = (effects) => {
 };
 
 const StatBlock = ({ label, value, max, alert, inverted, onClick, subValue }) => (
-    <button onClick={onClick} className={`flex flex-col items-center justify-center w-10 h-10 md:w-14 md:h-14 bg-slate-800/80 rounded-lg border backdrop-blur-md shadow-sm transition-all hover:scale-105 active:scale-95 ${alert ? 'border-red-500/50 bg-red-900/40' : inverted ? 'border-amber-500/50 bg-amber-900/40' : 'border-slate-700/50 hover:border-slate-500'}`}>
-        <span className={`text-[7px] md:text-[9px] font-bold uppercase tracking-tighter ${alert ? 'text-red-400' : inverted ? 'text-amber-400' : 'text-slate-400'}`}>{label}</span>
-        <span className={`text-[10px] md:text-sm font-bold font-mono ${alert ? 'text-red-400' : inverted ? 'text-amber-200' : 'text-slate-200'}`}>{Math.floor(value)}{max !== undefined && <span className="text-[8px] md:text-[10px] text-slate-500">/{max}</span>}</span>
-        {subValue !== undefined && <span className="text-[8px] text-indigo-400 font-mono">+{subValue}</span>}
+    <button onClick={onClick} className={`flex flex-col items-center justify-center w-11 h-11 md:w-[72px] md:h-[72px] bg-slate-800/80 rounded-xl md:rounded-2xl border backdrop-blur-md shadow-sm transition-all hover:scale-105 active:scale-95 ${alert ? 'border-red-500/50 bg-red-900/40' : inverted ? 'border-amber-500/50 bg-amber-900/40' : 'border-slate-700/50 hover:border-slate-500'}`}>
+        <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-tighter ${alert ? 'text-red-400' : inverted ? 'text-amber-400' : 'text-slate-400'}`}>{label}</span>
+        <span className={`text-xs md:text-lg font-bold font-mono ${alert ? 'text-red-400' : inverted ? 'text-amber-200' : 'text-slate-200'}`}>{Math.floor(value)}{max !== undefined && <span className="text-[9px] md:text-xs text-slate-500">/{max}</span>}</span>
+        {subValue !== undefined && <span className="text-[8px] md:text-[10px] text-indigo-400 font-mono">+{subValue}</span>}
     </button>
 );
 
@@ -859,18 +857,29 @@ const App = () => {
 
   const Background = getBackground(location);
 
+  const metersContent = (
+    <>
+         <StatBlock label="HP" value={stats.health} max={maxStats.health} alert={stats.health < maxStats.health * 0.3} />
+         <StatBlock label="Hunger" value={stats.hunger} max={maxStats.hunger} alert={stats.hunger > 70} inverted />
+         <StatBlock label="Thirst" value={stats.thirst} max={maxStats.thirst} alert={stats.thirst > 70} inverted />
+         <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} />
+         <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 70} inverted />
+    </>
+  );
+
   return (
     <div className="relative w-full h-screen overflow-hidden text-slate-200 font-sans selection:bg-indigo-500/30">
-      {/* 1. Full Screen Background Layer */}
+      
+      {/* Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Background />
       </div>
       
-      {/* Morning Report Overlay */}
+      {/* Modals & Overlays */}
       {showMorningReport && dailyLogs[0] && ( <MorningReport log={dailyLogs[0]} onClose={() => setShowMorningReport(false)} /> )}
 
-      {/* Messages Toast - Lowered slightly to clear the newly sized meters */}
-      <div className="absolute top-[180px] md:top-[200px] left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-auto w-full max-w-sm px-4">
+      {/* Messages Toast */}
+      <div className="absolute top-[140px] md:top-[90px] left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-auto w-full max-w-sm px-4">
         {messages.map(m => (
           <div key={m.id} className={`p-3 rounded-lg shadow-lg text-sm font-bold text-center animate-in slide-in-from-top-4 fade-in backdrop-blur-md border ${
             m.type === 'error' ? 'bg-red-900/80 border-red-500/50 text-red-100' :
@@ -883,9 +892,8 @@ const App = () => {
         ))}
       </div>
 
-      {/* 2. Top HUD Layer (Stats and Header) */}
-      <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 pointer-events-none flex flex-col gap-2 md:gap-4">
-        {/* Top Header */}
+      {/* Top HUD Layer */}
+      <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 pointer-events-none flex flex-col gap-2">
         <header className="pointer-events-auto bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-3 md:p-4 flex flex-wrap items-center justify-between gap-2 md:gap-4 shadow-xl shadow-black/40">
             <div className="flex items-center gap-3 md:gap-4">
                 <div className="flex flex-col">
@@ -921,25 +929,21 @@ const App = () => {
             </div>
         </header>
 
-        {/* Meters */}
-        <div className="pointer-events-auto bg-slate-900/60 backdrop-blur-md border border-slate-700/30 rounded-2xl py-2 px-4 shadow-xl shadow-black/20 flex justify-center gap-2 md:gap-4 max-w-fit mx-auto">
-             <StatBlock label="HP" value={stats.health} max={maxStats.health} alert={stats.health < maxStats.health * 0.3} />
-             <StatBlock label="Hunger" value={stats.hunger} max={maxStats.hunger} alert={stats.hunger > 70} inverted />
-             <StatBlock label="Thirst" value={stats.thirst} max={maxStats.thirst} alert={stats.thirst > 70} inverted />
-             <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} />
-             <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 70} inverted />
+        {/* Meters (Mobile Only) */}
+        <div className="md:hidden pointer-events-auto bg-slate-900/60 backdrop-blur-md border border-slate-700/30 rounded-2xl py-2 px-3 shadow-xl shadow-black/20 flex justify-center gap-2 max-w-fit mx-auto">
+            {metersContent}
         </div>
       </div>
 
-      {}
-      {/* 
-        This is the layout fix. It uses flex and justify-end to ensure the character's feet 
-        stay near the dirt road in the background, while the top padding guarantees the 
-        HUD never covers the character's head on any device resolution.
-      */}
-      <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[220px] pb-[120px] md:pt-[260px] md:pb-[140px] pointer-events-none">
+      {/* Meters (Desktop Only - Left Side) */}
+      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto bg-slate-900/60 backdrop-blur-md border border-slate-700/30 rounded-3xl p-3 shadow-xl shadow-black/20 flex-col gap-3">
+          {metersContent}
+      </div>
+
+      {/* Main Character Layer */}
+      <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[160px] pb-[100px] md:pt-[100px] md:pb-[40px] pointer-events-none">
           {quirk && (
-             <div className="absolute top-[180px] md:top-[220px] bg-indigo-900/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 text-[10px] px-3 py-1 rounded-full font-bold shadow-lg shadow-indigo-500/20 z-10">
+             <div className="absolute top-[125px] md:top-[90px] bg-indigo-900/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 text-[10px] px-3 py-1 rounded-full font-bold shadow-lg shadow-indigo-500/20 z-10">
                 Trait: {quirk.name}
              </div>
           )}
@@ -951,7 +955,7 @@ const App = () => {
              </div>
           )}
           
-          {/* Main SVG Container - Flexbox resizing to fit available space perfectly */}
+          {/* Main SVG Container */}
           <div className="w-full h-full flex items-end justify-center transition-all duration-500">
              <div className="w-auto h-full max-h-[600px] aspect-[2/3] max-w-[95vw]">
                 <CharacterSVG equipped={equipped} appearance={appearance} isAlive={!isDead} />
@@ -959,10 +963,9 @@ const App = () => {
           </div>
       </div>
 
-      {}
-      {/* 4. Bottom Navigation Bar */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
-          <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 p-2 rounded-2xl shadow-2xl flex gap-2 shadow-black/50">
+      {/* Navigation Layer (Mobile: Bottom, Desktop: Right) */}
+      <div className="absolute bottom-6 md:bottom-auto md:top-1/2 left-1/2 md:left-auto md:right-6 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2 z-20 pointer-events-auto">
+          <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-2xl flex flex-row md:flex-col gap-2 shadow-black/50">
               {[
                 { id: 'actions', icon: Tent, label: 'Actions' },
                 { id: 'inventory', icon: Backpack, label: 'Bag' },
@@ -975,13 +978,13 @@ const App = () => {
                   <button 
                       key={tab.id} 
                       onClick={() => setOpenPanel(isActive ? null : tab.id)} 
-                      className={`flex flex-col items-center justify-center w-16 h-14 md:w-20 md:h-16 rounded-xl transition-all ${
+                      className={`flex flex-col items-center justify-center w-16 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl transition-all ${
                           isActive 
                               ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/40 border border-indigo-400' 
                               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-transparent'
                       }`}
                   >
-                      <Icon size={isActive ? 22 : 20} className="mb-1" />
+                      <Icon size={isActive ? 24 : 20} className="mb-1" />
                       <span className="text-[9px] md:text-[10px] font-bold tracking-wider">{tab.label}</span>
                   </button>
                 );
@@ -989,16 +992,14 @@ const App = () => {
           </div>
       </div>
 
+      {/* Full Screen Overlay Modals */}
       {openPanel && (
           <div className="absolute inset-0 z-30 pointer-events-none flex justify-center items-end sm:items-center p-2 sm:p-6 pb-28 sm:pb-6">
               
-              {/* Dimmed backdrop to close modal */}
               <div className="absolute inset-0 bg-slate-950/60 pointer-events-auto backdrop-blur-sm transition-opacity" onClick={() => setOpenPanel(null)} />
               
-              {/* Modal Container */}
               <div className="pointer-events-auto relative bg-slate-900/95 backdrop-blur-xl border border-slate-700/70 rounded-3xl sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] w-full max-w-2xl max-h-[75vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-300">
                  
-                 {/* Modal Header */}
                  <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/50 bg-slate-950/50 shadow-sm">
                      <h2 className="font-bold uppercase tracking-widest text-indigo-400 flex items-center gap-2">
                         {openPanel === 'actions' && <Tent size={18}/>}
@@ -1012,7 +1013,6 @@ const App = () => {
                      </button>
                  </div>
 
-                 {/* Modal Content Scroll Area */}
                  <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth">
                      
                      {/* --- ACTIONS PANEL --- */}
