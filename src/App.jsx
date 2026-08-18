@@ -25,9 +25,9 @@ const renderEffectsList = (effects) => {
 };
 
 const StatBlock = ({ label, value, max, alert, inverted, onClick, subValue }) => (
-    <button onClick={onClick} className={`flex flex-col items-center justify-center w-11 h-11 md:w-[72px] md:h-[72px] bg-slate-800/80 rounded-xl md:rounded-2xl border backdrop-blur-md shadow-sm transition-all hover:scale-105 active:scale-95 ${alert ? 'border-red-500/50 bg-red-900/40' : inverted ? 'border-amber-500/50 bg-amber-900/40' : 'border-slate-700/50 hover:border-slate-500'}`}>
-        <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-tighter ${alert ? 'text-red-400' : inverted ? 'text-amber-400' : 'text-slate-400'}`}>{label}</span>
-        <span className={`text-xs md:text-lg font-bold font-mono ${alert ? 'text-red-400' : inverted ? 'text-amber-200' : 'text-slate-200'}`}>{Math.floor(value)}{max !== undefined && <span className="text-[9px] md:text-xs text-slate-500">/{max}</span>}</span>
+    <button onClick={onClick} className={`flex flex-col items-center justify-center w-11 h-11 md:w-[72px] md:h-[72px] bg-slate-900/90 rounded-xl md:rounded-2xl border backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all hover:scale-105 active:scale-95 ${alert ? 'border-red-500/50 bg-red-950/80' : inverted ? 'border-amber-500/50 bg-amber-950/80' : 'border-slate-700/80 hover:border-slate-500'}`}>
+        <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-widest ${alert ? 'text-red-400' : inverted ? 'text-amber-500' : 'text-slate-400'}`}>{label}</span>
+        <span className={`text-xs md:text-lg font-bold font-mono ${alert ? 'text-red-400' : inverted ? 'text-amber-300' : 'text-slate-200'}`}>{Math.floor(value)}{max !== undefined && <span className="text-[9px] md:text-xs text-slate-500">/{max}</span>}</span>
         {subValue !== undefined && <span className="text-[8px] md:text-[10px] text-indigo-400 font-mono">+{subValue}</span>}
     </button>
 );
@@ -35,13 +35,13 @@ const StatBlock = ({ label, value, max, alert, inverted, onClick, subValue }) =>
 const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onClick, disabled, description, effects }) => {
   const Icon = IconMap[IconName] || HelpCircle;
   return (
-    <button onClick={onClick} disabled={disabled} className={`flex items-center gap-3 p-3 w-full rounded-lg border text-left transition-all relative overflow-hidden group ${disabled ? 'bg-slate-800/50 border-slate-700 text-slate-500 cursor-not-allowed opacity-70' : 'bg-slate-800 border-slate-600 text-slate-200 hover:bg-indigo-900/30 hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/10'}`}>
-      <div className={`p-2 rounded-md ${disabled ? 'bg-slate-700' : 'bg-slate-900 group-hover:text-indigo-400'}`}><Icon size={18} /></div>
+    <button onClick={onClick} disabled={disabled} className={`flex items-center gap-3 p-3 w-full rounded-lg border text-left transition-all relative overflow-hidden group ${disabled ? 'bg-slate-900/80 border-slate-800 text-slate-600 cursor-not-allowed opacity-70' : 'bg-slate-800/90 border-slate-600 text-slate-200 hover:bg-indigo-950/50 hover:border-indigo-500 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]'}`}>
+      <div className={`p-2 rounded-md ${disabled ? 'bg-slate-800' : 'bg-slate-950 group-hover:text-indigo-400'}`}><Icon size={18} /></div>
       <div className="flex flex-col flex-1 min-w-0">
         <div className="flex justify-between items-center mb-0.5"><span className="font-bold text-xs truncate">{label}</span>{days > 0 && <span className="text-[9px] text-slate-400 flex items-center gap-0.5"><Clock size={10}/> {days}d</span>}</div>
         <span className="text-[10px] text-slate-500 truncate leading-tight">{description}</span>{effects && renderEffectsList(effects)}
       </div>
-      {cost > 0 && <div className={`text-[10px] font-mono px-2 py-1 rounded ml-2 ${disabled ? 'bg-slate-700' : 'bg-black/40'} ${costType === 'gp' ? 'text-amber-400' : 'text-cyan-400'}`}>-{cost}{costType}</div>}
+      {cost > 0 && <div className={`text-[10px] font-mono px-2 py-1 rounded ml-2 ${disabled ? 'bg-slate-800' : 'bg-black/60'} ${costType === 'gp' ? 'text-amber-500' : 'text-cyan-500'}`}>-{cost}{costType}</div>}
     </button>
   );
 };
@@ -50,35 +50,61 @@ const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
 
 const VillageRoadBackground = () => (
   <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-    <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-slate-800 to-amber-900/20" />
-    <div className="absolute top-10 left-20 w-1 h-1 bg-white opacity-40 rounded-full" /><div className="absolute top-20 left-1/4 w-0.5 h-0.5 bg-white opacity-60 rounded-full" />
-    <div className="absolute top-5 right-1/3 w-1 h-1 bg-white opacity-30 rounded-full" /><div className="absolute top-10 right-10 w-12 h-12 rounded-full bg-indigo-100/20 blur-xl" />
-    <div className="absolute top-12 right-12 w-8 h-8 rounded-full bg-indigo-50/80 shadow-[0_0_20px_rgba(255,255,255,0.5)]" />
-    <div className="absolute bottom-[35%] left-0 right-0 h-24 bg-slate-900 opacity-40 [clip-path:polygon(0%_100%,0%_20%,20%_0%,50%_30%,80%_10%,100%_40%,100%_100%)]" />
-    <div className="absolute bottom-[35%] left-0 right-0 h-32 flex items-end justify-center gap-1 opacity-60">
-        <div className="w-16 h-12 bg-slate-900 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
-        <div className="w-10 h-24 bg-slate-900 [clip-path:polygon(10%_100%,10%_10%,0%_10%,10%_0%,90%_0%,100%_10%,90%_10%,90%_100%)]" />
-        <div className="w-20 h-16 bg-slate-900 [clip-path:polygon(0%_100%,0%_30%,20%_30%,50%_0%,80%_30%,100%_30%,100%_100%)]" />
-        <div className="w-24" /><div className="w-14 h-14 bg-slate-900 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
+    <div className="absolute inset-0 bg-gradient-to-b from-[#09090b] via-[#18181b] to-[#271c19]/40" />
+    
+    {/* Moon & Stars */}
+    <div className="absolute top-16 right-24 w-20 h-20 rounded-full bg-slate-200/10 blur-xl" />
+    <div className="absolute top-18 right-26 w-16 h-16 rounded-full bg-indigo-100/20 shadow-[0_0_40px_rgba(199,210,254,0.3)]" />
+    <div className="absolute top-10 left-1/4 w-1 h-1 bg-white opacity-40 rounded-full shadow-[0_0_4px_white]" />
+    <div className="absolute top-32 left-1/3 w-0.5 h-0.5 bg-white opacity-60 rounded-full" />
+    <div className="absolute top-24 right-1/2 w-1.5 h-1.5 bg-white opacity-30 rounded-full" />
+
+    {/* Distant Spire Silhouettes */}
+    <div className="absolute bottom-[35%] left-0 right-0 h-40 flex items-end justify-center gap-2 opacity-30 blur-[1px]">
+        <div className="w-12 h-32 bg-[#09090b] [clip-path:polygon(50%_0%,100%_20%,100%_100%,0%_100%,0%_20%)]" />
+        <div className="w-8 h-40 bg-[#09090b] [clip-path:polygon(50%_0%,80%_10%,100%_100%,0%_100%,20%_10%)]" />
+        <div className="w-24 h-20 bg-[#09090b] [clip-path:polygon(20%_0%,80%_0%,100%_100%,0%_100%)]" />
+        <div className="w-32" />
+        <div className="w-16 h-28 bg-[#09090b] [clip-path:polygon(50%_0%,100%_30%,100%_100%,0%_100%,0%_30%)]" />
     </div>
-    <div className="absolute bottom-[35%] -left-10 w-32 h-24 bg-slate-950 opacity-80 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
-    <div className="absolute bottom-[35%] -right-10 w-40 h-28 bg-slate-950 opacity-80 [clip-path:polygon(0%_100%,0%_40%,50%_0%,100%_40%,100%_100%)]" />
-    <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-[#3f2e18]" />
-    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[35%] bg-[#5c4026] [clip-path:polygon(20%_0,80%_0,100%_100%,0%_100%)] opacity-80" />
-    <div className="absolute inset-0 bg-radial-gradient(circle_at_center,transparent_0%,#0f172a_100%) opacity-60" />
+
+    {/* Midground Trees / Ruins */}
+    <div className="absolute bottom-[35%] left-0 right-0 h-24 flex items-end justify-between opacity-60 px-10">
+        <div className="w-24 h-32 bg-[#050505] [clip-path:polygon(20%_0,40%_15%,15%_30%,35%_50%,0%_70%,20%_100%,100%_100%,80%_80%,100%_50%,70%_30%,90%_10%,60%_0)]" />
+        <div className="w-20 h-28 bg-[#050505] [clip-path:polygon(50%_0,70%_20%,60%_40%,80%_60%,50%_100%,20%_100%,10%_60%,30%_40%,20%_20%)]" />
+    </div>
+
+    {/* Ground and Path */}
+    <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-gradient-to-t from-[#110d0a] to-[#2a2015]" />
+    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[900px] h-[35%] bg-gradient-to-t from-[#2c1d11] to-[#3a2818] [clip-path:polygon(25%_0,75%_0,100%_100%,0%_100%)] border-x border-black/20" />
+    
+    {/* Ambient Fog Overlay */}
+    <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/80 via-transparent to-transparent" />
   </div>
 );
 
 const InnRoomBackground = () => (
-  <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#1a120b]">
-    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#3f2e18_1px,transparent_1px)] [background-size:20px_20px]" />
-    <div className="absolute top-10 left-1/4 w-32 h-48 bg-[#0f172a] border-4 border-[#3f2e18] rounded-t-full overflow-hidden">
-       <div className="absolute top-4 right-6 w-6 h-6 bg-white rounded-full opacity-80 shadow-[0_0_15px_white]" />
-       <div className="absolute bottom-0 w-full h-2 bg-black/50" /><div className="absolute w-2 h-full left-1/2 bg-[#3f2e18]" />
-       <div className="absolute h-2 w-full top-1/2 bg-[#3f2e18]" />
+  <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#0c0a09]">
+    {/* Stone Wall Texture */}
+    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#292524_2px,transparent_2px)] [background-size:30px_30px]" />
+    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#44403c_1px,transparent_1px)] [background-size:15px_15px] translate-x-4 translate-y-4" />
+
+    {/* Arched Window */}
+    <div className="absolute top-12 left-1/4 w-32 h-56 bg-[#050505] border-8 border-[#292524] rounded-t-[4rem] shadow-[inset_0_0_40px_black]">
+       <div className="absolute top-8 right-8 w-4 h-4 bg-indigo-100 rounded-full opacity-60 shadow-[0_0_20px_white]" />
+       <div className="absolute bottom-0 w-full h-3 bg-black/80" />
+       <div className="absolute w-2 h-full left-1/2 bg-[#292524] shadow-[2px_0_5px_rgba(0,0,0,0.5)]" />
+       <div className="absolute h-2 w-full top-1/2 bg-[#292524] shadow-[0_2px_5px_rgba(0,0,0,0.5)]" />
     </div>
-    <div className="absolute bottom-0 left-0 right-0 h-[25%] bg-[#2a1d10] border-t border-[#3f2e18]" />
-    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-64 h-16 bg-red-900/40 rounded-[50%]" />
+
+    {/* Wooden Floor */}
+    <div className="absolute bottom-0 left-0 right-0 h-[25%] bg-gradient-to-b from-[#1c140d] to-[#0a0704] border-t-4 border-[#292524]">
+       <div className="w-full h-full opacity-30 bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,#000_40px,#000_42px)]" />
+    </div>
+
+    {/* Hearth Glow */}
+    <div className="absolute bottom-0 right-1/4 w-[500px] h-[300px] bg-amber-600/10 rounded-full blur-[80px]" />
+    <div className="absolute bottom-0 right-1/4 w-[300px] h-[150px] bg-red-600/10 rounded-full blur-[60px]" />
   </div>
 );
 
@@ -94,123 +120,325 @@ const CharacterSVG = ({ equipped, appearance, isAlive }) => {
 
   const getZoneStyles = () => {
     const styles = {
-      head: { fill: 'url(#skin-gradient)', filter: 'none', stroke: skin.shadow }, torso: { fill: '#f8fafc', filter: 'url(#fabric-noise)', stroke: '#94a3b8' }, 
-      legs: { fill: '#713f12', filter: 'url(#fabric-noise)', stroke: '#451a03' }, pelvis: { fill: '#713f12', filter: 'url(#fabric-noise)', stroke: '#451a03' }, 
-      arms: { fill: '#f8fafc', filter: 'url(#fabric-noise)', stroke: '#94a3b8' }, boots: { fill: '#18181b', stroke: '#000000' } 
+      head: { fill: 'url(#skin-gradient)', filter: 'none', stroke: skin.shadow }, 
+      torso: { fill: '#e2e8f0', filter: 'url(#fabric-noise)', stroke: '#64748b' }, 
+      legs: { fill: '#27272a', filter: 'url(#fabric-noise)', stroke: '#000000' }, 
+      pelvis: { fill: '#27272a', filter: 'url(#fabric-noise)', stroke: '#000000' }, 
+      arms: { fill: '#e2e8f0', filter: 'url(#fabric-noise)', stroke: '#64748b' }, 
+      boots: { fill: '#09090b', stroke: '#000000' } 
     };
 
     switch (equipped.body) {
       case 'tunic':
-        styles.torso = { fill: '#d4d4d8', filter: 'url(#fabric-noise)', stroke: '#a1a1aa' }; styles.legs = { fill: '#525252', filter: 'url(#fabric-noise)', stroke: '#262626' }; styles.pelvis = { fill: '#525252', filter: 'url(#fabric-noise)', stroke: '#262626' }; break;
+        styles.torso = { fill: '#d4d4d8', filter: 'url(#fabric-noise)', stroke: '#71717a' }; 
+        styles.legs = { fill: '#3f3f46', filter: 'url(#fabric-noise)', stroke: '#18181b' }; 
+        styles.pelvis = { fill: '#3f3f46', filter: 'url(#fabric-noise)', stroke: '#18181b' }; 
+        styles.arms = { fill: '#d4d4d8', filter: 'url(#fabric-noise)', stroke: '#71717a' };
+        break;
       case 'leather_armor':
-        styles.torso = { fill: '#5f370e', filter: 'url(#leather-noise)', stroke: '#3f2307' }; styles.legs = { fill: '#3f2307', filter: 'url(#leather-noise)', stroke: '#271c19' }; styles.pelvis = { fill: '#3f2307', filter: 'url(#leather-noise)', stroke: '#271c19' }; styles.arms = { fill: '#5f370e', filter: 'url(#leather-noise)', stroke: '#3f2307' }; styles.boots = { fill: '#271c19', stroke: '#000000' }; break;
+        styles.torso = { fill: '#451a03', filter: 'url(#leather-noise)', stroke: '#271c19' }; 
+        styles.legs = { fill: '#292524', filter: 'url(#fabric-noise)', stroke: '#1c1917' }; 
+        styles.pelvis = { fill: '#292524', filter: 'url(#fabric-noise)', stroke: '#1c1917' }; 
+        styles.arms = { fill: '#451a03', filter: 'url(#leather-noise)', stroke: '#271c19' }; 
+        styles.boots = { fill: '#1c1917', stroke: '#000000' }; 
+        break;
       case 'chainmail':
-        const chainStyle = { fill: 'url(#chain-pattern)', filter: 'none', stroke: '#3f3f46' }; styles.torso = chainStyle; styles.pelvis = chainStyle; styles.arms = chainStyle; styles.legs = { fill: '#713f12', filter: 'url(#fabric-noise)', stroke: '#451a03' }; break;
+        const chainStyle = { fill: 'url(#chain-pattern)', filter: 'none', stroke: '#27272a' }; 
+        styles.torso = chainStyle; styles.pelvis = chainStyle; styles.arms = chainStyle; 
+        styles.legs = { fill: '#27272a', filter: 'url(#fabric-noise)', stroke: '#000000' }; 
+        break;
       case 'plate':
-        const plateStyle = { fill: 'url(#metal-sheen)', filter: 'none', stroke: '#27272a' }; styles.torso = plateStyle; styles.legs = plateStyle; styles.pelvis = plateStyle; styles.arms = plateStyle; styles.boots = { fill: 'url(#metal-sheen)', stroke: '#27272a' }; break;
+        const plateStyle = { fill: 'url(#metal-sheen)', filter: 'none', stroke: '#18181b' }; 
+        styles.torso = plateStyle; styles.legs = plateStyle; styles.pelvis = plateStyle; styles.arms = plateStyle; 
+        styles.boots = { fill: 'url(#metal-sheen)', stroke: '#09090b' }; 
+        break;
       case 'robe':
-        const robeStyle = { fill: '#312e81', filter: 'url(#fabric-noise)', stroke: '#1e1b4b' }; styles.torso = robeStyle; styles.legs = robeStyle; styles.pelvis = robeStyle; styles.arms = robeStyle; break;
+        const robeStyle = { fill: '#1e1b4b', filter: 'url(#fabric-noise)', stroke: '#0f172a' }; 
+        styles.torso = robeStyle; styles.legs = robeStyle; styles.pelvis = robeStyle; styles.arms = robeStyle; 
+        break;
     }
-    if (equipped.head === 'iron_helm') styles.head = { fill: 'url(#metal-sheen)', filter: 'none', stroke: '#27272a' };
+    if (equipped.head === 'iron_helm') styles.head = { fill: 'url(#metal-sheen)', filter: 'none', stroke: '#18181b' };
     return styles;
   };
 
   const s = getZoneStyles();
-  let torsoPath = gender === 'female' ? `M142 80 Q 142 88 135 90 Q 115 92 112 105 Q 108 115 115 160 L 132 200 L 168 200 L 185 160 Q 192 115 188 105 Q 185 92 165 90 Q 158 88 158 80 Z` : `M142 80 Q 142 88 135 90 Q 115 92 110 105 Q 105 115 112 160 L 130 200 L 170 200 L 188 160 Q 195 115 190 105 Q 185 92 165 90 Q 158 88 158 80 Z`;
-  let pelvisPath = gender === 'female' ? `M132 200 L 168 200 L 150 225 Z` : `M130 200 L 170 200 L 150 225 Z`;
-  let headPath = gender === 'female' ? `M 132 60 C 132 35 168 35 168 60 C 168 75 150 85 150 85 C 150 85 132 75 132 60 Z` : null;
+
+  // Anatomically improved paths
+  const torsoPath = gender === 'female' 
+    ? `M135 85 C 120 90, 115 110, 120 135 C 125 160, 128 180, 132 205 L 168 205 C 172 180, 175 160, 180 135 C 185 110, 180 90, 165 85 Z` 
+    : `M130 85 C 110 90, 105 115, 115 145 C 122 170, 125 190, 128 205 L 172 205 C 175 190, 178 170, 185 145 C 195 115, 190 90, 170 85 Z`;
+  
+  const pelvisPath = gender === 'female' 
+    ? `M132 205 C 130 220, 140 235, 150 235 C 160 235, 170 220, 168 205 Z` 
+    : `M128 205 C 135 225, 145 230, 150 230 C 155 230, 165 225, 172 205 Z`;
+
+  const headPath = gender === 'female' 
+    ? `M 134 50 C 134 25, 166 25, 166 50 C 166 70, 155 82, 150 82 C 145 82, 134 70, 134 50 Z` 
+    : `M 132 45 C 132 20, 168 20, 168 45 C 168 68, 158 80, 150 80 C 142 80, 132 68, 132 45 Z`;
 
   return (
-    <svg viewBox="0 0 300 450" className={`w-full h-full transition-all duration-1000 ${isAlive ? '' : 'grayscale opacity-50'}`} style={{ filter: 'drop-shadow(0px 10px 15px rgba(0,0,0,0.5))' }}>
+    <svg viewBox="0 0 300 450" className={`w-full h-full transition-all duration-1000 ${isAlive ? '' : 'grayscale opacity-50'}`} style={{ filter: 'drop-shadow(0px 15px 25px rgba(0,0,0,0.8))' }}>
       <defs>
-        <filter id="leather-noise"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="4" stitchTiles="stitch" result="noise" /><feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.2 0" in="noise" result="softNoise"/><feComposite operator="in" in="softNoise" in2="SourceGraphic" result="composite"/><feBlend mode="multiply" in="composite" in2="SourceGraphic"/></filter>
-        <filter id="fabric-noise"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="2" result="noise" /><feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.15 0" in="noise" result="softNoise"/><feComposite operator="in" in="softNoise" in2="SourceGraphic" result="composite"/><feBlend mode="multiply" in="composite" in2="SourceGraphic"/></filter>
-        <linearGradient id="metal-sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#52525b" /><stop offset="30%" stopColor="#e4e4e7" /><stop offset="60%" stopColor="#71717a" /><stop offset="100%" stopColor="#3f3f46" /></linearGradient>
-        <radialGradient id="skin-gradient" cx="0.4" cy="0.4" r="0.8"><stop offset="0%" stopColor={skin.color} /><stop offset="100%" stopColor={skin.shadow} /></radialGradient>
-        <pattern id="chain-pattern" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#52525b" /><circle cx="3" cy="3" r="2" fill="#71717a" /></pattern>
-        <linearGradient id="gold-sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#713f12" /><stop offset="40%" stopColor="#eab308" /><stop offset="50%" stopColor="#fef08a" /><stop offset="60%" stopColor="#ca8a04" /><stop offset="100%" stopColor="#713f12" /></linearGradient>
+        <filter id="leather-noise"><feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" result="noise" /><feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.3 0" in="noise" result="softNoise"/><feComposite operator="in" in="softNoise" in2="SourceGraphic" result="composite"/><feBlend mode="multiply" in="composite" in2="SourceGraphic"/></filter>
+        <filter id="fabric-noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="noise" /><feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.1 0" in="noise" result="softNoise"/><feComposite operator="in" in="softNoise" in2="SourceGraphic" result="composite"/><feBlend mode="multiply" in="composite" in2="SourceGraphic"/></filter>
+        <linearGradient id="metal-sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#3f3f46" /><stop offset="35%" stopColor="#a1a1aa" /><stop offset="50%" stopColor="#e4e4e7" /><stop offset="65%" stopColor="#71717a" /><stop offset="100%" stopColor="#18181b" /></linearGradient>
+        <radialGradient id="skin-gradient" cx="0.4" cy="0.3" r="0.8"><stop offset="0%" stopColor={skin.color} /><stop offset="80%" stopColor={skin.shadow} /><stop offset="100%" stopColor="#000000" stopOpacity="0.4" /></radialGradient>
+        <pattern id="chain-pattern" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#27272a" /><circle cx="4" cy="4" r="3" fill="#52525b" stroke="#18181b" strokeWidth="0.5" /></pattern>
+        <linearGradient id="gold-sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#451a03" /><stop offset="40%" stopColor="#ca8a04" /><stop offset="50%" stopColor="#fef08a" /><stop offset="60%" stopColor="#a16207" /><stop offset="100%" stopColor="#451a03" /></linearGradient>
+        
+        {/* Shadow filter for depth within the character layers */}
+        <filter id="drop-shadow-sm" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000" floodOpacity="0.4" /></filter>
       </defs>
+
+      {/* Shadow on the ground */}
+      <ellipse cx="150" cy="405" rx="45" ry="10" fill="#000000" opacity="0.6" filter="blur(4px)" />
 
       <g id="legs" filter={s.legs.filter}>
         {equipped.body === 'robe' ? (
-          <path d={`M125 210 L 110 390 Q 150 405 190 390 L 175 210 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
+          <path d={`M125 210 C 115 280, 105 380, 100 400 C 130 410, 170 410, 200 400 C 195 380, 185 280, 175 210 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
         ) : (
           <g>
-            <path d={`M${gender === 'female' ? 128 : 130} 200 Q 120 250 125 300 L 128 390 L 145 390 L 148 300 Q 150 250 ${gender === 'female' ? 148 : 148} 300 L 150 210 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
-            <path d={`M${gender === 'female' ? 172 : 170} 200 Q 180 250 175 300 L 172 390 L 155 390 L 152 300 Q 150 250 ${gender === 'female' ? 152 : 152} 300 L 150 210 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
+            {/* Left Leg */}
+            <path d={`M${gender === 'female' ? 130 : 128} 205 C 115 260, 120 320, 125 400 L 145 400 C 148 320, 150 260, 148 205 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
+            {/* Right Leg */}
+            <path d={`M${gender === 'female' ? 170 : 172} 205 C 185 260, 180 320, 175 400 L 155 400 C 152 320, 150 260, 152 205 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
+            
+            {/* Boots */}
              {s.boots && s.boots.fill !== 'none' && (
                <g>
-                 <path d="M125 300 L 128 390 L 145 390 L 148 300 Q 136 310 125 300" fill={s.boots.fill} stroke={s.boots.stroke} strokeWidth="1.5" />
-                 <path d="M175 300 L 172 390 L 155 390 L 152 300 Q 164 310 175 300" fill={s.boots.fill} stroke={s.boots.stroke} strokeWidth="1.5" />
-                 {equipped.body === 'plate' && ( <g stroke="#27272a" strokeWidth="1" fill="none"><path d="M126 330 L 147 330" /><path d="M127 360 L 146 360" /><path d="M153 330 L 174 330" /><path d="M154 360 L 173 360" /></g> )}
+                 <path d="M123 310 C 120 350, 122 385, 125 400 L 145 400 C 147 385, 148 350, 147 310 C 135 320, 128 315, 123 310" fill={s.boots.fill} stroke={s.boots.stroke} strokeWidth="1.5" />
+                 <path d="M177 310 C 180 350, 178 385, 175 400 L 155 400 C 153 385, 152 350, 153 310 C 165 320, 172 315, 177 310" fill={s.boots.fill} stroke={s.boots.stroke} strokeWidth="1.5" />
+                 
+                 {equipped.body === 'plate' && ( 
+                    <g stroke="#09090b" strokeWidth="1.5" fill="none">
+                        <path d="M124 340 C 135 345, 147 340, 147 340" />
+                        <path d="M124 370 C 135 375, 146 370, 146 370" />
+                        <path d="M176 340 C 165 345, 153 340, 153 340" />
+                        <path d="M176 370 C 165 375, 154 370, 154 370" />
+                    </g> 
+                 )}
                </g>
              )}
           </g>
         )}
       </g>
-      <g id="pelvis" filter={s.pelvis.filter}>{equipped.body !== 'robe' && (<path d={pelvisPath} fill={s.pelvis.fill} stroke={s.pelvis.stroke} strokeWidth="1.5" />)}</g>
+
+      <g id="pelvis" filter={s.pelvis.filter}>
+          {equipped.body !== 'robe' && (<path d={pelvisPath} fill={s.pelvis.fill} stroke={s.pelvis.stroke} strokeWidth="1.5" filter="url(#drop-shadow-sm)" />)}
+      </g>
+
       <g id="torso" filter={s.torso.filter}>
-        <path d={torsoPath} fill={s.torso.fill} stroke={s.torso.stroke} strokeWidth="1.5" />
-        {gender === 'female' && equipped.body !== 'plate' && ( <path d="M 128 115 Q 140 125 150 115 Q 160 125 172 115" stroke={s.torso.stroke} strokeWidth="1" fill="none" opacity="0.6" /> )}
-        {(equipped.body === 'tunic' || equipped.body === 'leather_armor') && ( <path d="M150 95 L 150 200" stroke={s.torso.stroke} strokeWidth="1" strokeDasharray="4 2" opacity="0.5" /> )}
-        {equipped.body === 'plate' && ( <path d="M115 140 Q 150 160 185 140" stroke="#27272a" strokeWidth="1.5" fill="none" /> )}
+        <path d={torsoPath} fill={s.torso.fill} stroke={s.torso.stroke} strokeWidth="1.5" filter="url(#drop-shadow-sm)" />
+        
+        {/* Body Contour Details */}
+        {gender === 'female' && equipped.body !== 'plate' && ( 
+            <path d="M 128 115 C 135 128, 165 128, 172 115" stroke={s.torso.stroke} strokeWidth="1.5" fill="none" opacity="0.5" /> 
+        )}
+        {gender === 'male' && equipped.body !== 'plate' && (
+            <path d="M 135 105 C 145 115, 155 115, 165 105" stroke={s.torso.stroke} strokeWidth="1" fill="none" opacity="0.3" />
+        )}
+        {(equipped.body === 'tunic' || equipped.body === 'leather_armor') && ( 
+            <path d="M150 90 L 150 205" stroke={s.torso.stroke} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.6" /> 
+        )}
+        {equipped.body === 'plate' && ( 
+            <g stroke="#09090b" strokeWidth="2" fill="none" opacity="0.8">
+                <path d="M 120 150 C 150 170, 180 150, 180 150" />
+                <path d="M 125 180 C 150 195, 175 180, 175 180" />
+                <circle cx="150" cy="120" r="15" fill="url(#metal-sheen)" />
+            </g>
+        )}
       </g>
+
       <g id="arms" filter={s.arms.filter}>
-        <path d="M110 105 Q 105 110 108 125 Q 110 145 100 190 L 95 210 L 110 210 L 120 190 Q 125 150 120 105 Z" fill={s.arms.fill} stroke={s.arms.stroke} strokeWidth="1.5" />
-        <path d="M190 105 Q 195 110 192 125 Q 190 145 200 190 L 205 210 L 190 210 L 180 190 Q 175 150 180 105 Z" fill={s.arms.fill} stroke={s.arms.stroke} strokeWidth="1.5" />
-        {equipped.body === 'plate' && ( <g><path d="M100 75 Q 85 85 90 115 L 120 105 Z" fill="url(#metal-sheen)" stroke="#27272a" /><path d="M200 75 Q 215 85 210 115 L 180 105 Z" fill="url(#metal-sheen)" stroke="#27272a" /></g> )}
+        {/* Left Arm */}
+        <path d={`M 115 90 C 95 100, 90 140, 95 190 C 97 210, 110 215, 115 210 C 120 195, 125 140, 125 100 Z`} fill={s.arms.fill} stroke={s.arms.stroke} strokeWidth="1.5" filter="url(#drop-shadow-sm)" />
+        {/* Right Arm */}
+        <path d={`M 185 90 C 205 100, 210 140, 205 190 C 203 210, 190 215, 185 210 C 180 195, 175 140, 175 100 Z`} fill={s.arms.fill} stroke={s.arms.stroke} strokeWidth="1.5" filter="url(#drop-shadow-sm)" />
+        
+        {/* Pauldrons (Shoulder Armor) for Plate */}
+        {equipped.body === 'plate' && ( 
+            <g>
+                <path d="M 125 80 C 100 85, 90 110, 95 125 C 110 115, 125 105, 125 100 Z" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="1.5" filter="url(#drop-shadow-sm)" />
+                <path d="M 175 80 C 200 85, 210 110, 205 125 C 190 115, 175 105, 175 100 Z" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="1.5" filter="url(#drop-shadow-sm)" />
+            </g> 
+        )}
       </g>
+
       <g id="hands">
-         <circle cx="102" cy="215" r="8" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1"/>
-         <circle cx="198" cy="215" r="8" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1"/>
+         <circle cx="103" cy="215" r="9" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1.5" filter="url(#drop-shadow-sm)"/>
+         <circle cx="197" cy="215" r="9" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1.5" filter="url(#drop-shadow-sm)"/>
       </g>
-      <g id="head">
-        {!wearingFullHelm && ( <g><ellipse cx="133" cy="60" rx="4" ry="7" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1" transform="rotate(-10, 133, 60)" /><ellipse cx="167" cy="60" rx="4" ry="7" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1" transform="rotate(10, 167, 60)" /></g> )}
-        {headPath ? ( <path d={headPath} fill={s.head.fill} stroke={s.head.stroke} strokeWidth="1.5" /> ) : ( <ellipse cx="150" cy="60" rx="18" ry="22" fill={s.head.fill} stroke={s.head.stroke} strokeWidth="1.5" /> )}
+
+      <g id="head" filter="url(#drop-shadow-sm)">
+        {/* Neck */}
+        {!wearingFullHelm && ( 
+            <path d="M 142 85 L 142 70 C 150 75, 158 70, 158 85 Z" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1" />
+        )}
+        
+        {/* Ears */}
+        {!wearingFullHelm && ( 
+            <g>
+                <ellipse cx="132" cy="55" rx="4" ry="7" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1" transform="rotate(-15, 132, 55)" />
+                <ellipse cx="168" cy="55" rx="4" ry="7" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1" transform="rotate(15, 168, 55)" />
+            </g> 
+        )}
+
+        {/* Base Head Shape */}
+        {headPath ? ( <path d={headPath} fill={s.head.fill} stroke={s.head.stroke} strokeWidth="1.5" /> ) : ( <ellipse cx="150" cy="50" rx="18" ry="24" fill={s.head.fill} stroke={s.head.stroke} strokeWidth="1.5" /> )}
+        
         {!wearingFullHelm && (
            <g id="face-features">
-             <path d="M138 54 Q 143 51 147 54" stroke="#3f2307" strokeWidth="1.5" fill="none" opacity="0.8" /><path d="M153 54 Q 157 51 162 54" stroke="#3f2307" strokeWidth="1.5" fill="none" opacity="0.8" />
-             <circle cx="143" cy="60" r="2" fill={isAlive ? eyes : '#000'} stroke="black" strokeWidth="0.5" /><circle cx="157" cy="60" r="2" fill={isAlive ? eyes : '#000'} stroke="black" strokeWidth="0.5" />
-             {isAlive && ( <><circle cx="143.5" cy="59.5" r="0.5" fill="#fff" opacity="0.6" /><circle cx="157.5" cy="59.5" r="0.5" fill="#fff" opacity="0.6" /></> )}
-             {gender === 'female' && ( <g stroke={hair} strokeWidth="1"><path d="M141 58 L 139 56" /><path d="M159 58 L 161 56" /></g> )}
-             {isAlive ? ( <path d="M150 60 L 149 68 L 152 70" fill="none" stroke={skin.shadow} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /> ) : ( <path d="M150 60 L 149 68 L 152 70" fill="none" stroke="#444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /> )}
-             {isAlive ? ( <path d="M145 76 Q 150 79 155 76" stroke={skin.shadow} strokeWidth="1.5" fill="none" strokeLinecap="round" /> ) : ( <path d="M145 79 Q 150 76 155 79" stroke="#444" strokeWidth="1.5" fill="none" strokeLinecap="round" /> )}
+             {/* Eyebrows */}
+             <path d="M136 44 C 140 41, 144 41, 147 44" stroke="#1c1917" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.9" />
+             <path d="M153 44 C 156 41, 160 41, 164 44" stroke="#1c1917" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.9" />
+             
+             {/* Eyes */}
+             <circle cx="142" cy="50" r="2.5" fill={isAlive ? eyes : '#1c1917'} stroke="#000" strokeWidth="0.5" />
+             <circle cx="158" cy="50" r="2.5" fill={isAlive ? eyes : '#1c1917'} stroke="#000" strokeWidth="0.5" />
+             {isAlive && ( 
+                <>
+                    <circle cx="143" cy="49" r="0.8" fill="#fff" opacity="0.8" />
+                    <circle cx="159" cy="49" r="0.8" fill="#fff" opacity="0.8" />
+                </> 
+             )}
+             
+             {/* Eyelashes for female */}
+             {gender === 'female' && ( 
+                <g stroke="#1c1917" strokeWidth="1.5" strokeLinecap="round">
+                    <path d="M139.5 49 L 138 47" /><path d="M160.5 49 L 162 47" />
+                </g> 
+             )}
+             
+             {/* Nose */}
+             {isAlive ? ( 
+                <path d="M150 50 L 148 60 C 150 62, 152 62, 152 60" fill="none" stroke={skin.shadow} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /> 
+             ) : ( 
+                <path d="M150 50 L 148 60 C 150 62, 152 62, 152 60" fill="none" stroke="#444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /> 
+             )}
+             
+             {/* Mouth */}
+             {isAlive ? ( 
+                <path d="M144 68 C 150 72, 156 68, 156 68" stroke={skin.shadow} strokeWidth="1.5" fill="none" strokeLinecap="round" /> 
+             ) : ( 
+                <path d="M144 70 C 150 68, 156 70, 156 70" stroke="#444" strokeWidth="1.5" fill="none" strokeLinecap="round" /> 
+             )}
+
+             {/* Hair Sub-layer */}
              {!wearingHat && hairStyle !== 'bald' && (
                 <>
-                  {hairStyle === 'short' && ( <path d="M150 35 Q 170 35 168 57 L 168 67 L 162 52 Q 150 42 138 52 L 132 67 L 132 57 Q 130 35 150 35" fill={hair} /> )}
-                  {hairStyle !== 'long' && ( <path d="M150 35 Q 170 35 168 57 L 168 67 L 162 52 Q 150 42 138 52 L 132 67 L 132 57 Q 130 35 150 35" fill={hair} /> )}
+                  {hairStyle === 'short' && ( 
+                      <path d="M150 25 C 175 25, 172 50, 170 60 L 165 45 C 150 35, 135 45, 130 60 C 128 50, 125 25, 150 25" fill={hair} filter="url(#drop-shadow-sm)" /> 
+                  )}
+                  {hairStyle !== 'long' && hairStyle !== 'short' && ( 
+                      <path d="M150 25 C 175 25, 172 50, 170 60 L 165 45 C 150 35, 135 45, 130 60 C 128 50, 125 25, 150 25" fill={hair} filter="url(#drop-shadow-sm)" /> 
+                  )}
                 </>
              )}
              {hairStyle === 'long' && (
-                <g>
-                   <path d="M130 50 L 125 90 L 140 90 L 135 50" fill={hair} /><path d="M170 50 L 175 90 L 160 90 L 165 50" fill={hair} />
-                   {!wearingHat && ( <path d="M150 35 Q 175 35 170 65 L 175 90 L 160 90 L 160 55 Q 150 45 140 55 L 140 90 L 125 90 L 130 65 Q 125 35 150 35" fill={hair} /> )}
+                <g filter="url(#drop-shadow-sm)">
+                   <path d="M130 40 C 120 70, 120 95, 140 95 C 135 70, 135 50, 135 40 Z" fill={hair} />
+                   <path d="M170 40 C 180 70, 180 95, 160 95 C 165 70, 165 50, 165 40 Z" fill={hair} />
+                   {!wearingHat && ( 
+                       <path d="M150 25 C 180 25, 175 60, 170 95 C 160 95, 160 50, 160 45 C 150 35, 140 45, 140 50 C 140 50, 140 95, 130 95 C 125 60, 120 25, 150 25" fill={hair} /> 
+                   )}
                 </g>
              )}
-             {equipped.head === 'leather_cap' && ( <path d="M120 53 Q 150 0 180 53 L 180 58 L 120 58 Z" fill="#5f370e" stroke="#3f2307" /> )}
-             {equipped.head === 'wizard_hat' && ( <g transform="translate(150, 45)"> <ellipse cx="0" cy="0" rx="35" ry="8" fill="#312e81" stroke="#1e1b4b" /><path d="M-18 0 L -2 -70 L 2 -70 L 18 0 Z" fill="#312e81" stroke="#1e1b4b" /></g> )}
-             {equipped.head === 'crown' && ( <path d="M134 47 L 140 35 L 150 49 L 160 35 L 166 47 Q 150 52 134 47" fill="none" stroke="url(#gold-sheen)" strokeWidth="2" strokeLinejoin="round" /> )}
+
+             {/* Head Equipment */}
+             {equipped.head === 'leather_cap' && ( 
+                 <path d="M118 45 C 150 -5, 182 45, 182 50 C 175 45, 125 45, 118 50 Z" fill="#451a03" stroke="#271c19" strokeWidth="1.5" filter="url(#drop-shadow-sm)" /> 
+             )}
+             {equipped.head === 'wizard_hat' && ( 
+                 <g transform="translate(150, 35)" filter="url(#drop-shadow-sm)"> 
+                     <ellipse cx="0" cy="0" rx="38" ry="10" fill="#1e1b4b" stroke="#0f172a" strokeWidth="1.5" />
+                     <path d="M-20 0 L -5 -80 L 5 -80 L 20 0 Z" fill="#1e1b4b" stroke="#0f172a" strokeWidth="1.5" />
+                     <path d="M-20 0 C 0 10, 20 0, 20 0" fill="none" stroke="#4338ca" strokeWidth="2" />
+                 </g> 
+             )}
+             {equipped.head === 'crown' && ( 
+                 <path d="M132 40 L 138 25 L 150 42 L 162 25 L 168 40 C 150 48, 132 40, 132 40 Z" fill="url(#gold-sheen)" stroke="#713f12" strokeWidth="1.5" strokeLinejoin="round" filter="url(#drop-shadow-sm)" /> 
+             )}
            </g>
         )}
         {wearingFullHelm && (
-           <g>
-             <path d="M129 35 Q 150 27 171 35 L 173 79 Q 150 87 127 79 L 129 35" fill="url(#metal-sheen)" stroke="#27272a" strokeWidth="1.5" />
-             <path d="M129 52 L 171 52" stroke="#18181b" strokeWidth="2" />
-             <line x1="150" y1="35" x2="150" y2="82" stroke="#18181b" strokeWidth="1" opacity="0.3" />
+           <g filter="url(#drop-shadow-sm)">
+             <path d="M127 25 C 150 15, 173 25, 175 70 C 150 85, 125 70, 127 25 Z" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="2" />
+             <path d="M128 45 L 172 45" stroke="#09090b" strokeWidth="3" />
+             <path d="M129 55 L 171 55" stroke="#09090b" strokeWidth="2" />
+             <line x1="150" y1="25" x2="150" y2="75" stroke="#09090b" strokeWidth="2" opacity="0.6" />
            </g>
         )}
       </g>
-      <g id="main-hand" transform="translate(205, 200) rotate(45)">
-        {equipped.mainHand === 'sword' && ( <g transform="scale(1.75) translate(0, 5)"><line x1="0" y1="10" x2="0" y2="-10" stroke="#3f2307" strokeWidth="2" /> <circle cx="0" cy="12" r="3" fill="#52525b" stroke="#27272a" strokeWidth="0.5"/><rect x="-10" y="-14" width="20" height="4" fill="#52525b" stroke="#27272a" rx="1" strokeWidth="0.5"/><path d="M-4 -14 L 4 -14 L 3 -80 L 0 -90 L -3 -80 Z" fill="url(#metal-sheen)" stroke="#52525b" strokeWidth="0.5"/><line x1="0" y1="-14" x2="0" y2="-80" stroke="#52525b" strokeWidth="0.5" opacity="0.5" /></g> )}
-        {equipped.mainHand === 'axe' && ( <g><rect x="-3" y="-15" width="6" height="120" fill="#3f2307" rx="1" transform="translate(0, -40)" /> <g transform="translate(0, -70)"><rect x="-6" y="-15" width="12" height="30" fill="#52525b" /><path d="M 6 -15 L 25 -15 Q 35 0 25 15 L 6 15 Z" fill="url(#metal-sheen)" stroke="#52525b" strokeWidth="1.5" /><path d="M -6 -15 L -25 -15 Q -35 0 -25 15 L -6 15 Z" fill="url(#metal-sheen)" stroke="#52525b" strokeWidth="1.5" /></g></g> )}
-        {equipped.mainHand === 'staff' && ( <g><rect x="-3" y="-60" width="6" height="150" fill="#3f2307" rx="2" /><circle cx="0" cy="-60" r="10" fill="url(#skin-gradient)" /><circle cx="0" cy="-60" r="6" fill="#10b981" className="animate-pulse" /></g> )}
-        {equipped.mainHand === 'dagger' && ( <g transform="scale(1.5)"><line x1="0" y1="8" x2="0" y2="-8" stroke="#3f2307" strokeWidth="2" /><circle cx="0" cy="10" r="2" fill="#52525b" /><rect x="-6" y="-10" width="12" height="2" fill="#52525b" /><path d="M-3 -10 L 3 -10 L 0 -40 Z" fill="url(#metal-sheen)" stroke="#52525b" strokeWidth="0.5"/></g> )}
-        {equipped.mainHand === 'hammer' && ( <g transform="scale(1.2)"><rect x="-3" y="-10" width="6" height="80" fill="#3f2307" transform="translate(0, -30)" /> <g transform="translate(0, -50)"><rect x="-15" y="-15" width="30" height="20" fill="#52525b" stroke="#27272a" /></g></g> )}
+
+      <g id="main-hand" transform="translate(205, 200) rotate(45)" filter="url(#drop-shadow-sm)">
+        {equipped.mainHand === 'sword' && ( 
+            <g transform="scale(1.75) translate(0, 5)">
+                <line x1="0" y1="10" x2="0" y2="-10" stroke="#451a03" strokeWidth="2.5" strokeLinecap="round" /> 
+                <circle cx="0" cy="12" r="3" fill="#ca8a04" stroke="#713f12" strokeWidth="0.5"/>
+                <path d="M-12 -12 L 12 -12 L 10 -15 L -10 -15 Z" fill="#71717a" stroke="#18181b" strokeWidth="0.5" />
+                <path d="M-4 -15 L 4 -15 L 3 -80 L 0 -90 L -3 -80 Z" fill="url(#metal-sheen)" stroke="#18181b" strokeWidth="0.5"/>
+                <line x1="0" y1="-15" x2="0" y2="-80" stroke="#18181b" strokeWidth="0.5" opacity="0.6" />
+            </g> 
+        )}
+        {equipped.mainHand === 'axe' && ( 
+            <g>
+                <rect x="-3" y="-15" width="6" height="120" fill="#451a03" rx="2" transform="translate(0, -40)" stroke="#1c1917" strokeWidth="1" /> 
+                <g transform="translate(0, -70)">
+                    <rect x="-6" y="-15" width="12" height="30" fill="#71717a" stroke="#18181b" rx="2" />
+                    <path d="M 6 -15 L 30 -20 C 40 0, 40 20, 30 20 L 6 15 Z" fill="url(#metal-sheen)" stroke="#18181b" strokeWidth="1.5" strokeLinejoin="round" />
+                    <path d="M -6 -15 L -30 -20 C -40 0, -40 20, -30 20 L -6 15 Z" fill="url(#metal-sheen)" stroke="#18181b" strokeWidth="1.5" strokeLinejoin="round" />
+                </g>
+            </g> 
+        )}
+        {equipped.mainHand === 'staff' && ( 
+            <g>
+                <path d="M -3 -80 Q -5 -40, -3 70 L 3 70 Q 5 -40, 3 -80 Z" fill="#451a03" stroke="#271c19" strokeWidth="1.5" />
+                <circle cx="0" cy="-85" r="12" fill="url(#gold-sheen)" stroke="#713f12" strokeWidth="1" />
+                <circle cx="0" cy="-85" r="7" fill="#10b981" className="animate-pulse" shadow="0 0 10px #10b981" />
+            </g> 
+        )}
+        {equipped.mainHand === 'dagger' && ( 
+            <g transform="scale(1.5)">
+                <line x1="0" y1="8" x2="0" y2="-8" stroke="#451a03" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="0" cy="10" r="2" fill="#ca8a04" stroke="#713f12" strokeWidth="0.5" />
+                <rect x="-6" y="-10" width="12" height="3" fill="#71717a" stroke="#18181b" rx="1" />
+                <path d="M-3 -10 L 3 -10 L 0 -40 Z" fill="url(#metal-sheen)" stroke="#18181b" strokeWidth="0.5"/>
+            </g> 
+        )}
+        {equipped.mainHand === 'hammer' && ( 
+            <g transform="scale(1.2)">
+                <rect x="-4" y="-10" width="8" height="90" fill="#451a03" transform="translate(0, -30)" stroke="#1c1917" strokeWidth="1" rx="2" /> 
+                <g transform="translate(0, -50)">
+                    <rect x="-20" y="-15" width="40" height="24" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="2" rx="3" />
+                    <rect x="-25" y="-10" width="50" height="14" fill="#a1a1aa" stroke="#09090b" strokeWidth="1" rx="1" />
+                </g>
+            </g> 
+        )}
       </g>
-      <g id="off-hand" transform="translate(95, 200) rotate(10)">
-         {equipped.offHand === 'wooden_shield' && ( <g transform="translate(-20, -20)"><circle cx="20" cy="20" r="25" fill="#5f370e" stroke="#3f2307" strokeWidth="3" filter="url(#leather-noise)"/><circle cx="20" cy="20" r="5" fill="#52525b" /></g> )}
-         {equipped.offHand === 'tower_shield' && ( <g transform="translate(-20, -40)"><path d="M0 0 L 40 0 L 40 80 L 20 90 L 0 80 Z" fill="url(#metal-sheen)" stroke="#27272a" strokeWidth="3" /></g> )}
-         {equipped.offHand === 'orb' && ( <g transform="translate(0, -10)"><circle cx="0" cy="0" r="24" fill="#6366f1" fillOpacity="0.8" stroke="#4338ca" strokeWidth="2" /><circle cx="0" cy="0" r="16" fill="none" stroke="#c7d2fe" strokeWidth="1" className="animate-spin-slow" strokeDasharray="4 4"/></g> )}
+
+      <g id="off-hand" transform="translate(95, 200) rotate(10)" filter="url(#drop-shadow-sm)">
+         {equipped.offHand === 'wooden_shield' && ( 
+            <g transform="translate(-25, -20)">
+                <circle cx="20" cy="20" r="28" fill="#451a03" stroke="#271c19" strokeWidth="4" filter="url(#leather-noise)"/>
+                <circle cx="20" cy="20" r="28" fill="none" stroke="#a1a1aa" strokeWidth="2" strokeDasharray="10 5" opacity="0.5" />
+                <circle cx="20" cy="20" r="6" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="1.5" />
+            </g> 
+         )}
+         {equipped.offHand === 'tower_shield' && ( 
+            <g transform="translate(-20, -50)">
+                <path d="M-5 0 L 45 0 L 45 85 L 20 100 L -5 85 Z" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="3" strokeLinejoin="round" />
+                <path d="M0 5 L 40 5 L 40 82 L 20 95 L 0 82 Z" fill="none" stroke="#18181b" strokeWidth="2" opacity="0.5" />
+                <path d="M 20 5 L 20 95" stroke="#18181b" strokeWidth="2" opacity="0.5" />
+            </g> 
+         )}
+         {equipped.offHand === 'orb' && ( 
+            <g transform="translate(0, -10)">
+                <circle cx="0" cy="0" r="24" fill="#4f46e5" fillOpacity="0.8" stroke="#312e81" strokeWidth="2" filter="blur(1px)" />
+                <circle cx="-5" cy="-5" r="8" fill="#c7d2fe" opacity="0.6" filter="blur(2px)" />
+                <circle cx="0" cy="0" r="28" fill="none" stroke="#a5b4fc" strokeWidth="1" className="animate-spin-slow" strokeDasharray="8 6"/>
+                <circle cx="0" cy="0" r="32" fill="none" stroke="#6366f1" strokeWidth="0.5" className="animate-spin-slow" strokeDasharray="4 8" style={{animationDirection: 'reverse'}}/>
+            </g> 
+         )}
       </g>
     </svg>
   );
@@ -248,7 +476,7 @@ const MorningReport = ({ log, onClose }) => {
             </div>
         </div>
         <div className="p-4 border-t border-slate-800 bg-slate-950/30 flex justify-end">
-            <button onClick={onClose} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-colors shadow-lg shadow-indigo-500/20">Start Day</button>
+            <button onClick={onClose} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(99,102,241,0.4)]">Start Day</button>
         </div>
       </div>
     </div>
@@ -258,49 +486,49 @@ const MorningReport = ({ log, onClose }) => {
 const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppearance, equipped, attributes, updateAttribute, pointsAvailable, getStatInfo, startGame }) => {
   return (
     <div className="h-screen bg-slate-950 text-slate-100 font-sans flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden h-[85vh]">
-            <div className="w-full md:w-1/3 bg-slate-950/50 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-800 relative">
-                <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest">New Adventurer</h2>
+        <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
+            <div className="w-full md:w-1/3 bg-gradient-to-b from-slate-900 to-slate-950 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-800 relative">
+                <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
                 <div className="w-48 h-72"><CharacterSVG equipped={equipped} appearance={appearance} isAlive={true} /></div>
             </div>
-            <div className="flex-1 p-6 flex flex-col">
+            <div className="flex-1 p-6 flex flex-col bg-slate-900/50">
                 <div className="flex gap-4 mb-6 border-b border-slate-800">
-                    <button onClick={() => setCreationStep(1)} className={`pb-2 text-sm font-bold uppercase tracking-wider ${creationStep === 1 ? 'text-white border-b-2 border-indigo-500' : 'text-slate-500'}`}>1. Appearance</button>
-                    <button onClick={() => setCreationStep(2)} className={`pb-2 text-sm font-bold uppercase tracking-wider ${creationStep === 2 ? 'text-white border-b-2 border-indigo-500' : 'text-slate-500'}`}>2. Attributes</button>
+                    <button onClick={() => setCreationStep(1)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 1 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-300'}`}>1. Appearance</button>
+                    <button onClick={() => setCreationStep(2)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 2 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-300'}`}>2. Attributes</button>
                 </div>
                 <div className="flex-1 overflow-y-auto pr-2 space-y-6">
                     {creationStep === 1 && (
                         <>
-                            <div><h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Gender</h3>
-                                <div className="flex gap-2">{['male', 'female'].map(g => (<button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-2 rounded border text-xs font-bold uppercase ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{g}</button>))}</div>
+                            <div><h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Gender</h3>
+                                <div className="flex gap-2">{['male', 'female'].map(g => (<button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-2.5 rounded-lg border text-xs font-bold uppercase transition-all ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:bg-slate-700'}`}>{g}</button>))}</div>
                             </div>
-                            <div><h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Skin Tone</h3>
-                                <div className="flex gap-2">{APPEARANCE_OPTIONS.skinTones.map(t => (<button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-8 h-8 rounded-full border-2 ${appearance.skinTone === t.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: t.color }} />))}</div>
+                            <div><h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Skin Tone</h3>
+                                <div className="flex gap-3">{APPEARANCE_OPTIONS.skinTones.map(t => (<button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-8 h-8 rounded-full border-2 transition-transform ${appearance.skinTone === t.id ? 'border-indigo-400 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'border-slate-700 hover:scale-110'}`} style={{ backgroundColor: t.color }} />))}</div>
                             </div>
-                            <div><h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Eye Color</h3>
-                                <div className="flex gap-2 flex-wrap">{APPEARANCE_OPTIONS.eyeColors.map(c => (<button key={c.id} onClick={() => updateAppearance('eyeColor', c.id)} className={`w-6 h-6 rounded-full border-2 ${appearance.eyeColor === c.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.color }} />))}</div>
+                            <div><h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Eye Color</h3>
+                                <div className="flex gap-3 flex-wrap">{APPEARANCE_OPTIONS.eyeColors.map(c => (<button key={c.id} onClick={() => updateAppearance('eyeColor', c.id)} className={`w-6 h-6 rounded-full border-2 transition-transform ${appearance.eyeColor === c.id ? 'border-indigo-400 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'border-slate-700 hover:scale-110'}`} style={{ backgroundColor: c.color }} />))}</div>
                             </div>
-                            <div><h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Hair Style</h3>
-                                <div className="grid grid-cols-3 gap-2">{APPEARANCE_OPTIONS.hairStyles.map(s => (<button key={s.id} onClick={() => updateAppearance('hairStyle', s.id)} className={`py-2 rounded border text-xs font-bold ${appearance.hairStyle === s.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>{s.label}</button>))}</div>
+                            <div><h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Hair Style</h3>
+                                <div className="grid grid-cols-3 gap-2">{APPEARANCE_OPTIONS.hairStyles.map(s => (<button key={s.id} onClick={() => updateAppearance('hairStyle', s.id)} className={`py-2 rounded-lg border text-xs font-bold transition-all ${appearance.hairStyle === s.id ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:bg-slate-700'}`}>{s.label}</button>))}</div>
                             </div>
-                            <div><h3 className="text-xs font-bold text-slate-500 uppercase mb-2">Hair Color</h3>
-                                <div className="flex gap-2 flex-wrap">{APPEARANCE_OPTIONS.hairColors.map(c => (<button key={c.id} onClick={() => updateAppearance('hairColor', c.id)} className={`w-6 h-6 rounded border-2 ${appearance.hairColor === c.id ? 'border-indigo-500 scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.color }} />))}</div>
+                            <div><h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Hair Color</h3>
+                                <div className="flex gap-3 flex-wrap">{APPEARANCE_OPTIONS.hairColors.map(c => (<button key={c.id} onClick={() => updateAppearance('hairColor', c.id)} className={`w-7 h-7 rounded border-2 transition-transform ${appearance.hairColor === c.id ? 'border-indigo-400 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'border-slate-700 hover:scale-110'}`} style={{ backgroundColor: c.color }} />))}</div>
                             </div>
                         </>
                     )}
                     {creationStep === 2 && (
                         <>
-                            <div className="flex justify-between items-center bg-slate-800 p-3 rounded-lg mb-4">
-                                <span className="text-sm font-bold text-slate-300">Points Available</span>
-                                <span className={`text-xl font-mono font-bold ${pointsAvailable > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>{pointsAvailable}</span>
+                            <div className="flex justify-between items-center bg-slate-800/80 border border-slate-700 p-4 rounded-xl mb-4 shadow-inner">
+                                <span className="text-sm font-bold text-slate-300 uppercase tracking-widest">Points Available</span>
+                                <span className={`text-2xl font-mono font-bold ${pointsAvailable > 0 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'text-slate-500'}`}>{pointsAvailable}</span>
                             </div>
                             {Object.keys(attributes).map(attr => (
-                                <div key={attr} className="flex items-center justify-between p-3 bg-slate-800/50 rounded border border-slate-700">
-                                    <div className="flex flex-col"><span className="text-sm font-bold text-white uppercase">{attr}</span><span className="text-[10px] text-slate-500">{getStatInfo(attr).desc}</span></div>
-                                    <div className="flex items-center gap-3">
-                                        <button onClick={() => updateAttribute(attr, -1)} className="p-1 bg-slate-700 rounded hover:bg-slate-600 text-slate-300"><Minus size={14} /></button>
-                                        <span className="w-4 text-center font-mono font-bold text-white">{attributes[attr]}</span>
-                                        <button onClick={() => updateAttribute(attr, 1)} className="p-1 bg-slate-700 rounded hover:bg-slate-600 text-slate-300" disabled={pointsAvailable <= 0}><Plus size={14} /></button>
+                                <div key={attr} className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-700/50 hover:bg-slate-800/60 transition-colors">
+                                    <div className="flex flex-col"><span className="text-sm font-bold text-indigo-200 uppercase tracking-wider">{attr}</span><span className="text-[10px] text-slate-400">{getStatInfo(attr).desc}</span></div>
+                                    <div className="flex items-center gap-3 bg-slate-900/50 p-1 rounded-lg border border-slate-800">
+                                        <button onClick={() => updateAttribute(attr, -1)} className="p-1.5 bg-slate-800 rounded hover:bg-slate-700 text-slate-300 transition-colors"><Minus size={14} /></button>
+                                        <span className="w-6 text-center font-mono font-bold text-white text-lg">{attributes[attr]}</span>
+                                        <button onClick={() => updateAttribute(attr, 1)} className="p-1.5 bg-slate-800 rounded hover:bg-slate-700 text-slate-300 transition-colors" disabled={pointsAvailable <= 0}><Plus size={14} /></button>
                                     </div>
                                 </div>
                             ))}
@@ -308,7 +536,7 @@ const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppea
                     )}
                 </div>
                 <div className="mt-6 pt-4 border-t border-slate-800 flex justify-end">
-                    {creationStep === 1 ? ( <button onClick={() => setCreationStep(2)} className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-colors">Next: Attributes</button> ) : ( <button onClick={startGame} disabled={pointsAvailable > 0} className={`px-6 py-3 font-bold rounded-lg transition-colors ${pointsAvailable > 0 ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-emerald-600 hover:bg-emerald-500 text-white'}`}>Start Adventure</button> )}
+                    {creationStep === 1 ? ( <button onClick={() => setCreationStep(2)} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wider uppercase text-sm rounded-xl transition-all shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_20px_rgba(99,102,241,0.5)]">Next: Attributes</button> ) : ( <button onClick={startGame} disabled={pointsAvailable > 0} className={`px-8 py-3 font-bold tracking-wider uppercase text-sm rounded-xl transition-all ${pointsAvailable > 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(52,211,153,0.3)] hover:shadow-[0_0_20px_rgba(52,211,153,0.5)]'}`}>Start Adventure</button> )}
                 </div>
             </div>
         </div>
@@ -379,13 +607,13 @@ const App = () => {
       {showMorningReport && dailyLogs[0] && ( <MorningReport log={dailyLogs[0]} onClose={() => setShowMorningReport(false)} /> )}
 
       {/* Messages Toast */}
-      <div className="absolute top-[140px] md:top-[90px] left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-auto w-full max-w-sm px-4">
+      <div className="absolute top-[140px] md:top-[120px] left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-auto w-full max-w-sm px-4">
         {messages.map(m => (
-          <div key={m.id} className={`p-3 rounded-lg shadow-lg text-sm font-bold text-center animate-in slide-in-from-top-4 fade-in backdrop-blur-md border ${
-            m.type === 'error' ? 'bg-red-900/80 border-red-500/50 text-red-100' :
-            m.type === 'success' ? 'bg-emerald-900/80 border-emerald-500/50 text-emerald-100' :
-            m.type === 'warning' ? 'bg-amber-900/80 border-amber-500/50 text-amber-100' :
-            'bg-indigo-900/80 border-indigo-500/50 text-indigo-100'
+          <div key={m.id} className={`p-3 rounded-xl shadow-[0_5px_15px_rgba(0,0,0,0.5)] text-sm font-bold text-center animate-in slide-in-from-top-4 fade-in backdrop-blur-md border ${
+            m.type === 'error' ? 'bg-red-950/90 border-red-500/50 text-red-100' :
+            m.type === 'success' ? 'bg-emerald-950/90 border-emerald-500/50 text-emerald-100' :
+            m.type === 'warning' ? 'bg-amber-950/90 border-amber-500/50 text-amber-100' :
+            'bg-indigo-950/90 border-indigo-500/50 text-indigo-100'
           }`}>
             {m.text}
           </div>
@@ -394,33 +622,33 @@ const App = () => {
 
       {/* Top HUD Layer */}
       <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 pointer-events-none flex flex-col gap-2">
-        <header className="pointer-events-auto bg-slate-900/80 backdrop-blur-xl border border-slate-700/50 rounded-2xl p-3 md:p-4 flex flex-wrap items-center justify-between gap-2 md:gap-4 shadow-xl shadow-black/40">
-            <div className="flex items-center gap-3 md:gap-4">
+        <header className="pointer-events-auto bg-slate-900/90 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-3 md:p-4 flex flex-wrap items-center justify-between gap-2 md:gap-4 shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
+            <div className="flex items-center gap-3 md:gap-5">
                 <div className="flex flex-col">
                     <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">Time</span>
-                    <span className="text-lg md:text-xl font-bold text-indigo-400">Day {days}</span>
+                    <span className="text-lg md:text-xl font-bold text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">Day {days}</span>
                 </div>
-                <div className="w-px h-6 md:h-8 bg-slate-700/50 hidden md:block"></div>
+                <div className="w-px h-6 md:h-8 bg-slate-700/60 hidden md:block"></div>
                 <div className="flex flex-col">
                     <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">Location</span>
                     <span className="text-xs md:text-sm font-bold text-slate-200">{LOCATIONS[location]?.name}</span>
                 </div>
-                <div className="w-px h-6 md:h-8 bg-slate-700/50 hidden md:block"></div>
+                <div className="w-px h-6 md:h-8 bg-slate-700/60 hidden md:block"></div>
                 <div className="flex flex-col">
                     <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">Housing</span>
-                    <span className={`text-xs md:text-sm font-bold ${housing === 'homeless' ? 'text-amber-500' : 'text-emerald-400'}`}>
+                    <span className={`text-xs md:text-sm font-bold ${housing === 'homeless' ? 'text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.4)]' : 'text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.4)]'}`}>
                         {housing === 'inn' ? 'Inn Room' : housing === 'estate' ? 'Estate' : 'Homeless'}
                     </span>
                 </div>
             </div>
             
-            <div className="flex items-center gap-3 md:gap-6 bg-slate-950/50 px-3 py-1.5 md:py-2 rounded-xl border border-slate-800/50">
+            <div className="flex items-center gap-3 md:gap-6 bg-slate-950/70 px-3 py-1.5 md:py-2 rounded-xl border border-slate-800/80 shadow-inner">
                 <div className="flex items-center gap-2">
-                    <div className="p-1 md:p-1.5 bg-amber-500/20 rounded-md text-amber-400"><Coins size={14} className="md:w-4 md:h-4" /></div>
-                    <span className="text-base md:text-lg font-mono font-bold text-amber-400">{resources.gold}g</span>
+                    <div className="p-1 md:p-1.5 bg-amber-500/20 rounded-lg text-amber-400 border border-amber-500/30"><Coins size={14} className="md:w-4 md:h-4" /></div>
+                    <span className="text-base md:text-lg font-mono font-bold text-amber-400 drop-shadow-[0_0_5px_rgba(245,158,11,0.3)]">{resources.gold}g</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="p-1 md:p-1.5 bg-cyan-500/20 rounded-md text-cyan-400"><Activity size={14} className="md:w-4 md:h-4" /></div>
+                    <div className="p-1 md:p-1.5 bg-cyan-500/20 rounded-lg text-cyan-400 border border-cyan-500/30"><Activity size={14} className="md:w-4 md:h-4" /></div>
                     <div className="flex flex-col">
                         <span className="text-[10px] md:text-xs font-bold text-cyan-400">Lv {resources.level}</span>
                         <span className="text-[8px] md:text-[9px] text-cyan-200/50 font-mono">{resources.xp}/{resources.level*100}</span>
@@ -431,38 +659,45 @@ const App = () => {
 
         {/* Meters (Mobile Only) */}
         <div className="md:hidden pointer-events-auto flex flex-col items-center gap-2 max-w-fit mx-auto mt-1">
-            <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/30 rounded-2xl py-2 px-3 shadow-xl shadow-black/20 flex justify-center gap-2">
+            <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl py-2 px-3 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex justify-center gap-2">
                 {metersContent}
             </div>
-            {quirk && (
-                <div className="bg-indigo-900/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 text-[10px] px-4 py-1 rounded-full font-bold shadow-lg shadow-indigo-500/20 flex items-center">
-                    <span className="text-indigo-400/80 uppercase tracking-widest mr-2 text-[8px]">Trait</span>
-                    {quirk.name}
-                </div>
-            )}
         </div>
       </div>
 
       {/* Meters (Desktop Only - Left Side) */}
       <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto flex-col items-center gap-3 w-[96px]">
-          <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/30 rounded-3xl p-3 shadow-xl shadow-black/20 flex flex-col gap-3 w-full">
+          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3 w-full">
               {metersContent}
           </div>
+          
+          {/* Moved Trait Box to below the stats on Desktop */}
           {quirk && (
-              <div className="bg-indigo-900/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 text-[10px] px-2 py-2 rounded-xl font-bold shadow-lg shadow-indigo-500/20 flex flex-col items-center text-center w-full">
-                  <span className="text-[8px] text-indigo-400/80 uppercase tracking-widest mb-0.5">Trait</span>
-                  <span className="leading-tight">{quirk.name}</span>
+              <div className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-2 py-2.5 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-center text-center w-full animate-in fade-in zoom-in duration-500">
+                  <span className="text-[8px] text-indigo-400 uppercase tracking-widest mb-1 border-b border-indigo-500/30 pb-0.5 w-full">Trait</span>
+                  <span className="leading-tight text-indigo-100">{quirk.name}</span>
               </div>
           )}
+      </div>
+      
+      {/* Moved Trait Box for Mobile (Bottom Left) */}
+      <div className="md:hidden absolute bottom-24 left-4 z-20 pointer-events-auto">
+         {quirk && (
+            <div className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-3 py-2 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-start text-left max-w-[120px] animate-in fade-in zoom-in duration-500">
+                <span className="text-[8px] text-indigo-400 uppercase tracking-widest mb-0.5">Trait</span>
+                <span className="leading-tight text-indigo-100">{quirk.name}</span>
+            </div>
+         )}
       </div>
 
       {/* Main Character Layer */}
       <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[160px] pb-[100px] md:pt-[100px] md:pb-[40px] pointer-events-none">
           {isDead && (
-             <div className="absolute inset-0 bg-red-950/80 z-20 flex flex-col items-center justify-center backdrop-blur-sm pointer-events-auto">
-                <Skull size={64} className="text-red-500 mb-6 animate-bounce" />
-                <h2 className="text-4xl font-bold text-red-500 mb-4 drop-shadow-lg">You Died.</h2>
-                <button onClick={revive} className="px-8 py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-lg rounded-xl shadow-[0_0_20px_rgba(220,38,38,0.5)] transition-all hover:scale-105 active:scale-95">Revive (Cost: 50 XP)</button>
+             <div className="absolute inset-0 bg-red-950/90 z-40 flex flex-col items-center justify-center backdrop-blur-md pointer-events-auto">
+                <Skull size={72} className="text-red-500 mb-6 animate-bounce drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]" />
+                <h2 className="text-5xl font-black text-red-500 mb-4 drop-shadow-[0_0_15px_rgba(239,68,68,0.8)] tracking-widest uppercase">You Died.</h2>
+                <div className="text-red-300/70 mb-8 font-mono text-sm">Your adventure has come to an end.</div>
+                <button onClick={revive} className="px-8 py-4 bg-red-700 hover:bg-red-600 text-white font-bold text-lg rounded-xl shadow-[0_0_30px_rgba(220,38,38,0.4)] transition-all hover:scale-105 active:scale-95 border border-red-500 uppercase tracking-wider">Revive (Cost: 50 XP)</button>
              </div>
           )}
           
@@ -476,7 +711,7 @@ const App = () => {
 
       {/* Navigation Layer (Mobile: Bottom, Desktop: Right) */}
       <div className="absolute bottom-6 md:bottom-auto md:top-1/2 left-1/2 md:left-auto md:right-6 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2 z-20 pointer-events-auto">
-          <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-2xl flex flex-row md:flex-col gap-2 shadow-black/50">
+          <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-row md:flex-col gap-2">
               {[
                 { id: 'actions', icon: Tent, label: 'Actions' },
                 { id: 'inventory', icon: Backpack, label: 'Bag' },
@@ -491,12 +726,12 @@ const App = () => {
                       onClick={() => setOpenPanel(isActive ? null : tab.id)} 
                       className={`flex flex-col items-center justify-center w-16 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl transition-all ${
                           isActive 
-                              ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/40 border border-indigo-400' 
+                              ? 'bg-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.5)] border border-indigo-400 scale-105' 
                               : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-transparent'
                       }`}
                   >
                       <Icon size={isActive ? 24 : 20} className="mb-1" />
-                      <span className="text-[9px] md:text-[10px] font-bold tracking-wider">{tab.label}</span>
+                      <span className="text-[9px] md:text-[10px] font-bold tracking-widest uppercase">{tab.label}</span>
                   </button>
                 );
               })}
@@ -507,30 +742,30 @@ const App = () => {
       {openPanel && (
           <div className="absolute inset-0 z-30 pointer-events-none flex justify-center items-end sm:items-center p-2 sm:p-6 pb-28 sm:pb-6">
               
-              <div className="absolute inset-0 bg-slate-950/60 pointer-events-auto backdrop-blur-sm transition-opacity" onClick={() => setOpenPanel(null)} />
+              <div className="absolute inset-0 bg-slate-950/70 pointer-events-auto backdrop-blur-md transition-opacity" onClick={() => setOpenPanel(null)} />
               
-              <div className="pointer-events-auto relative bg-slate-900/95 backdrop-blur-xl border border-slate-700/70 rounded-3xl sm:rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] w-full max-w-2xl max-h-[75vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-300">
+              <div className="pointer-events-auto relative bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-3xl sm:rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] w-full max-w-2xl max-h-[75vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-300">
                  
-                 <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/50 bg-slate-950/50 shadow-sm">
-                     <h2 className="font-bold uppercase tracking-widest text-indigo-400 flex items-center gap-2">
-                        {openPanel === 'actions' && <Tent size={18}/>}
-                        {openPanel === 'inventory' && <Backpack size={18}/>}
-                        {openPanel === 'shop' && <Store size={18}/>}
-                        {openPanel === 'log' && <List size={18}/>}
+                 <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/80 bg-slate-950/60 shadow-sm">
+                     <h2 className="font-bold uppercase tracking-widest text-indigo-400 flex items-center gap-3 text-lg drop-shadow-[0_0_5px_rgba(99,102,241,0.4)]">
+                        {openPanel === 'actions' && <Tent size={20}/>}
+                        {openPanel === 'inventory' && <Backpack size={20}/>}
+                        {openPanel === 'shop' && <Store size={20}/>}
+                        {openPanel === 'log' && <List size={20}/>}
                         {openPanel}
                      </h2>
-                     <button onClick={() => setOpenPanel(null)} className="p-2 bg-slate-800 rounded-full hover:bg-red-900/50 hover:text-red-400 transition-colors border border-slate-700">
+                     <button onClick={() => setOpenPanel(null)} className="p-2 bg-slate-800 rounded-full hover:bg-red-900/80 hover:text-red-400 transition-colors border border-slate-700 shadow-sm">
                          <X size={16} strokeWidth={3} />
                      </button>
                  </div>
 
-                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth">
+                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth bg-gradient-to-b from-transparent to-slate-950/30">
                      
                      {/* --- ACTIONS PANEL --- */}
                      {openPanel === 'actions' && (
                         <>
                            <div>
-                              <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2">Maintenance</h3>
+                              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-slate-800 pb-1">Maintenance</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                  {MAINTENANCE_ACTIONS.map(action => (
                                     <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead || (action.cost > 0 && resources.gold < action.cost)} />
@@ -545,7 +780,7 @@ const App = () => {
                            
                            {dailyQuests.labor.length > 0 && (
                               <div>
-                                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2"><Hammer size={14}/> Labor (STR/CON)</h3>
+                                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-slate-800 pb-1"><Hammer size={14} className="text-amber-500"/> Labor (STR/CON)</h3>
                                   <div className="grid grid-cols-1 gap-3">
                                       {dailyQuests.labor.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
@@ -554,7 +789,7 @@ const App = () => {
 
                            {dailyQuests.adventure.length > 0 && (
                               <div>
-                                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2"><Shield size={14}/> Adventure (STR/DEX/AC)</h3>
+                                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-slate-800 pb-1"><Shield size={14} className="text-indigo-400"/> Adventure (STR/DEX/AC)</h3>
                                   <div className="grid grid-cols-1 gap-3">
                                       {dailyQuests.adventure.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
@@ -563,7 +798,7 @@ const App = () => {
 
                            {dailyQuests.social.length > 0 && (
                               <div>
-                                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 flex items-center gap-2"><User size={14}/> Social (CHA)</h3>
+                                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-slate-800 pb-1"><User size={14} className="text-emerald-400"/> Social (CHA)</h3>
                                   <div className="grid grid-cols-1 gap-3">
                                       {dailyQuests.social.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
@@ -576,15 +811,16 @@ const App = () => {
                      {openPanel === 'inventory' && (
                         <div className="space-y-6">
                             <div>
-                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Equipped</h3>
+                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-800 pb-1">Equipped</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     {Object.entries(equipped).map(([slot, itemId]) => {
                                         const item = ITEM_DB[slot].find(i => i.id === itemId);
                                         return (
-                                            <div key={slot} className="bg-slate-800/80 border border-slate-700/50 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-inner">
-                                                <span className="text-[10px] text-slate-500 uppercase font-bold mb-1">{slot}</span>
-                                                <span className="text-sm font-bold text-slate-200">{item ? item.name : 'None'}</span>
-                                                {item && renderItemStats(item)}
+                                            <div key={slot} className="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
+                                                <span className="text-[9px] text-indigo-400 uppercase font-bold tracking-widest mb-1 z-10">{slot}</span>
+                                                <span className="text-sm font-bold text-slate-200 z-10">{item ? item.name : 'None'}</span>
+                                                <div className="z-10">{item && renderItemStats(item)}</div>
                                             </div>
                                         );
                                     })}
@@ -592,9 +828,9 @@ const App = () => {
                             </div>
 
                             <div>
-                                <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Backpack</h3>
+                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-800 pb-1">Backpack</h3>
                                 {inventory.filter(id => id !== 'none' && id !== 'fist').length === 0 ? (
-                                    <div className="p-8 text-center bg-slate-800/30 rounded-xl border border-slate-700/50 border-dashed">
+                                    <div className="p-8 text-center bg-slate-900/50 rounded-xl border border-slate-700/50 border-dashed">
                                         <p className="text-sm text-slate-500 font-medium">Your backpack is empty.</p>
                                     </div>
                                 ) : (
@@ -604,28 +840,28 @@ const App = () => {
                                             if(!item) return null;
                                             const isEquipped = Object.values(equipped).includes(itemId);
                                             return (
-                                                <div key={idx} className="bg-slate-800/90 border border-slate-700 rounded-xl p-4 flex flex-col shadow-sm">
+                                                <div key={idx} className="bg-slate-800/90 border border-slate-700/80 rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
                                                             <span className="font-bold text-sm text-slate-200 block">{item.name}</span>
-                                                            <span className="text-[10px] text-slate-500 uppercase tracking-wider">{item.category}</span>
+                                                            <span className="text-[10px] text-slate-500 uppercase tracking-widest">{item.category}</span>
                                                         </div>
-                                                        <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-900/20 px-2 py-1 rounded-md border border-amber-500/20">{Math.floor(item.cost/2)}g Value</span>
+                                                        <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-700/50">{Math.floor(item.cost/2)}g Value</span>
                                                     </div>
                                                     {renderItemStats(item)}
                                                     <div className="mt-4 flex gap-2">
                                                         {['head', 'body', 'mainHand', 'offHand'].includes(item.type) && (
-                                                            <button onClick={() => equipItem(item)} disabled={isEquipped} className={`flex-1 py-2 rounded-lg text-xs font-bold transition-colors ${isEquipped ? 'bg-indigo-900/30 text-indigo-400/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-slate-700 text-slate-200 hover:bg-indigo-600 hover:text-white shadow-sm'}`}>
+                                                            <button onClick={() => equipItem(item)} disabled={isEquipped} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${isEquipped ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-slate-700 text-slate-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-slate-600 hover:border-indigo-500'}`}>
                                                                 {isEquipped ? 'Equipped' : 'Equip'}
                                                             </button>
                                                         )}
                                                         {(item.type === 'food' || item.type === 'drink' || item.type === 'potion') && (
-                                                            <button onClick={() => consumeItem(item)} className="flex-1 py-2 bg-emerald-900/40 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold transition-colors shadow-sm">
+                                                            <button onClick={() => consumeItem(item)} className="flex-1 py-2.5 bg-emerald-950/60 border border-emerald-700/50 text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold tracking-wider uppercase transition-all hover:shadow-[0_0_15px_rgba(52,211,153,0.4)]">
                                                                 Consume
                                                             </button>
                                                         )}
                                                         {!isEquipped && (
-                                                            <button onClick={() => sellItem(item)} className="px-4 py-2 bg-slate-800 border border-slate-600 text-slate-300 hover:bg-amber-600 hover:text-white hover:border-amber-500 rounded-lg text-xs font-bold transition-colors shadow-sm">
+                                                            <button onClick={() => sellItem(item)} className="px-5 py-2.5 bg-slate-900 border border-slate-700 text-slate-400 hover:bg-amber-600 hover:text-white hover:border-amber-500 rounded-lg text-xs font-bold tracking-wider uppercase transition-all hover:shadow-[0_0_15px_rgba(217,119,6,0.4)]">
                                                                 Sell
                                                             </button>
                                                         )}
@@ -642,13 +878,13 @@ const App = () => {
                      {/* --- SHOP PANEL --- */}
                      {openPanel === 'shop' && (
                         <div>
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-4 gap-2">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-4 gap-3 border-b border-slate-800 pb-3">
                                 <div>
-                                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest">Daily Market</h3>
-                                    <p className="text-[10px] text-slate-400 mt-1">Stock refreshes every day.</p>
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Daily Market</h3>
+                                    <p className="text-[10px] text-slate-500 mt-1">Stock refreshes every day.</p>
                                 </div>
-                                <button onClick={() => passTime(1)} className="text-[10px] bg-slate-800 px-4 py-2 rounded-lg border border-slate-700 hover:bg-slate-700 text-slate-300 font-bold transition-colors shadow-sm flex items-center gap-2">
-                                    <Clock size={12}/> Skip Day (Refresh)
+                                <button onClick={() => passTime(1)} className="text-[10px] bg-slate-800 px-4 py-2.5 rounded-lg border border-slate-700 hover:bg-indigo-900/60 hover:border-indigo-500/50 text-slate-300 hover:text-indigo-200 font-bold uppercase tracking-wider transition-all flex items-center gap-2">
+                                    <Clock size={12}/> Skip Day
                                 </button>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -660,21 +896,21 @@ const App = () => {
                                     const canAfford = resources.gold >= cost;
 
                                     return (
-                                        <div key={itemId} className={`bg-slate-800/90 border rounded-xl p-4 flex flex-col justify-between shadow-sm transition-colors ${canAfford ? 'border-slate-600 hover:border-indigo-500/50' : 'border-slate-700/50 opacity-75'}`}>
+                                        <div key={itemId} className={`bg-slate-800/80 border rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-all ${canAfford ? 'border-slate-600 hover:border-indigo-500/70 hover:bg-slate-800' : 'border-slate-800 opacity-60 grayscale-[0.5]'}`}>
                                             <div>
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div>
                                                         <span className="font-bold text-sm text-slate-200 block">{item.name}</span>
-                                                        <span className="text-[10px] text-slate-500 uppercase tracking-wider">{item.category}</span>
+                                                        <span className="text-[9px] text-indigo-400/80 uppercase tracking-widest">{item.category}</span>
                                                     </div>
-                                                    <span className={`text-[11px] font-mono font-bold px-2 py-1 rounded-md border ${canAfford ? 'text-amber-400 bg-amber-900/20 border-amber-500/30' : 'text-red-400 bg-red-900/20 border-red-500/30'}`}>
+                                                    <span className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded-md border ${canAfford ? 'text-amber-400 bg-amber-950/60 border-amber-500/40' : 'text-red-400 bg-red-950/60 border-red-500/40'}`}>
                                                         {cost}g
                                                     </span>
                                                 </div>
                                                 <p className="text-[10px] text-slate-400 mb-3 leading-relaxed">{item.description}</p>
                                                 {renderItemStats(item)}
                                             </div>
-                                            <button onClick={() => buyItem(item)} disabled={!canAfford || isDead} className={`mt-4 w-full py-2.5 rounded-lg text-xs font-bold transition-colors ${canAfford && !isDead ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-600 hover:text-white shadow-sm' : 'bg-slate-900 text-slate-600 cursor-not-allowed border border-slate-800'}`}>
+                                            <button onClick={() => buyItem(item)} disabled={!canAfford || isDead} className={`mt-4 w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${canAfford && !isDead ? 'bg-indigo-900/40 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] hover:border-indigo-500' : 'bg-slate-900 text-slate-700 cursor-not-allowed border border-slate-800'}`}>
                                                 Purchase
                                             </button>
                                         </div>
@@ -688,30 +924,30 @@ const App = () => {
                      {openPanel === 'log' && (
                         <div className="space-y-3 pb-4">
                             {dailyLogs.length === 0 ? (
-                                <div className="p-8 text-center bg-slate-800/30 rounded-xl border border-slate-700/50 border-dashed">
+                                <div className="p-8 text-center bg-slate-900/50 rounded-xl border border-slate-700/50 border-dashed">
                                     <p className="text-sm text-slate-500 font-medium">No events recorded yet.</p>
                                 </div>
                             ) : (
                                 dailyLogs.map(log => (
-                                    <div key={log.id} className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 shadow-sm">
+                                    <div key={log.id} className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)]">
                                         <div className="flex justify-between items-center mb-3">
-                                            <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md ${log.type === 'morning' ? 'bg-amber-900/30 text-amber-400 border border-amber-500/20' : 'bg-slate-900 text-slate-400 border border-slate-700'}`}>
+                                            <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border ${log.type === 'morning' ? 'bg-amber-950/60 text-amber-500 border-amber-700/50' : 'bg-slate-900 text-slate-400 border-slate-700'}`}>
                                                 {log.type === 'morning' ? 'Morning Report' : 'Action Log'}
                                             </span>
-                                            <span className="text-[10px] font-mono font-medium text-slate-500">Day {log.day}</span>
+                                            <span className="text-[10px] font-mono font-bold text-slate-500">Day {log.day}</span>
                                         </div>
                                         <p className="text-sm font-bold text-slate-200">{log.title || log.incidentTitle}</p>
                                         <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">{log.text || log.incidentText}</p>
                                         {(log.changes || log.status !== 'Success') && (
-                                            <div className={`mt-3 p-2 rounded-lg text-[10px] font-bold border ${log.status === 'Failed' ? 'bg-red-900/10 text-red-400 border-red-500/10' : 'bg-indigo-900/10 text-indigo-300 border-indigo-500/10'}`}>
+                                            <div className={`mt-3 p-2.5 rounded-lg text-[10px] font-bold border tracking-wide ${log.status === 'Failed' ? 'bg-red-950/50 text-red-400 border-red-900/50' : 'bg-indigo-950/50 text-indigo-300 border-indigo-900/50'}`}>
                                                 {log.changes || log.status}
                                             </div>
                                         )}
                                     </div>
                                 ))
                             )}
-                            <div className="flex justify-center mt-8 pt-4 border-t border-slate-700/50">
-                                <button onClick={resetGame} className="text-[10px] text-red-500/60 hover:text-red-400 font-bold uppercase tracking-widest transition-colors flex items-center gap-1">
+                            <div className="flex justify-center mt-8 pt-4 border-t border-slate-800">
+                                <button onClick={resetGame} className="text-[10px] text-red-500/50 hover:text-red-400 font-bold uppercase tracking-widest transition-colors flex items-center gap-1 bg-red-950/20 px-4 py-2 rounded-lg border border-red-900/30 hover:bg-red-900/40">
                                     <X size={12}/> Hard Reset Game
                                 </button>
                             </div>
