@@ -430,23 +430,34 @@ const App = () => {
         </header>
 
         {/* Meters (Mobile Only) */}
-        <div className="md:hidden pointer-events-auto bg-slate-900/60 backdrop-blur-md border border-slate-700/30 rounded-2xl py-2 px-3 shadow-xl shadow-black/20 flex justify-center gap-2 max-w-fit mx-auto">
-            {metersContent}
+        <div className="md:hidden pointer-events-auto flex flex-col items-center gap-2 max-w-fit mx-auto mt-1">
+            <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/30 rounded-2xl py-2 px-3 shadow-xl shadow-black/20 flex justify-center gap-2">
+                {metersContent}
+            </div>
+            {quirk && (
+                <div className="bg-indigo-900/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 text-[10px] px-4 py-1 rounded-full font-bold shadow-lg shadow-indigo-500/20 flex items-center">
+                    <span className="text-indigo-400/80 uppercase tracking-widest mr-2 text-[8px]">Trait</span>
+                    {quirk.name}
+                </div>
+            )}
         </div>
       </div>
 
       {/* Meters (Desktop Only - Left Side) */}
-      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto bg-slate-900/60 backdrop-blur-md border border-slate-700/30 rounded-3xl p-3 shadow-xl shadow-black/20 flex-col gap-3">
-          {metersContent}
+      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto flex-col items-center gap-3 w-[96px]">
+          <div className="bg-slate-900/60 backdrop-blur-md border border-slate-700/30 rounded-3xl p-3 shadow-xl shadow-black/20 flex flex-col gap-3 w-full">
+              {metersContent}
+          </div>
+          {quirk && (
+              <div className="bg-indigo-900/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 text-[10px] px-2 py-2 rounded-xl font-bold shadow-lg shadow-indigo-500/20 flex flex-col items-center text-center w-full">
+                  <span className="text-[8px] text-indigo-400/80 uppercase tracking-widest mb-0.5">Trait</span>
+                  <span className="leading-tight">{quirk.name}</span>
+              </div>
+          )}
       </div>
 
       {/* Main Character Layer */}
       <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[160px] pb-[100px] md:pt-[100px] md:pb-[40px] pointer-events-none">
-          {quirk && (
-             <div className="absolute top-[125px] md:top-[90px] bg-indigo-900/80 backdrop-blur-md border border-indigo-500/30 text-indigo-200 text-[10px] px-3 py-1 rounded-full font-bold shadow-lg shadow-indigo-500/20 z-10">
-                Trait: {quirk.name}
-             </div>
-          )}
           {isDead && (
              <div className="absolute inset-0 bg-red-950/80 z-20 flex flex-col items-center justify-center backdrop-blur-sm pointer-events-auto">
                 <Skull size={64} className="text-red-500 mb-6 animate-bounce" />
