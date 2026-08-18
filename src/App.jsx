@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List } from 'lucide-react';
 import { ITEM_DB, MAINTENANCE_ACTIONS, LOCATIONS, APPEARANCE_OPTIONS } from './data/constants';
 import { useGameLogic } from './hooks/useGameLogic';
@@ -52,14 +52,12 @@ const VillageRoadBackground = () => (
   <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
     <div className="absolute inset-0 bg-gradient-to-b from-[#09090b] via-[#18181b] to-[#271c19]/40" />
     
-    {/* Moon & Stars */}
     <div className="absolute top-16 right-24 w-20 h-20 rounded-full bg-slate-200/10 blur-xl" />
     <div className="absolute top-18 right-26 w-16 h-16 rounded-full bg-indigo-100/20 shadow-[0_0_40px_rgba(199,210,254,0.3)]" />
     <div className="absolute top-10 left-1/4 w-1 h-1 bg-white opacity-40 rounded-full shadow-[0_0_4px_white]" />
     <div className="absolute top-32 left-1/3 w-0.5 h-0.5 bg-white opacity-60 rounded-full" />
     <div className="absolute top-24 right-1/2 w-1.5 h-1.5 bg-white opacity-30 rounded-full" />
 
-    {/* Distant Spire Silhouettes */}
     <div className="absolute bottom-[35%] left-0 right-0 h-40 flex items-end justify-center gap-2 opacity-30 blur-[1px]">
         <div className="w-12 h-32 bg-[#09090b] [clip-path:polygon(50%_0%,100%_20%,100%_100%,0%_100%,0%_20%)]" />
         <div className="w-8 h-40 bg-[#09090b] [clip-path:polygon(50%_0%,80%_10%,100%_100%,0%_100%,20%_10%)]" />
@@ -68,28 +66,23 @@ const VillageRoadBackground = () => (
         <div className="w-16 h-28 bg-[#09090b] [clip-path:polygon(50%_0%,100%_30%,100%_100%,0%_100%,0%_30%)]" />
     </div>
 
-    {/* Midground Trees / Ruins */}
     <div className="absolute bottom-[35%] left-0 right-0 h-24 flex items-end justify-between opacity-60 px-10">
         <div className="w-24 h-32 bg-[#050505] [clip-path:polygon(20%_0,40%_15%,15%_30%,35%_50%,0%_70%,20%_100%,100%_100%,80%_80%,100%_50%,70%_30%,90%_10%,60%_0)]" />
         <div className="w-20 h-28 bg-[#050505] [clip-path:polygon(50%_0,70%_20%,60%_40%,80%_60%,50%_100%,20%_100%,10%_60%,30%_40%,20%_20%)]" />
     </div>
 
-    {/* Ground and Path */}
     <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-gradient-to-t from-[#110d0a] to-[#2a2015]" />
     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[900px] h-[35%] bg-gradient-to-t from-[#2c1d11] to-[#3a2818] [clip-path:polygon(25%_0,75%_0,100%_100%,0%_100%)] border-x border-black/20" />
     
-    {/* Ambient Fog Overlay */}
     <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/80 via-transparent to-transparent" />
   </div>
 );
 
 const InnRoomBackground = () => (
   <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#0c0a09]">
-    {/* Stone Wall Texture */}
     <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#292524_2px,transparent_2px)] [background-size:30px_30px]" />
     <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#44403c_1px,transparent_1px)] [background-size:15px_15px] translate-x-4 translate-y-4" />
 
-    {/* Arched Window */}
     <div className="absolute top-12 left-1/4 w-32 h-56 bg-[#050505] border-8 border-[#292524] rounded-t-[4rem] shadow-[inset_0_0_40px_black]">
        <div className="absolute top-8 right-8 w-4 h-4 bg-indigo-100 rounded-full opacity-60 shadow-[0_0_20px_white]" />
        <div className="absolute bottom-0 w-full h-3 bg-black/80" />
@@ -97,12 +90,10 @@ const InnRoomBackground = () => (
        <div className="absolute h-2 w-full top-1/2 bg-[#292524] shadow-[0_2px_5px_rgba(0,0,0,0.5)]" />
     </div>
 
-    {/* Wooden Floor */}
     <div className="absolute bottom-0 left-0 right-0 h-[25%] bg-gradient-to-b from-[#1c140d] to-[#0a0704] border-t-4 border-[#292524]">
        <div className="w-full h-full opacity-30 bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,#000_40px,#000_42px)]" />
     </div>
 
-    {/* Hearth Glow */}
     <div className="absolute bottom-0 right-1/4 w-[500px] h-[300px] bg-amber-600/10 rounded-full blur-[80px]" />
     <div className="absolute bottom-0 right-1/4 w-[300px] h-[150px] bg-red-600/10 rounded-full blur-[60px]" />
   </div>
@@ -110,337 +101,146 @@ const InnRoomBackground = () => (
 
 const getBackground = (locationId) => locationId === 'inn_room' ? InnRoomBackground : VillageRoadBackground;
 
-const CharacterSVG = ({ equipped, appearance, isAlive }) => {
-  const { gender, skinTone, hairColor, eyeColor, hairStyle } = appearance;
-  const skin = APPEARANCE_OPTIONS.skinTones.find(t => t.id === skinTone) || APPEARANCE_OPTIONS.skinTones[1];
-  const hair = APPEARANCE_OPTIONS.hairColors.find(c => c.id === hairColor)?.color || '#3f2307';
-  const eyes = APPEARANCE_OPTIONS.eyeColors.find(c => c.id === eyeColor)?.color || '#451a03';
-  const wearingHat = ['leather_cap', 'wizard_hat', 'iron_helm', 'crown'].includes(equipped.head);
-  const wearingFullHelm = equipped.head === 'iron_helm';
+// NEW: HTML5 Canvas Engine Component
+const CharacterCanvas = ({ equipped, isAlive }) => {
+  const canvasRef = useRef(null);
 
-  const getZoneStyles = () => {
-    const styles = {
-      head: { fill: 'url(#skin-gradient)', filter: 'none', stroke: skin.shadow }, 
-      torso: { fill: '#e2e8f0', filter: 'url(#fabric-noise)', stroke: '#64748b' }, 
-      legs: { fill: '#27272a', filter: 'url(#fabric-noise)', stroke: '#000000' }, 
-      pelvis: { fill: '#27272a', filter: 'url(#fabric-noise)', stroke: '#000000' }, 
-      arms: { fill: '#e2e8f0', filter: 'url(#fabric-noise)', stroke: '#64748b' }, 
-      boots: { fill: '#09090b', stroke: '#000000' } 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    const render = () => {
+      // 1. Clear the canvas frame for transparency
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (!isAlive) {
+          ctx.filter = 'grayscale(100%) opacity(50%)';
+      } else {
+          ctx.filter = 'none';
+      }
+
+      // 2. Setup Base Coordinates
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height * 0.6; // Anchor point at the hips
+
+      // --- DRAW BASE CHARACTER PLACEHOLDER ---
+      // Base Skin/Body Color (Ash/Pale)
+      ctx.fillStyle = '#e5e5e5';
+      
+      // Draw Head
+      ctx.beginPath();
+      ctx.arc(centerX, centerY - 130, 25, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw Base Torso
+      ctx.fillRect(centerX - 25, centerY - 100, 50, 90);
+
+      // Draw Base Legs
+      ctx.fillRect(centerX - 20, centerY - 10, 15, 100); // Left Leg
+      ctx.fillRect(centerX + 5, centerY - 10, 15, 100);  // Right Leg
+
+      // Draw Base Arms
+      ctx.fillRect(centerX - 40, centerY - 100, 15, 80); // Left Arm
+      ctx.fillRect(centerX + 25, centerY - 100, 15, 80); // Right Arm
+
+
+      // --- DRAW EQUIPMENT PLACEHOLDERS ---
+      
+      // Body Armor
+      if (equipped.body !== 'none' && equipped.body !== 'tunic') {
+          // Darker, gothic-inspired tones for armor
+          if (equipped.body === 'leather_armor') ctx.fillStyle = '#271c19'; 
+          else if (equipped.body === 'chainmail') ctx.fillStyle = '#27272a';
+          else if (equipped.body === 'plate') ctx.fillStyle = '#18181b';
+          else if (equipped.body === 'robe') ctx.fillStyle = '#1e1b4b'; // Deep violet
+
+          ctx.fillRect(centerX - 28, centerY - 102, 56, 94); // Slightly larger than base torso
+          
+          if (equipped.body === 'robe') {
+             ctx.fillRect(centerX - 28, centerY - 10, 56, 90); // Robe skirt
+          }
+      } else {
+          // Tunic default
+          ctx.fillStyle = '#71717a'; 
+          ctx.fillRect(centerX - 26, centerY - 101, 52, 92);
+      }
+
+      // Head Equipment
+      if (equipped.head !== 'none') {
+          if (equipped.head === 'leather_cap') {
+              ctx.fillStyle = '#271c19';
+              ctx.beginPath();
+              ctx.arc(centerX, centerY - 135, 26, Math.PI, 0);
+              ctx.fill();
+          } else if (equipped.head === 'iron_helm') {
+              ctx.fillStyle = '#18181b';
+              ctx.fillRect(centerX - 27, centerY - 157, 54, 54);
+          } else if (equipped.head === 'wizard_hat') {
+              ctx.fillStyle = '#1e1b4b';
+              ctx.fillRect(centerX - 40, centerY - 145, 80, 10); // Brim
+              ctx.beginPath();
+              ctx.moveTo(centerX - 20, centerY - 145);
+              ctx.lineTo(centerX + 20, centerY - 145);
+              ctx.lineTo(centerX, centerY - 220); // Point
+              ctx.fill();
+          }
+      }
+
+      // Main Hand Weapon
+      if (equipped.mainHand !== 'none' && equipped.mainHand !== 'fist') {
+          // Deep crimson/charcoal weapons
+          ctx.fillStyle = equipped.mainHand === 'sword' ? '#52525b' : '#3f2307';
+          
+          if (equipped.mainHand === 'staff') {
+              ctx.fillRect(centerX + 28, centerY - 150, 8, 160);
+          } else if (equipped.mainHand === 'sword' || equipped.mainHand === 'dagger') {
+              const height = equipped.mainHand === 'sword' ? 70 : 30;
+              ctx.fillRect(centerX + 28, centerY - 20 - height, 8, height); // Blade
+              ctx.fillStyle = '#ca8a04'; // Gold hilt
+              ctx.fillRect(centerX + 22, centerY - 20, 20, 6);
+          } else if (equipped.mainHand === 'axe' || equipped.mainHand === 'hammer') {
+              ctx.fillRect(centerX + 28, centerY - 80, 8, 90); // Handle
+              ctx.fillStyle = '#27272a';
+              ctx.fillRect(centerX + 18, centerY - 80, 28, 20); // Head
+          }
+      }
+
+      // Off Hand Shield/Item
+      if (equipped.offHand !== 'none') {
+          if (equipped.offHand === 'wooden_shield' || equipped.offHand === 'tower_shield') {
+              ctx.fillStyle = equipped.offHand === 'tower_shield' ? '#18181b' : '#271c19';
+              const width = equipped.offHand === 'tower_shield' ? 30 : 40;
+              const height = equipped.offHand === 'tower_shield' ? 70 : 40;
+              ctx.fillRect(centerX - 50, centerY - 40, width, height);
+          } else if (equipped.offHand === 'orb') {
+              ctx.fillStyle = '#4f46e5'; // Void purple/blue
+              ctx.beginPath();
+              ctx.arc(centerX - 35, centerY - 20, 15, 0, Math.PI * 2);
+              ctx.fill();
+          }
+      }
+
+      // 3. Request next frame to keep the loop running
+      animationFrameId = requestAnimationFrame(render);
     };
 
-    switch (equipped.body) {
-      case 'tunic':
-        styles.torso = { fill: '#d4d4d8', filter: 'url(#fabric-noise)', stroke: '#71717a' }; 
-        styles.legs = { fill: '#3f3f46', filter: 'url(#fabric-noise)', stroke: '#18181b' }; 
-        styles.pelvis = { fill: '#3f3f46', filter: 'url(#fabric-noise)', stroke: '#18181b' }; 
-        styles.arms = { fill: '#d4d4d8', filter: 'url(#fabric-noise)', stroke: '#71717a' };
-        break;
-      case 'leather_armor':
-        styles.torso = { fill: '#451a03', filter: 'url(#leather-noise)', stroke: '#271c19' }; 
-        styles.legs = { fill: '#292524', filter: 'url(#fabric-noise)', stroke: '#1c1917' }; 
-        styles.pelvis = { fill: '#292524', filter: 'url(#fabric-noise)', stroke: '#1c1917' }; 
-        styles.arms = { fill: '#451a03', filter: 'url(#leather-noise)', stroke: '#271c19' }; 
-        styles.boots = { fill: '#1c1917', stroke: '#000000' }; 
-        break;
-      case 'chainmail':
-        const chainStyle = { fill: 'url(#chain-pattern)', filter: 'none', stroke: '#27272a' }; 
-        styles.torso = chainStyle; styles.pelvis = chainStyle; styles.arms = chainStyle; 
-        styles.legs = { fill: '#27272a', filter: 'url(#fabric-noise)', stroke: '#000000' }; 
-        break;
-      case 'plate':
-        const plateStyle = { fill: 'url(#metal-sheen)', filter: 'none', stroke: '#18181b' }; 
-        styles.torso = plateStyle; styles.legs = plateStyle; styles.pelvis = plateStyle; styles.arms = plateStyle; 
-        styles.boots = { fill: 'url(#metal-sheen)', stroke: '#09090b' }; 
-        break;
-      case 'robe':
-        const robeStyle = { fill: '#1e1b4b', filter: 'url(#fabric-noise)', stroke: '#0f172a' }; 
-        styles.torso = robeStyle; styles.legs = robeStyle; styles.pelvis = robeStyle; styles.arms = robeStyle; 
-        break;
-    }
-    if (equipped.head === 'iron_helm') styles.head = { fill: 'url(#metal-sheen)', filter: 'none', stroke: '#18181b' };
-    return styles;
-  };
+    render();
 
-  const s = getZoneStyles();
-
-  // Anatomically improved paths
-  const torsoPath = gender === 'female' 
-    ? `M135 85 C 120 90, 115 110, 120 135 C 125 160, 128 180, 132 205 L 168 205 C 172 180, 175 160, 180 135 C 185 110, 180 90, 165 85 Z` 
-    : `M130 85 C 110 90, 105 115, 115 145 C 122 170, 125 190, 128 205 L 172 205 C 175 190, 178 170, 185 145 C 195 115, 190 90, 170 85 Z`;
-  
-  const pelvisPath = gender === 'female' 
-    ? `M132 205 C 130 220, 140 235, 150 235 C 160 235, 170 220, 168 205 Z` 
-    : `M128 205 C 135 225, 145 230, 150 230 C 155 230, 165 225, 172 205 Z`;
-
-  const headPath = gender === 'female' 
-    ? `M 134 50 C 134 25, 166 25, 166 50 C 166 70, 155 82, 150 82 C 145 82, 134 70, 134 50 Z` 
-    : `M 132 45 C 132 20, 168 20, 168 45 C 168 68, 158 80, 150 80 C 142 80, 132 68, 132 45 Z`;
+    // Cleanup loop when component unmounts
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, [equipped, isAlive]);
 
   return (
-    <svg viewBox="0 0 300 450" className={`w-full h-full transition-all duration-1000 ${isAlive ? '' : 'grayscale opacity-50'}`} style={{ filter: 'drop-shadow(0px 15px 25px rgba(0,0,0,0.8))' }}>
-      <defs>
-        <filter id="leather-noise"><feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="3" result="noise" /><feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.3 0" in="noise" result="softNoise"/><feComposite operator="in" in="softNoise" in2="SourceGraphic" result="composite"/><feBlend mode="multiply" in="composite" in2="SourceGraphic"/></filter>
-        <filter id="fabric-noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" result="noise" /><feColorMatrix type="matrix" values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0   0 0 0 0.1 0" in="noise" result="softNoise"/><feComposite operator="in" in="softNoise" in2="SourceGraphic" result="composite"/><feBlend mode="multiply" in="composite" in2="SourceGraphic"/></filter>
-        <linearGradient id="metal-sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#3f3f46" /><stop offset="35%" stopColor="#a1a1aa" /><stop offset="50%" stopColor="#e4e4e7" /><stop offset="65%" stopColor="#71717a" /><stop offset="100%" stopColor="#18181b" /></linearGradient>
-        <radialGradient id="skin-gradient" cx="0.4" cy="0.3" r="0.8"><stop offset="0%" stopColor={skin.color} /><stop offset="80%" stopColor={skin.shadow} /><stop offset="100%" stopColor="#000000" stopOpacity="0.4" /></radialGradient>
-        <pattern id="chain-pattern" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#27272a" /><circle cx="4" cy="4" r="3" fill="#52525b" stroke="#18181b" strokeWidth="0.5" /></pattern>
-        <linearGradient id="gold-sheen" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#451a03" /><stop offset="40%" stopColor="#ca8a04" /><stop offset="50%" stopColor="#fef08a" /><stop offset="60%" stopColor="#a16207" /><stop offset="100%" stopColor="#451a03" /></linearGradient>
-        
-        {/* Shadow filter for depth within the character layers */}
-        <filter id="drop-shadow-sm" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2" floodColor="#000" floodOpacity="0.4" /></filter>
-      </defs>
-
-      {/* Shadow on the ground */}
-      <ellipse cx="150" cy="405" rx="45" ry="10" fill="#000000" opacity="0.6" filter="blur(4px)" />
-
-      <g id="legs" filter={s.legs.filter}>
-        {equipped.body === 'robe' ? (
-          <path d={`M125 210 C 115 280, 105 380, 100 400 C 130 410, 170 410, 200 400 C 195 380, 185 280, 175 210 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
-        ) : (
-          <g>
-            {/* Left Leg */}
-            <path d={`M${gender === 'female' ? 130 : 128} 205 C 115 260, 120 320, 125 400 L 145 400 C 148 320, 150 260, 148 205 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
-            {/* Right Leg */}
-            <path d={`M${gender === 'female' ? 170 : 172} 205 C 185 260, 180 320, 175 400 L 155 400 C 152 320, 150 260, 152 205 Z`} fill={s.legs.fill} stroke={s.legs.stroke} strokeWidth="1.5" />
-            
-            {/* Boots */}
-             {s.boots && s.boots.fill !== 'none' && (
-               <g>
-                 <path d="M123 310 C 120 350, 122 385, 125 400 L 145 400 C 147 385, 148 350, 147 310 C 135 320, 128 315, 123 310" fill={s.boots.fill} stroke={s.boots.stroke} strokeWidth="1.5" />
-                 <path d="M177 310 C 180 350, 178 385, 175 400 L 155 400 C 153 385, 152 350, 153 310 C 165 320, 172 315, 177 310" fill={s.boots.fill} stroke={s.boots.stroke} strokeWidth="1.5" />
-                 
-                 {equipped.body === 'plate' && ( 
-                    <g stroke="#09090b" strokeWidth="1.5" fill="none">
-                        <path d="M124 340 C 135 345, 147 340, 147 340" />
-                        <path d="M124 370 C 135 375, 146 370, 146 370" />
-                        <path d="M176 340 C 165 345, 153 340, 153 340" />
-                        <path d="M176 370 C 165 375, 154 370, 154 370" />
-                    </g> 
-                 )}
-               </g>
-             )}
-          </g>
-        )}
-      </g>
-
-      <g id="pelvis" filter={s.pelvis.filter}>
-          {equipped.body !== 'robe' && (<path d={pelvisPath} fill={s.pelvis.fill} stroke={s.pelvis.stroke} strokeWidth="1.5" filter="url(#drop-shadow-sm)" />)}
-      </g>
-
-      <g id="torso" filter={s.torso.filter}>
-        <path d={torsoPath} fill={s.torso.fill} stroke={s.torso.stroke} strokeWidth="1.5" filter="url(#drop-shadow-sm)" />
-        
-        {/* Body Contour Details */}
-        {gender === 'female' && equipped.body !== 'plate' && ( 
-            <path d="M 128 115 C 135 128, 165 128, 172 115" stroke={s.torso.stroke} strokeWidth="1.5" fill="none" opacity="0.5" /> 
-        )}
-        {gender === 'male' && equipped.body !== 'plate' && (
-            <path d="M 135 105 C 145 115, 155 115, 165 105" stroke={s.torso.stroke} strokeWidth="1" fill="none" opacity="0.3" />
-        )}
-        {(equipped.body === 'tunic' || equipped.body === 'leather_armor') && ( 
-            <path d="M150 90 L 150 205" stroke={s.torso.stroke} strokeWidth="1.5" strokeDasharray="4 3" opacity="0.6" /> 
-        )}
-        {equipped.body === 'plate' && ( 
-            <g stroke="#09090b" strokeWidth="2" fill="none" opacity="0.8">
-                <path d="M 120 150 C 150 170, 180 150, 180 150" />
-                <path d="M 125 180 C 150 195, 175 180, 175 180" />
-                <circle cx="150" cy="120" r="15" fill="url(#metal-sheen)" />
-            </g>
-        )}
-      </g>
-
-      <g id="arms" filter={s.arms.filter}>
-        {/* Left Arm */}
-        <path d={`M 115 90 C 95 100, 90 140, 95 190 C 97 210, 110 215, 115 210 C 120 195, 125 140, 125 100 Z`} fill={s.arms.fill} stroke={s.arms.stroke} strokeWidth="1.5" filter="url(#drop-shadow-sm)" />
-        {/* Right Arm */}
-        <path d={`M 185 90 C 205 100, 210 140, 205 190 C 203 210, 190 215, 185 210 C 180 195, 175 140, 175 100 Z`} fill={s.arms.fill} stroke={s.arms.stroke} strokeWidth="1.5" filter="url(#drop-shadow-sm)" />
-        
-        {/* Pauldrons (Shoulder Armor) for Plate */}
-        {equipped.body === 'plate' && ( 
-            <g>
-                <path d="M 125 80 C 100 85, 90 110, 95 125 C 110 115, 125 105, 125 100 Z" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="1.5" filter="url(#drop-shadow-sm)" />
-                <path d="M 175 80 C 200 85, 210 110, 205 125 C 190 115, 175 105, 175 100 Z" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="1.5" filter="url(#drop-shadow-sm)" />
-            </g> 
-        )}
-      </g>
-
-      <g id="hands">
-         <circle cx="103" cy="215" r="9" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1.5" filter="url(#drop-shadow-sm)"/>
-         <circle cx="197" cy="215" r="9" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1.5" filter="url(#drop-shadow-sm)"/>
-      </g>
-
-      <g id="head" filter="url(#drop-shadow-sm)">
-        {/* Neck */}
-        {!wearingFullHelm && ( 
-            <path d="M 142 85 L 142 70 C 150 75, 158 70, 158 85 Z" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1" />
-        )}
-        
-        {/* Ears */}
-        {!wearingFullHelm && ( 
-            <g>
-                <ellipse cx="132" cy="55" rx="4" ry="7" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1" transform="rotate(-15, 132, 55)" />
-                <ellipse cx="168" cy="55" rx="4" ry="7" fill="url(#skin-gradient)" stroke={skin.shadow} strokeWidth="1" transform="rotate(15, 168, 55)" />
-            </g> 
-        )}
-
-        {/* Base Head Shape */}
-        {headPath ? ( <path d={headPath} fill={s.head.fill} stroke={s.head.stroke} strokeWidth="1.5" /> ) : ( <ellipse cx="150" cy="50" rx="18" ry="24" fill={s.head.fill} stroke={s.head.stroke} strokeWidth="1.5" /> )}
-        
-        {!wearingFullHelm && (
-           <g id="face-features">
-             {/* Eyebrows */}
-             <path d="M136 44 C 140 41, 144 41, 147 44" stroke="#1c1917" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.9" />
-             <path d="M153 44 C 156 41, 160 41, 164 44" stroke="#1c1917" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.9" />
-             
-             {/* Eyes */}
-             <circle cx="142" cy="50" r="2.5" fill={isAlive ? eyes : '#1c1917'} stroke="#000" strokeWidth="0.5" />
-             <circle cx="158" cy="50" r="2.5" fill={isAlive ? eyes : '#1c1917'} stroke="#000" strokeWidth="0.5" />
-             {isAlive && ( 
-                <>
-                    <circle cx="143" cy="49" r="0.8" fill="#fff" opacity="0.8" />
-                    <circle cx="159" cy="49" r="0.8" fill="#fff" opacity="0.8" />
-                </> 
-             )}
-             
-             {/* Eyelashes for female */}
-             {gender === 'female' && ( 
-                <g stroke="#1c1917" strokeWidth="1.5" strokeLinecap="round">
-                    <path d="M139.5 49 L 138 47" /><path d="M160.5 49 L 162 47" />
-                </g> 
-             )}
-             
-             {/* Nose */}
-             {isAlive ? ( 
-                <path d="M150 50 L 148 60 C 150 62, 152 62, 152 60" fill="none" stroke={skin.shadow} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /> 
-             ) : ( 
-                <path d="M150 50 L 148 60 C 150 62, 152 62, 152 60" fill="none" stroke="#444" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /> 
-             )}
-             
-             {/* Mouth */}
-             {isAlive ? ( 
-                <path d="M144 68 C 150 72, 156 68, 156 68" stroke={skin.shadow} strokeWidth="1.5" fill="none" strokeLinecap="round" /> 
-             ) : ( 
-                <path d="M144 70 C 150 68, 156 70, 156 70" stroke="#444" strokeWidth="1.5" fill="none" strokeLinecap="round" /> 
-             )}
-
-             {/* Hair Sub-layer */}
-             {!wearingHat && hairStyle !== 'bald' && (
-                <>
-                  {hairStyle === 'short' && ( 
-                      <path d="M150 25 C 175 25, 172 50, 170 60 L 165 45 C 150 35, 135 45, 130 60 C 128 50, 125 25, 150 25" fill={hair} filter="url(#drop-shadow-sm)" /> 
-                  )}
-                  {hairStyle !== 'long' && hairStyle !== 'short' && ( 
-                      <path d="M150 25 C 175 25, 172 50, 170 60 L 165 45 C 150 35, 135 45, 130 60 C 128 50, 125 25, 150 25" fill={hair} filter="url(#drop-shadow-sm)" /> 
-                  )}
-                </>
-             )}
-             {hairStyle === 'long' && (
-                <g filter="url(#drop-shadow-sm)">
-                   <path d="M130 40 C 120 70, 120 95, 140 95 C 135 70, 135 50, 135 40 Z" fill={hair} />
-                   <path d="M170 40 C 180 70, 180 95, 160 95 C 165 70, 165 50, 165 40 Z" fill={hair} />
-                   {!wearingHat && ( 
-                       <path d="M150 25 C 180 25, 175 60, 170 95 C 160 95, 160 50, 160 45 C 150 35, 140 45, 140 50 C 140 50, 140 95, 130 95 C 125 60, 120 25, 150 25" fill={hair} /> 
-                   )}
-                </g>
-             )}
-
-             {/* Head Equipment */}
-             {equipped.head === 'leather_cap' && ( 
-                 <path d="M118 45 C 150 -5, 182 45, 182 50 C 175 45, 125 45, 118 50 Z" fill="#451a03" stroke="#271c19" strokeWidth="1.5" filter="url(#drop-shadow-sm)" /> 
-             )}
-             {equipped.head === 'wizard_hat' && ( 
-                 <g transform="translate(150, 35)" filter="url(#drop-shadow-sm)"> 
-                     <ellipse cx="0" cy="0" rx="38" ry="10" fill="#1e1b4b" stroke="#0f172a" strokeWidth="1.5" />
-                     <path d="M-20 0 L -5 -80 L 5 -80 L 20 0 Z" fill="#1e1b4b" stroke="#0f172a" strokeWidth="1.5" />
-                     <path d="M-20 0 C 0 10, 20 0, 20 0" fill="none" stroke="#4338ca" strokeWidth="2" />
-                 </g> 
-             )}
-             {equipped.head === 'crown' && ( 
-                 <path d="M132 40 L 138 25 L 150 42 L 162 25 L 168 40 C 150 48, 132 40, 132 40 Z" fill="url(#gold-sheen)" stroke="#713f12" strokeWidth="1.5" strokeLinejoin="round" filter="url(#drop-shadow-sm)" /> 
-             )}
-           </g>
-        )}
-        {wearingFullHelm && (
-           <g filter="url(#drop-shadow-sm)">
-             <path d="M127 25 C 150 15, 173 25, 175 70 C 150 85, 125 70, 127 25 Z" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="2" />
-             <path d="M128 45 L 172 45" stroke="#09090b" strokeWidth="3" />
-             <path d="M129 55 L 171 55" stroke="#09090b" strokeWidth="2" />
-             <line x1="150" y1="25" x2="150" y2="75" stroke="#09090b" strokeWidth="2" opacity="0.6" />
-           </g>
-        )}
-      </g>
-
-      <g id="main-hand" transform="translate(205, 200) rotate(45)" filter="url(#drop-shadow-sm)">
-        {equipped.mainHand === 'sword' && ( 
-            <g transform="scale(1.75) translate(0, 5)">
-                <line x1="0" y1="10" x2="0" y2="-10" stroke="#451a03" strokeWidth="2.5" strokeLinecap="round" /> 
-                <circle cx="0" cy="12" r="3" fill="#ca8a04" stroke="#713f12" strokeWidth="0.5"/>
-                <path d="M-12 -12 L 12 -12 L 10 -15 L -10 -15 Z" fill="#71717a" stroke="#18181b" strokeWidth="0.5" />
-                <path d="M-4 -15 L 4 -15 L 3 -80 L 0 -90 L -3 -80 Z" fill="url(#metal-sheen)" stroke="#18181b" strokeWidth="0.5"/>
-                <line x1="0" y1="-15" x2="0" y2="-80" stroke="#18181b" strokeWidth="0.5" opacity="0.6" />
-            </g> 
-        )}
-        {equipped.mainHand === 'axe' && ( 
-            <g>
-                <rect x="-3" y="-15" width="6" height="120" fill="#451a03" rx="2" transform="translate(0, -40)" stroke="#1c1917" strokeWidth="1" /> 
-                <g transform="translate(0, -70)">
-                    <rect x="-6" y="-15" width="12" height="30" fill="#71717a" stroke="#18181b" rx="2" />
-                    <path d="M 6 -15 L 30 -20 C 40 0, 40 20, 30 20 L 6 15 Z" fill="url(#metal-sheen)" stroke="#18181b" strokeWidth="1.5" strokeLinejoin="round" />
-                    <path d="M -6 -15 L -30 -20 C -40 0, -40 20, -30 20 L -6 15 Z" fill="url(#metal-sheen)" stroke="#18181b" strokeWidth="1.5" strokeLinejoin="round" />
-                </g>
-            </g> 
-        )}
-        {equipped.mainHand === 'staff' && ( 
-            <g>
-                <path d="M -3 -80 Q -5 -40, -3 70 L 3 70 Q 5 -40, 3 -80 Z" fill="#451a03" stroke="#271c19" strokeWidth="1.5" />
-                <circle cx="0" cy="-85" r="12" fill="url(#gold-sheen)" stroke="#713f12" strokeWidth="1" />
-                <circle cx="0" cy="-85" r="7" fill="#10b981" className="animate-pulse" shadow="0 0 10px #10b981" />
-            </g> 
-        )}
-        {equipped.mainHand === 'dagger' && ( 
-            <g transform="scale(1.5)">
-                <line x1="0" y1="8" x2="0" y2="-8" stroke="#451a03" strokeWidth="2" strokeLinecap="round" />
-                <circle cx="0" cy="10" r="2" fill="#ca8a04" stroke="#713f12" strokeWidth="0.5" />
-                <rect x="-6" y="-10" width="12" height="3" fill="#71717a" stroke="#18181b" rx="1" />
-                <path d="M-3 -10 L 3 -10 L 0 -40 Z" fill="url(#metal-sheen)" stroke="#18181b" strokeWidth="0.5"/>
-            </g> 
-        )}
-        {equipped.mainHand === 'hammer' && ( 
-            <g transform="scale(1.2)">
-                <rect x="-4" y="-10" width="8" height="90" fill="#451a03" transform="translate(0, -30)" stroke="#1c1917" strokeWidth="1" rx="2" /> 
-                <g transform="translate(0, -50)">
-                    <rect x="-20" y="-15" width="40" height="24" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="2" rx="3" />
-                    <rect x="-25" y="-10" width="50" height="14" fill="#a1a1aa" stroke="#09090b" strokeWidth="1" rx="1" />
-                </g>
-            </g> 
-        )}
-      </g>
-
-      <g id="off-hand" transform="translate(95, 200) rotate(10)" filter="url(#drop-shadow-sm)">
-         {equipped.offHand === 'wooden_shield' && ( 
-            <g transform="translate(-25, -20)">
-                <circle cx="20" cy="20" r="28" fill="#451a03" stroke="#271c19" strokeWidth="4" filter="url(#leather-noise)"/>
-                <circle cx="20" cy="20" r="28" fill="none" stroke="#a1a1aa" strokeWidth="2" strokeDasharray="10 5" opacity="0.5" />
-                <circle cx="20" cy="20" r="6" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="1.5" />
-            </g> 
-         )}
-         {equipped.offHand === 'tower_shield' && ( 
-            <g transform="translate(-20, -50)">
-                <path d="M-5 0 L 45 0 L 45 85 L 20 100 L -5 85 Z" fill="url(#metal-sheen)" stroke="#09090b" strokeWidth="3" strokeLinejoin="round" />
-                <path d="M0 5 L 40 5 L 40 82 L 20 95 L 0 82 Z" fill="none" stroke="#18181b" strokeWidth="2" opacity="0.5" />
-                <path d="M 20 5 L 20 95" stroke="#18181b" strokeWidth="2" opacity="0.5" />
-            </g> 
-         )}
-         {equipped.offHand === 'orb' && ( 
-            <g transform="translate(0, -10)">
-                <circle cx="0" cy="0" r="24" fill="#4f46e5" fillOpacity="0.8" stroke="#312e81" strokeWidth="2" filter="blur(1px)" />
-                <circle cx="-5" cy="-5" r="8" fill="#c7d2fe" opacity="0.6" filter="blur(2px)" />
-                <circle cx="0" cy="0" r="28" fill="none" stroke="#a5b4fc" strokeWidth="1" className="animate-spin-slow" strokeDasharray="8 6"/>
-                <circle cx="0" cy="0" r="32" fill="none" stroke="#6366f1" strokeWidth="0.5" className="animate-spin-slow" strokeDasharray="4 8" style={{animationDirection: 'reverse'}}/>
-            </g> 
-         )}
-      </g>
-    </svg>
+    <canvas 
+        ref={canvasRef} 
+        width={400} 
+        height={600} 
+        className="w-full h-full object-contain" 
+        style={{ filter: 'drop-shadow(0px 15px 25px rgba(0,0,0,0.8))' }} 
+    />
   );
 };
 
@@ -489,7 +289,7 @@ const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppea
         <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
             <div className="w-full md:w-1/3 bg-gradient-to-b from-slate-900 to-slate-950 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-800 relative">
                 <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
-                <div className="w-48 h-72"><CharacterSVG equipped={equipped} appearance={appearance} isAlive={true} /></div>
+                <div className="w-48 h-72"><CharacterCanvas equipped={equipped} isAlive={true} /></div>
             </div>
             <div className="flex-1 p-6 flex flex-col bg-slate-900/50">
                 <div className="flex gap-4 mb-6 border-b border-slate-800">
@@ -671,7 +471,6 @@ const App = () => {
               {metersContent}
           </div>
           
-          {/* Moved Trait Box to below the stats on Desktop */}
           {quirk && (
               <div className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-2 py-2.5 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-center text-center w-full animate-in fade-in zoom-in duration-500">
                   <span className="text-[8px] text-indigo-400 uppercase tracking-widest mb-1 border-b border-indigo-500/30 pb-0.5 w-full">Trait</span>
@@ -680,7 +479,6 @@ const App = () => {
           )}
       </div>
       
-      {/* Moved Trait Box for Mobile (Bottom Left) */}
       <div className="md:hidden absolute bottom-24 left-4 z-20 pointer-events-auto">
          {quirk && (
             <div className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-3 py-2 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-start text-left max-w-[120px] animate-in fade-in zoom-in duration-500">
@@ -690,7 +488,7 @@ const App = () => {
          )}
       </div>
 
-      {/* Main Character Layer */}
+      {/* Main Character Layer (Now using Canvas) */}
       <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[160px] pb-[100px] md:pt-[100px] md:pb-[40px] pointer-events-none">
           {isDead && (
              <div className="absolute inset-0 bg-red-950/90 z-40 flex flex-col items-center justify-center backdrop-blur-md pointer-events-auto">
@@ -701,10 +499,10 @@ const App = () => {
              </div>
           )}
           
-          {/* Main SVG Container */}
+          {/* Main Canvas Container */}
           <div className="w-full h-full flex items-end justify-center transition-all duration-500">
              <div className="w-auto h-full max-h-[600px] aspect-[2/3] max-w-[95vw]">
-                <CharacterSVG equipped={equipped} appearance={appearance} isAlive={!isDead} />
+                <CharacterCanvas equipped={equipped} isAlive={!isDead} />
              </div>
           </div>
       </div>
