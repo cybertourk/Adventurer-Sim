@@ -101,11 +101,46 @@ const InnRoomBackground = () => (
 
 const getBackground = (locationId) => locationId === 'inn_room' ? InnRoomBackground : VillageRoadBackground;
 
-// NEW: HTML5 Canvas Engine Component
-const CharacterCanvas = ({ equipped, isAlive }) => {
+// UPDATED: HTML5 Canvas Engine loading actual 2D Sprites
+const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
   const canvasRef = useRef(null);
+  const imagesRef = useRef({});
+  const [imagesLoaded, setImagesLoaded] = useState(false);
 
+  // Preload all available sprite layers
   useEffect(() => {
+    const sources = {
+      base_male: '/gen-9249161c-28da-4ec4-bd8d-e71ec7a02625.png',
+      base_female: '/gen-7331ffd7-6d85-4442-8b45-4213251a715a.png',
+      leather_armor: '/gen-b4d3cd2d-c926-48aa-a000-656930f60443.png'
+    };
+
+    let loadedCount = 0;
+    const totalImages = Object.keys(sources).length;
+
+    Object.entries(sources).forEach(([key, src]) => {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        imagesRef.current[key] = img;
+        loadedCount++;
+        if (loadedCount === totalImages) {
+          setImagesLoaded(true);
+        }
+      };
+      // Fallback in case an image fails to load so the game doesn't freeze
+      img.onerror = () => {
+        console.warn(`Failed to load sprite: ${src}`);
+        loadedCount++;
+        if (loadedCount === totalImages) setImagesLoaded(true);
+      };
+    });
+  }, []);
+
+  // Main Game Loop Render
+  useEffect(() => {
+    if (!imagesLoaded) return;
+    
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     let animationFrameId;
@@ -114,114 +149,43 @@ const CharacterCanvas = ({ equipped, isAlive }) => {
       // 1. Clear the canvas frame for transparency
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      // Apply death state visual filter
       if (!isAlive) {
           ctx.filter = 'grayscale(100%) opacity(50%)';
       } else {
           ctx.filter = 'none';
       }
 
-      // 2. Setup Base Coordinates
-      const centerX = canvas.width / 2;
-      const centerY = canvas.height * 0.6; // Anchor point at the hips
-
-      // --- DRAW BASE CHARACTER PLACEHOLDER ---
-      // Base Skin/Body Color (Ash/Pale)
-      ctx.fillStyle = '#e5e5e5';
+      // 2. Draw Base Body Layer (Bottom-most layer)
+      const baseKey = appearance.gender === 'female' ? 'base_female' : 'base_male';
+      const baseImage = imagesRef.current[baseKey];
       
-      // Draw Head
-      ctx.beginPath();
-      ctx.arc(centerX, centerY - 130, 25, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Draw Base Torso
-      ctx.fillRect(centerX - 25, centerY - 100, 50, 90);
-
-      // Draw Base Legs
-      ctx.fillRect(centerX - 20, centerY - 10, 15, 100); // Left Leg
-      ctx.fillRect(centerX + 5, centerY - 10, 15, 100);  // Right Leg
-
-      // Draw Base Arms
-      ctx.fillRect(centerX - 40, centerY - 100, 15, 80); // Left Arm
-      ctx.fillRect(centerX + 25, centerY - 100, 15, 80); // Right Arm
-
-
-      // --- DRAW EQUIPMENT PLACEHOLDERS ---
-      
-      // Body Armor
-      if (equipped.body !== 'none' && equipped.body !== 'tunic') {
-          // Darker, gothic-inspired tones for armor
-          if (equipped.body === 'leather_armor') ctx.fillStyle = '#271c19'; 
-          else if (equipped.body === 'chainmail') ctx.fillStyle = '#27272a';
-          else if (equipped.body === 'plate') ctx.fillStyle = '#18181b';
-          else if (equipped.body === 'robe') ctx.fillStyle = '#1e1b4b'; // Deep violet
-
-          ctx.fillRect(centerX - 28, centerY - 102, 56, 94); // Slightly larger than base torso
+      if (baseImage) {
+          // Calculate scaling to perfectly fit the canvas height while maintaining aspect ratio
+          const scale = canvas.height / baseImage.height;
+          const drawWidth = baseImage.width * scale;
+          const drawX = (canvas.width - drawWidth) / 2; // Centers the sprite
           
-          if (equipped.body === 'robe') {
-             ctx.fillRect(centerX - 28, centerY - 10, 56, 90); // Robe skirt
-          }
-      } else {
-          // Tunic default
-          ctx.fillStyle = '#71717a'; 
-          ctx.fillRect(centerX - 26, centerY - 101, 52, 92);
+          ctx.drawImage(baseImage, drawX, 0, drawWidth, canvas.height);
       }
 
-      // Head Equipment
-      if (equipped.head !== 'none') {
-          if (equipped.head === 'leather_cap') {
-              ctx.fillStyle = '#271c19';
-              ctx.beginPath();
-              ctx.arc(centerX, centerY - 135, 26, Math.PI, 0);
-              ctx.fill();
-          } else if (equipped.head === 'iron_helm') {
-              ctx.fillStyle = '#18181b';
-              ctx.fillRect(centerX - 27, centerY - 157, 54, 54);
-          } else if (equipped.head === 'wizard_hat') {
-              ctx.fillStyle = '#1e1b4b';
-              ctx.fillRect(centerX - 40, centerY - 145, 80, 10); // Brim
-              ctx.beginPath();
-              ctx.moveTo(centerX - 20, centerY - 145);
-              ctx.lineTo(centerX + 20, centerY - 145);
-              ctx.lineTo(centerX, centerY - 220); // Point
-              ctx.fill();
+      // 3. Draw Equipment Layers (Stacked on top)
+      if (equipped.body === 'leather_armor') {
+          const armorImage = imagesRef.current['leather_armor'];
+          if (armorImage) {
+              const scale = canvas.height / armorImage.height;
+              const drawWidth = armorImage.width * scale;
+              const drawX = (canvas.width - drawWidth) / 2;
+              
+              ctx.drawImage(armorImage, drawX, 0, drawWidth, canvas.height);
           }
       }
 
-      // Main Hand Weapon
-      if (equipped.mainHand !== 'none' && equipped.mainHand !== 'fist') {
-          // Deep crimson/charcoal weapons
-          ctx.fillStyle = equipped.mainHand === 'sword' ? '#52525b' : '#3f2307';
-          
-          if (equipped.mainHand === 'staff') {
-              ctx.fillRect(centerX + 28, centerY - 150, 8, 160);
-          } else if (equipped.mainHand === 'sword' || equipped.mainHand === 'dagger') {
-              const height = equipped.mainHand === 'sword' ? 70 : 30;
-              ctx.fillRect(centerX + 28, centerY - 20 - height, 8, height); // Blade
-              ctx.fillStyle = '#ca8a04'; // Gold hilt
-              ctx.fillRect(centerX + 22, centerY - 20, 20, 6);
-          } else if (equipped.mainHand === 'axe' || equipped.mainHand === 'hammer') {
-              ctx.fillRect(centerX + 28, centerY - 80, 8, 90); // Handle
-              ctx.fillStyle = '#27272a';
-              ctx.fillRect(centerX + 18, centerY - 80, 28, 20); // Head
-          }
-      }
+      // NOTE: You can add more stacking layers here as you generate them in Ludo
+      // e.g. if (equipped.head === 'iron_helm') { draw iron_helm.png }
+      // e.g. if (equipped.mainHand === 'sword') { draw sword.png }
 
-      // Off Hand Shield/Item
-      if (equipped.offHand !== 'none') {
-          if (equipped.offHand === 'wooden_shield' || equipped.offHand === 'tower_shield') {
-              ctx.fillStyle = equipped.offHand === 'tower_shield' ? '#18181b' : '#271c19';
-              const width = equipped.offHand === 'tower_shield' ? 30 : 40;
-              const height = equipped.offHand === 'tower_shield' ? 70 : 40;
-              ctx.fillRect(centerX - 50, centerY - 40, width, height);
-          } else if (equipped.offHand === 'orb') {
-              ctx.fillStyle = '#4f46e5'; // Void purple/blue
-              ctx.beginPath();
-              ctx.arc(centerX - 35, centerY - 20, 15, 0, Math.PI * 2);
-              ctx.fill();
-          }
-      }
-
-      // 3. Request next frame to keep the loop running
+      // Request next frame to keep the loop running
       animationFrameId = requestAnimationFrame(render);
     };
 
@@ -231,7 +195,7 @@ const CharacterCanvas = ({ equipped, isAlive }) => {
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [equipped, isAlive]);
+  }, [equipped, appearance, isAlive, imagesLoaded]);
 
   return (
     <canvas 
@@ -289,7 +253,7 @@ const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppea
         <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
             <div className="w-full md:w-1/3 bg-gradient-to-b from-slate-900 to-slate-950 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-800 relative">
                 <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
-                <div className="w-48 h-72"><CharacterCanvas equipped={equipped} isAlive={true} /></div>
+                <div className="w-48 h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} /></div>
             </div>
             <div className="flex-1 p-6 flex flex-col bg-slate-900/50">
                 <div className="flex gap-4 mb-6 border-b border-slate-800">
@@ -488,7 +452,7 @@ const App = () => {
          )}
       </div>
 
-      {/* Main Character Layer (Now using Canvas) */}
+      {/* Main Character Layer */}
       <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[160px] pb-[100px] md:pt-[100px] md:pb-[40px] pointer-events-none">
           {isDead && (
              <div className="absolute inset-0 bg-red-950/90 z-40 flex flex-col items-center justify-center backdrop-blur-md pointer-events-auto">
@@ -502,7 +466,7 @@ const App = () => {
           {/* Main Canvas Container */}
           <div className="w-full h-full flex items-end justify-center transition-all duration-500">
              <div className="w-auto h-full max-h-[600px] aspect-[2/3] max-w-[95vw]">
-                <CharacterCanvas equipped={equipped} isAlive={!isDead} />
+                <CharacterCanvas equipped={equipped} appearance={appearance} isAlive={!isDead} />
              </div>
           </div>
       </div>
