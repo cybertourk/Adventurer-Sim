@@ -109,10 +109,13 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
 
   // Preload all available sprite layers
   useEffect(() => {
+    // We append Vite's BASE_URL to the paths so it resolves properly on GitHub Pages
+    const baseUrl = import.meta.env.BASE_URL; 
+    
     const sources = {
-      base_male: '/gen-9249161c-28da-4ec4-bd8d-e71ec7a02625.png',
-      base_female: '/gen-7331ffd7-6d85-4442-8b45-4213251a715a.png',
-      leather_armor: '/gen-b4d3cd2d-c926-48aa-a000-656930f60443.png'
+      base_male: `${baseUrl}gen-9249161c-28da-4ec4-bd8d-e71ec7a02625.png`,
+      base_female: `${baseUrl}gen-7331ffd7-6d85-4442-8b45-4213251a715a.png`,
+      leather_armor: `${baseUrl}gen-b4d3cd2d-c926-48aa-a000-656930f60443.png`
     };
 
     let loadedCount = 0;
