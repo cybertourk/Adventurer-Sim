@@ -112,10 +112,10 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
     // We append Vite's BASE_URL to the paths so it resolves properly on GitHub Pages
     const baseUrl = import.meta.env.BASE_URL; 
     
+    // Updated to use your new bald base, long black hair, and fixed extensions
     const sources = {
-      base_male: `${baseUrl}gen-9249161c-28da-4ec4-bd8d-e71ec7a02625.png`,
-      base_female: `${baseUrl}gen-7331ffd7-6d85-4442-8b45-4213251a715a.png`,
-      leather_armor: `${baseUrl}gen-b4d3cd2d-c926-48aa-a000-656930f60443.png`
+      base_male_pale: `${baseUrl}base_male_pale.png`,
+      hair_long_black: `${baseUrl}hair_long_black.png`
     };
 
     let loadedCount = 0;
@@ -160,8 +160,9 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       }
 
       // 2. Draw Base Body Layer (Bottom-most layer)
-      const baseKey = appearance.gender === 'female' ? 'base_female' : 'base_male';
-      const baseImage = imagesRef.current[baseKey];
+      const baseKey = `base_${appearance.gender}_${appearance.skinTone}`;
+      // Fallback to our male pale test image if the player selects an option we haven't uploaded yet
+      const baseImage = imagesRef.current[baseKey] || imagesRef.current['base_male_pale'];
       
       if (baseImage) {
           // Calculate scaling to perfectly fit the canvas height while maintaining aspect ratio
@@ -172,7 +173,25 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           ctx.drawImage(baseImage, drawX, 0, drawWidth, canvas.height);
       }
 
-      // 3. Draw Equipment Layers (Stacked on top)
+      // 3. Draw Hair Layer (Stacked on top of base)
+      // Check if they are wearing a full helmet that would hide the hair
+      const wearingFullHelm = equipped.head === 'iron_helm';
+      
+      if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
+          const hairKey = `hair_${appearance.hairStyle}_${appearance.hairColor}`;
+          // Only draw if the specific hair file is found (e.g. hair_long_black)
+          const hairImage = imagesRef.current[hairKey];
+          
+          if (hairImage) {
+              const scale = canvas.height / hairImage.height;
+              const drawWidth = hairImage.width * scale;
+              const drawX = (canvas.width - drawWidth) / 2;
+              
+              ctx.drawImage(hairImage, drawX, 0, drawWidth, canvas.height);
+          }
+      }
+
+      // 4. Draw Equipment Layers (Stacked on top)
       if (equipped.body === 'leather_armor') {
           const armorImage = imagesRef.current['leather_armor'];
           if (armorImage) {
@@ -183,10 +202,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
               ctx.drawImage(armorImage, drawX, 0, drawWidth, canvas.height);
           }
       }
-
-      // NOTE: You can add more stacking layers here as you generate them in Ludo
-      // e.g. if (equipped.head === 'iron_helm') { draw iron_helm.png }
-      // e.g. if (equipped.mainHand === 'sword') { draw sword.png }
 
       // Request next frame to keep the loop running
       animationFrameId = requestAnimationFrame(render);
@@ -455,7 +470,7 @@ const App = () => {
          )}
       </div>
 
-      {/* Main Character Layer */}
+      {/* Main Character Layer (Now using Canvas) */}
       <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[160px] pb-[100px] md:pt-[100px] md:pb-[40px] pointer-events-none">
           {isDead && (
              <div className="absolute inset-0 bg-red-950/90 z-40 flex flex-col items-center justify-center backdrop-blur-md pointer-events-auto">
