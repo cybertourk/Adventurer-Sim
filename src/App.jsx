@@ -112,14 +112,19 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
     // We append Vite's BASE_URL to the paths so it resolves properly on GitHub Pages
     const baseUrl = import.meta.env.BASE_URL; 
     
-    // Wire up all the newly created male bases
+    // Wire up all the newly created male bases and long hair variants
     const sources = {
       base_male_pale: `${baseUrl}base_male_pale.png`,
       base_male_fair: `${baseUrl}base_male_fair.png`,
       base_male_tan: `${baseUrl}base_male_tan.png`,
       base_male_dark: `${baseUrl}base_male_dark.png`,
       base_male_deep: `${baseUrl}base_male_deep.png`,
-      hair_long_black: `${baseUrl}hair_long_black.png`
+      hair_long_black: `${baseUrl}hair_long_black.png`,
+      hair_long_blonde: `${baseUrl}hair_long_blonde.png`,
+      hair_long_brown: `${baseUrl}hair_long_brown.png`,
+      hair_long_grey: `${baseUrl}hair_long_grey.png`,
+      hair_long_red: `${baseUrl}hair_long_red.png`,
+      hair_long_white: `${baseUrl}hair_long_white.png`
     };
 
     let loadedCount = 0;
@@ -183,7 +188,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
           const hairKey = `hair_${appearance.hairStyle}_${appearance.hairColor}`;
-          // Only draw if the specific hair file is found (e.g. hair_long_black)
+          // Only draw if the specific hair file is found
           const hairImage = imagesRef.current[hairKey];
           
           if (hairImage) {
@@ -192,18 +197,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
               const drawX = (canvas.width - drawWidth) / 2;
               
               ctx.drawImage(hairImage, drawX, 0, drawWidth, canvas.height);
-          }
-      }
-
-      // 4. Draw Equipment Layers (Stacked on top)
-      if (equipped.body === 'leather_armor') {
-          const armorImage = imagesRef.current['leather_armor'];
-          if (armorImage) {
-              const scale = canvas.height / armorImage.height;
-              const drawWidth = armorImage.width * scale;
-              const drawX = (canvas.width - drawWidth) / 2;
-              
-              ctx.drawImage(armorImage, drawX, 0, drawWidth, canvas.height);
           }
       }
 
