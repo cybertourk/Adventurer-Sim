@@ -112,9 +112,13 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
     // We append Vite's BASE_URL to the paths so it resolves properly on GitHub Pages
     const baseUrl = import.meta.env.BASE_URL; 
     
-    // Updated to use your new bald base, long black hair, and fixed extensions
+    // Wire up all the newly created male bases
     const sources = {
       base_male_pale: `${baseUrl}base_male_pale.png`,
+      base_male_fair: `${baseUrl}base_male_fair.png`,
+      base_male_tan: `${baseUrl}base_male_tan.png`,
+      base_male_dark: `${baseUrl}base_male_dark.png`,
+      base_male_deep: `${baseUrl}base_male_deep.png`,
       hair_long_black: `${baseUrl}hair_long_black.png`
     };
 
