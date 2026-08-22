@@ -109,28 +109,32 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
 
   // Preload all available sprite layers
   useEffect(() => {
-    // We append Vite's BASE_URL to the paths so it resolves properly on GitHub Pages
     const baseUrl = import.meta.env.BASE_URL; 
     
-    // Wire up all the male bases and both long/short hair variants
+    // Added the female base and the female hair test file
     const sources = {
       base_male_pale: `${baseUrl}base_male_pale.png`,
       base_male_fair: `${baseUrl}base_male_fair.png`,
       base_male_tan: `${baseUrl}base_male_tan.png`,
       base_male_dark: `${baseUrl}base_male_dark.png`,
       base_male_deep: `${baseUrl}base_male_deep.png`,
+      base_female_pale: `${baseUrl}base_female_pale.png`,
+      
       hair_long_black: `${baseUrl}hair_long_black.png`,
       hair_long_blonde: `${baseUrl}hair_long_blonde.png`,
       hair_long_brown: `${baseUrl}hair_long_brown.png`,
       hair_long_grey: `${baseUrl}hair_long_grey.png`,
       hair_long_red: `${baseUrl}hair_long_red.png`,
       hair_long_white: `${baseUrl}hair_long_white.png`,
+      
       hair_short_black: `${baseUrl}hair_short_black.png`,
       hair_short_blonde: `${baseUrl}hair_short_blonde.png`,
       hair_short_brown: `${baseUrl}hair_short_brown.png`,
       hair_short_grey: `${baseUrl}hair_short_grey.png`,
       hair_short_red: `${baseUrl}hair_short_red.png`,
-      hair_short_white: `${baseUrl}hair_short_white.png`
+      hair_short_white: `${baseUrl}hair_short_white.png`,
+      
+      hair_female_long_black: `${baseUrl}hair_long_black_2.png` // Temporarily wired to your test file
     };
 
     let loadedCount = 0;
@@ -164,37 +168,42 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
     let animationFrameId;
 
     const render = () => {
-      // 1. Clear the canvas frame for transparency
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Apply death state visual filter
       if (!isAlive) {
           ctx.filter = 'grayscale(100%) opacity(50%)';
       } else {
           ctx.filter = 'none';
       }
 
-      // 2. Draw Base Body Layer (Bottom-most layer)
+      // 2. Draw Base Body Layer
       const baseKey = `base_${appearance.gender}_${appearance.skinTone}`;
-      // Fallback to our male pale test image if the player selects an option we haven't uploaded yet
-      const baseImage = imagesRef.current[baseKey] || imagesRef.current['base_male_pale'];
+      
+      // Smart Fallback: If they pick a female skin tone we haven't uploaded yet, default to female pale.
+      let baseImage = imagesRef.current[baseKey];
+      if (!baseImage) {
+          baseImage = appearance.gender === 'female' 
+              ? imagesRef.current['base_female_pale'] 
+              : imagesRef.current['base_male_pale'];
+      }
       
       if (baseImage) {
-          // Calculate scaling to perfectly fit the canvas height while maintaining aspect ratio
           const scale = canvas.height / baseImage.height;
           const drawWidth = baseImage.width * scale;
-          const drawX = (canvas.width - drawWidth) / 2; // Centers the sprite
-          
+          const drawX = (canvas.width - drawWidth) / 2;
           ctx.drawImage(baseImage, drawX, 0, drawWidth, canvas.height);
       }
 
-      // 3. Draw Hair Layer (Stacked on top of base)
-      // Check if they are wearing a full helmet that would hide the hair
+      // 3. Draw Hair Layer (With gender-specific toggle)
       const wearingFullHelm = equipped.head === 'iron_helm';
       
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
-          const hairKey = `hair_${appearance.hairStyle}_${appearance.hairColor}`;
-          // Only draw if the specific hair file is found
+          let hairKey = `hair_${appearance.hairStyle}_${appearance.hairColor}`;
+          
+          if (appearance.gender === 'female') {
+              hairKey = `hair_female_${appearance.hairStyle}_${appearance.hairColor}`;
+          }
+
           const hairImage = imagesRef.current[hairKey];
           
           if (hairImage) {
@@ -206,7 +215,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           }
       }
 
-      // 4. Draw Equipment Layers (Stacked on top)
+      // 4. Draw Equipment Layers
       if (equipped.body === 'leather_armor') {
           const armorImage = imagesRef.current['leather_armor'];
           if (armorImage) {
@@ -218,13 +227,11 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           }
       }
 
-      // Request next frame to keep the loop running
       animationFrameId = requestAnimationFrame(render);
     };
 
     render();
 
-    // Cleanup loop when component unmounts
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
