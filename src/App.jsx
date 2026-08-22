@@ -112,7 +112,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
     // We append Vite's BASE_URL to the paths so it resolves properly on GitHub Pages
     const baseUrl = import.meta.env.BASE_URL; 
     
-    // Wire up all the newly created male bases and long hair variants
+    // Wire up all the male bases and both long/short hair variants
     const sources = {
       base_male_pale: `${baseUrl}base_male_pale.png`,
       base_male_fair: `${baseUrl}base_male_fair.png`,
@@ -124,7 +124,13 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       hair_long_brown: `${baseUrl}hair_long_brown.png`,
       hair_long_grey: `${baseUrl}hair_long_grey.png`,
       hair_long_red: `${baseUrl}hair_long_red.png`,
-      hair_long_white: `${baseUrl}hair_long_white.png`
+      hair_long_white: `${baseUrl}hair_long_white.png`,
+      hair_short_black: `${baseUrl}hair_short_black.png`,
+      hair_short_blonde: `${baseUrl}hair_short_blonde.png`,
+      hair_short_brown: `${baseUrl}hair_short_brown.png`,
+      hair_short_grey: `${baseUrl}hair_short_grey.png`,
+      hair_short_red: `${baseUrl}hair_short_red.png`,
+      hair_short_white: `${baseUrl}hair_short_white.png`
     };
 
     let loadedCount = 0;
@@ -197,6 +203,18 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
               const drawX = (canvas.width - drawWidth) / 2;
               
               ctx.drawImage(hairImage, drawX, 0, drawWidth, canvas.height);
+          }
+      }
+
+      // 4. Draw Equipment Layers (Stacked on top)
+      if (equipped.body === 'leather_armor') {
+          const armorImage = imagesRef.current['leather_armor'];
+          if (armorImage) {
+              const scale = canvas.height / armorImage.height;
+              const drawWidth = armorImage.width * scale;
+              const drawX = (canvas.width - drawWidth) / 2;
+              
+              ctx.drawImage(armorImage, drawX, 0, drawWidth, canvas.height);
           }
       }
 
