@@ -120,8 +120,8 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       base_male_dark: `${baseUrl}base_male_dark.png`,
       base_male_deep: `${baseUrl}base_male_deep.png`,
       
-      // Female Bases (Using _2 for pale per your file list, but naming it standard internally)
-      base_female_pale: `${baseUrl}base_female_pale_2.png`, 
+      // Female Bases (Standardized removing the _2)
+      base_female_pale: `${baseUrl}base_female_pale.png`, 
       base_female_fair: `${baseUrl}base_female_fair.png`,
       base_female_tan: `${baseUrl}base_female_tan.png`,
       base_female_dark: `${baseUrl}base_female_dark.png`,
@@ -141,19 +141,19 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       hair_short_red: `${baseUrl}hair_short_red.png`,
       hair_short_white: `${baseUrl}hair_short_white.png`,
       
-      // Female Hair (Long & Short)
-      hair_female_long_black: `${baseUrl}hair_female_long_black.png`,
-      hair_female_long_blonde: `${baseUrl}hair_female_long_blonde.png`,
-      hair_female_long_brown: `${baseUrl}hair_female_long_brown.png`,
-      hair_female_long_grey: `${baseUrl}hair_female_long_grey.png`,
-      hair_female_long_red: `${baseUrl}hair_female_long_red.png`,
-      hair_female_long_white: `${baseUrl}hair_female_long_white.png`,
-      hair_female_short_black: `${baseUrl}hair_female_short_black.png`,
-      hair_female_short_blonde: `${baseUrl}hair_female_short_blonde.png`,
-      hair_female_short_brown: `${baseUrl}hair_female_short_brown.png`,
-      hair_female_short_grey: `${baseUrl}hair_female_short_grey.png`,
-      hair_female_short_red: `${baseUrl}hair_female_short_red.png`,
-      hair_female_short_white: `${baseUrl}hair_female_short_white.png`
+      hair_female_long_black: `${baseUrl}hair_long_female_black.png`,
+      hair_female_long_blonde: `${baseUrl}hair_long_female_blonde.png`,
+      hair_female_long_brown: `${baseUrl}hair_long_female_brown.png`,
+      hair_female_long_grey: `${baseUrl}hair_long_female_grey.png`,
+      hair_female_long_red: `${baseUrl}hair_long_female_red.png`,
+      hair_female_long_white: `${baseUrl}hair_long_female_white.png`,
+      
+      hair_female_short_black: `${baseUrl}hair_short_female_black.png`,
+      hair_female_short_blonde: `${baseUrl}hair_short_female_blonde.png`,
+      hair_female_short_brown: `${baseUrl}hair_short_female_brown.png`,
+      hair_female_short_grey: `${baseUrl}hair_short_female_grey.png`,
+      hair_female_short_red: `${baseUrl}hair_short_female_red.png`,
+      hair_female_short_white: `${baseUrl}hair_short_female_white.png`
     };
 
     let loadedCount = 0;
