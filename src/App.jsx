@@ -101,7 +101,6 @@ const InnRoomBackground = () => (
 
 const getBackground = (locationId) => locationId === 'inn_room' ? InnRoomBackground : VillageRoadBackground;
 
-// UPDATED: HTML5 Canvas Engine loading actual 2D Sprites
 const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
@@ -113,28 +112,24 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
     
     // Exhaustive list of all generated assets
     const sources = {
-      // Male Bases
+      // Base Bodies
       base_male_pale: `${baseUrl}base_male_pale.png`,
       base_male_fair: `${baseUrl}base_male_fair.png`,
       base_male_tan: `${baseUrl}base_male_tan.png`,
       base_male_dark: `${baseUrl}base_male_dark.png`,
       base_male_deep: `${baseUrl}base_male_deep.png`,
-      
-      // Female Bases
       base_female_pale: `${baseUrl}base_female_pale.png`,
       base_female_fair: `${baseUrl}base_female_fair.png`,
       base_female_tan: `${baseUrl}base_female_tan.png`,
       base_female_dark: `${baseUrl}base_female_dark.png`,
       base_female_deep: `${baseUrl}base_female_deep.png`,
 
-      // Male Eyes
+      // Eyes
       eyes_male_blue: `${baseUrl}eyes_male_blue.png`,
       eyes_male_green: `${baseUrl}eyes_male_green.png`,
       eyes_male_brown: `${baseUrl}eyes_male_brown.png`,
       eyes_male_hazel: `${baseUrl}eyes_male_hazel.png`,
       eyes_male_red: `${baseUrl}eyes_male_red.png`,
-      
-      // Female Eyes
       eyes_female_blue: `${baseUrl}eyes_female_blue.png`,
       eyes_female_green: `${baseUrl}eyes_female_green.png`,
       eyes_female_brown: `${baseUrl}eyes_female_brown.png`,
@@ -154,7 +149,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       hair_short_grey: `${baseUrl}hair_short_grey.png`,
       hair_short_red: `${baseUrl}hair_short_red.png`,
       hair_short_white: `${baseUrl}hair_short_white.png`,
-      
+
       // Female Hair
       hair_long_female_black: `${baseUrl}hair_long_female_black.png`,
       hair_long_female_blonde: `${baseUrl}hair_long_female_blonde.png`,
@@ -171,6 +166,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
 
       // Armor
       armor_leather_male: `${baseUrl}armor_leather_male.png`,
+      armor_leather_female: `${baseUrl}armor_leather_female.png`,
     };
 
     let loadedCount = 0;
@@ -261,12 +257,14 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
 
       // 4. Draw Equipment Layers (Top Layer)
       if (equipped.body && equipped.body !== 'tunic') {
+          // Map internal game IDs to file prefixes
           const armorPrefixMap = {
               'leather_armor': 'armor_leather',
               'chainmail': 'armor_chainmail',
               'plate': 'armor_plate',
               'robe': 'armor_robe'
           };
+          
           const prefix = armorPrefixMap[equipped.body];
           
           if (prefix) {
