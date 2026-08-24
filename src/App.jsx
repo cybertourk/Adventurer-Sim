@@ -142,19 +142,19 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       hair_male_short_white: `${baseUrl}hair_short_white.png`,
       
       // Female Hair
-      hair_female_long_black: `${baseUrl}hair_female_long_black.png`,
-      hair_female_long_blonde: `${baseUrl}hair_female_long_blonde.png`,
-      hair_female_long_brown: `${baseUrl}hair_female_long_brown.png`,
-      hair_female_long_grey: `${baseUrl}hair_female_long_grey.png`,
-      hair_female_long_red: `${baseUrl}hair_female_long_red.png`,
-      hair_female_long_white: `${baseUrl}hair_female_long_white.png`,
+      hair_long_female_black: `${baseUrl}hair_long_female_black.png`,
+      hair_long_female_blonde: `${baseUrl}hair_long_female_blonde.png`,
+      hair_long_female_brown: `${baseUrl}hair_long_female_brown.png`,
+      hair_long_female_grey: `${baseUrl}hair_long_female_grey.png`,
+      hair_long_female_red: `${baseUrl}hair_long_female_red.png`,
+      hair_long_female_white: `${baseUrl}hair_long_female_white.png`,
       
-      hair_female_short_black: `${baseUrl}hair_female_short_black.png`,
-      hair_female_short_blonde: `${baseUrl}hair_female_short_blonde.png`,
-      hair_female_short_brown: `${baseUrl}hair_female_short_brown.png`,
-      hair_female_short_grey: `${baseUrl}hair_female_short_grey.png`,
-      hair_female_short_red: `${baseUrl}hair_female_short_red.png`,
-      hair_female_short_white: `${baseUrl}hair_female_short_white.png`,
+      hair_short_female_black: `${baseUrl}hair_short_female_black.png`,
+      hair_short_female_blonde: `${baseUrl}hair_short_female_blonde.png`,
+      hair_short_female_brown: `${baseUrl}hair_short_female_brown.png`,
+      hair_short_female_grey: `${baseUrl}hair_short_female_grey.png`,
+      hair_short_female_red: `${baseUrl}hair_short_female_red.png`,
+      hair_short_female_white: `${baseUrl}hair_short_female_white.png`,
 
       // Male Eyes
       eyes_male_blue: `${baseUrl}eyes_male_blue.png`,
