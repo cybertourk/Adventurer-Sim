@@ -111,19 +111,22 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
   useEffect(() => {
     const baseUrl = import.meta.env.BASE_URL; 
     
-    // Wire up ALL assets: Bases, Eyes, Male Hair, Female Hair
+    // Exhaustive list of all generated assets
     const sources = {
+      // Male Bases
       base_male_pale: `${baseUrl}base_male_pale.png`,
       base_male_fair: `${baseUrl}base_male_fair.png`,
       base_male_tan: `${baseUrl}base_male_tan.png`,
       base_male_dark: `${baseUrl}base_male_dark.png`,
       base_male_deep: `${baseUrl}base_male_deep.png`,
+      
+      // Female Bases
       base_female_pale: `${baseUrl}base_female_pale.png`,
       base_female_fair: `${baseUrl}base_female_fair.png`,
       base_female_tan: `${baseUrl}base_female_tan.png`,
       base_female_dark: `${baseUrl}base_female_dark.png`,
       base_female_deep: `${baseUrl}base_female_deep.png`,
-      
+
       // Male Eyes
       eyes_male_blue: `${baseUrl}eyes_male_blue.png`,
       eyes_male_green: `${baseUrl}eyes_male_green.png`,
@@ -152,7 +155,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       hair_short_red: `${baseUrl}hair_short_red.png`,
       hair_short_white: `${baseUrl}hair_short_white.png`,
       
-      // Female Hair (Using your exact naming convention)
+      // Female Hair
       hair_long_female_black: `${baseUrl}hair_long_female_black.png`,
       hair_long_female_blonde: `${baseUrl}hair_long_female_blonde.png`,
       hair_long_female_brown: `${baseUrl}hair_long_female_brown.png`,
@@ -165,6 +168,9 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       hair_short_female_grey: `${baseUrl}hair_short_female_grey.png`,
       hair_short_female_red: `${baseUrl}hair_short_female_red.png`,
       hair_short_female_white: `${baseUrl}hair_short_female_white.png`,
+
+      // Armor
+      armor_leather_male: `${baseUrl}armor_leather_male.png`,
     };
 
     let loadedCount = 0;
@@ -239,9 +245,21 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       const wearingFullHelm = equipped.head === 'iron_helm';
       
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
-          // Construct the key to match exactly how we named them in the sources object
           let hairKey = `hair_${appearance.hairStyle}_${appearance.hairColor}`;
-      // 4. Draw Equipment Layers
+          if (appearance.gender === 'female') {
+              hairKey = `hair_${appearance.hairStyle}_female_${appearance.hairColor}`;
+          }
+
+          const hairImage = imagesRef.current[hairKey];
+          if (hairImage) {
+              const scale = canvas.height / hairImage.height;
+              const drawWidth = hairImage.width * scale;
+              const drawX = (canvas.width - drawWidth) / 2;
+              ctx.drawImage(hairImage, drawX, 0, drawWidth, canvas.height);
+          }
+      }
+
+      // 4. Draw Equipment Layers (Top Layer)
       if (equipped.body && equipped.body !== 'tunic') {
           const armorPrefixMap = {
               'leather_armor': 'armor_leather',
@@ -252,7 +270,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           const prefix = armorPrefixMap[equipped.body];
           
           if (prefix) {
-              // Dynamically search for armor based on gender
               const armorKey = `${prefix}_${appearance.gender}`;
               const armorImage = imagesRef.current[armorKey];
               
@@ -260,7 +277,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
                   const scale = canvas.height / armorImage.height;
                   const drawWidth = armorImage.width * scale;
                   const drawX = (canvas.width - drawWidth) / 2;
-                  
                   ctx.drawImage(armorImage, drawX, 0, drawWidth, canvas.height);
               }
           }
