@@ -109,66 +109,62 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
 
   // Preload all available sprite layers
   useEffect(() => {
-    // We append Vite's BASE_URL to the paths so it resolves properly on GitHub Pages
     const baseUrl = import.meta.env.BASE_URL; 
     
-    // Wire up all bases, hairs, AND the new eye colors
+    // Wire up ALL assets: Bases, Eyes, Male Hair, Female Hair
     const sources = {
       base_male_pale: `${baseUrl}base_male_pale.png`,
       base_male_fair: `${baseUrl}base_male_fair.png`,
       base_male_tan: `${baseUrl}base_male_tan.png`,
       base_male_dark: `${baseUrl}base_male_dark.png`,
       base_male_deep: `${baseUrl}base_male_deep.png`,
-      
       base_female_pale: `${baseUrl}base_female_pale.png`,
       base_female_fair: `${baseUrl}base_female_fair.png`,
       base_female_tan: `${baseUrl}base_female_tan.png`,
       base_female_dark: `${baseUrl}base_female_dark.png`,
       base_female_deep: `${baseUrl}base_female_deep.png`,
       
+      // Male Eyes
+      eyes_male_blue: `${baseUrl}eyes_male_blue.png`,
+      eyes_male_green: `${baseUrl}eyes_male_green.png`,
+      eyes_male_brown: `${baseUrl}eyes_male_brown.png`,
+      eyes_male_hazel: `${baseUrl}eyes_male_hazel.png`,
+      eyes_male_red: `${baseUrl}eyes_male_red.png`,
+      
+      // Female Eyes
+      eyes_female_blue: `${baseUrl}eyes_female_blue.png`,
+      eyes_female_green: `${baseUrl}eyes_female_green.png`,
+      eyes_female_brown: `${baseUrl}eyes_female_brown.png`,
+      eyes_female_hazel: `${baseUrl}eyes_female_hazel.png`,
+      eyes_female_red: `${baseUrl}eyes_female_red.png`,
+
       // Male Hair
-      hair_male_long_black: `${baseUrl}hair_long_black.png`,
-      hair_male_long_blonde: `${baseUrl}hair_long_blonde.png`,
-      hair_male_long_brown: `${baseUrl}hair_long_brown.png`,
-      hair_male_long_grey: `${baseUrl}hair_long_grey.png`,
-      hair_male_long_red: `${baseUrl}hair_long_red.png`,
-      hair_male_long_white: `${baseUrl}hair_long_white.png`,
+      hair_long_black: `${baseUrl}hair_long_black.png`,
+      hair_long_blonde: `${baseUrl}hair_long_blonde.png`,
+      hair_long_brown: `${baseUrl}hair_long_brown.png`,
+      hair_long_grey: `${baseUrl}hair_long_grey.png`,
+      hair_long_red: `${baseUrl}hair_long_red.png`,
+      hair_long_white: `${baseUrl}hair_long_white.png`,
+      hair_short_black: `${baseUrl}hair_short_black.png`,
+      hair_short_blonde: `${baseUrl}hair_short_blonde.png`,
+      hair_short_brown: `${baseUrl}hair_short_brown.png`,
+      hair_short_grey: `${baseUrl}hair_short_grey.png`,
+      hair_short_red: `${baseUrl}hair_short_red.png`,
+      hair_short_white: `${baseUrl}hair_short_white.png`,
       
-      hair_male_short_black: `${baseUrl}hair_short_black.png`,
-      hair_male_short_blonde: `${baseUrl}hair_short_blonde.png`,
-      hair_male_short_brown: `${baseUrl}hair_short_brown.png`,
-      hair_male_short_grey: `${baseUrl}hair_short_grey.png`,
-      hair_male_short_red: `${baseUrl}hair_short_red.png`,
-      hair_male_short_white: `${baseUrl}hair_short_white.png`,
-      
-      // Female Hair
+      // Female Hair (Using your exact naming convention)
       hair_long_female_black: `${baseUrl}hair_long_female_black.png`,
       hair_long_female_blonde: `${baseUrl}hair_long_female_blonde.png`,
       hair_long_female_brown: `${baseUrl}hair_long_female_brown.png`,
       hair_long_female_grey: `${baseUrl}hair_long_female_grey.png`,
       hair_long_female_red: `${baseUrl}hair_long_female_red.png`,
       hair_long_female_white: `${baseUrl}hair_long_female_white.png`,
-      
       hair_short_female_black: `${baseUrl}hair_short_female_black.png`,
       hair_short_female_blonde: `${baseUrl}hair_short_female_blonde.png`,
       hair_short_female_brown: `${baseUrl}hair_short_female_brown.png`,
       hair_short_female_grey: `${baseUrl}hair_short_female_grey.png`,
       hair_short_female_red: `${baseUrl}hair_short_female_red.png`,
       hair_short_female_white: `${baseUrl}hair_short_female_white.png`,
-
-      // Male Eyes
-      eyes_male_blue: `${baseUrl}eyes_male_blue.png`,
-      eyes_male_brown: `${baseUrl}eyes_male_brown.png`,
-      eyes_male_green: `${baseUrl}eyes_male_green.png`,
-      eyes_male_hazel: `${baseUrl}eyes_male_hazel.png`,
-      eyes_male_red: `${baseUrl}eyes_male_red.png`,
-
-      // Female Eyes
-      eyes_female_blue: `${baseUrl}eyes_female_blue.png`,
-      eyes_female_brown: `${baseUrl}eyes_female_brown.png`,
-      eyes_female_green: `${baseUrl}eyes_female_green.png`,
-      eyes_female_hazel: `${baseUrl}eyes_female_hazel.png`,
-      eyes_female_red: `${baseUrl}eyes_female_red.png`
     };
 
     let loadedCount = 0;
@@ -202,20 +198,19 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
     let animationFrameId;
 
     const render = () => {
-      // 1. Clear the canvas frame for transparency
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Apply death state visual filter
       if (!isAlive) {
           ctx.filter = 'grayscale(100%) opacity(50%)';
       } else {
           ctx.filter = 'none';
       }
 
-      // 2. Draw Base Body Layer (Bottom-most layer)
+      // 1. Draw Base Body Layer (Bottom Layer)
       const baseKey = `base_${appearance.gender}_${appearance.skinTone}`;
-      
       let baseImage = imagesRef.current[baseKey];
+      
+      // Fallback logic
       if (!baseImage) {
           baseImage = appearance.gender === 'female' 
               ? imagesRef.current['base_female_pale'] 
@@ -223,31 +218,32 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       }
       
       if (baseImage) {
-          // Calculate scaling to perfectly fit the canvas height while maintaining aspect ratio
           const scale = canvas.height / baseImage.height;
           const drawWidth = baseImage.width * scale;
-          const drawX = (canvas.width - drawWidth) / 2; // Centers the sprite
-          
+          const drawX = (canvas.width - drawWidth) / 2;
           ctx.drawImage(baseImage, drawX, 0, drawWidth, canvas.height);
       }
 
-      // 3. Draw Eyes Layer (Right on top of the face, under the hair)
+      // 2. Draw Eyes Layer (Sandwiched BETWEEN face and hair)
       const eyeKey = `eyes_${appearance.gender}_${appearance.eyeColor}`;
       const eyeImage = imagesRef.current[eyeKey];
+      
       if (eyeImage) {
           const scale = canvas.height / eyeImage.height;
           const drawWidth = eyeImage.width * scale;
           const drawX = (canvas.width - drawWidth) / 2;
-          
           ctx.drawImage(eyeImage, drawX, 0, drawWidth, canvas.height);
       }
 
-      // 4. Draw Hair Layer (Stacked on top of base and eyes)
-      // Check if they are wearing a full helmet that would hide the hair
+      // 3. Draw Hair Layer (On top of eyes, covers the forehead)
       const wearingFullHelm = equipped.head === 'iron_helm';
       
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
-          let hairKey = `hair_${appearance.gender}_${appearance.hairStyle}_${appearance.hairColor}`;
+          // Construct the key to match exactly how we named them in the sources object
+          let hairKey = `hair_${appearance.hairStyle}_${appearance.hairColor}`;
+          if (appearance.gender === 'female') {
+              hairKey = `hair_${appearance.hairStyle}_female_${appearance.hairColor}`; // This is the bug fix!
+          }
 
           const hairImage = imagesRef.current[hairKey];
           
@@ -255,30 +251,26 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
               const scale = canvas.height / hairImage.height;
               const drawWidth = hairImage.width * scale;
               const drawX = (canvas.width - drawWidth) / 2;
-              
               ctx.drawImage(hairImage, drawX, 0, drawWidth, canvas.height);
           }
       }
 
-      // 5. Draw Equipment Layers (Stacked on top)
+      // 4. Draw Equipment Layers (Top Layer)
       if (equipped.body === 'leather_armor') {
           const armorImage = imagesRef.current['leather_armor'];
           if (armorImage) {
               const scale = canvas.height / armorImage.height;
               const drawWidth = armorImage.width * scale;
               const drawX = (canvas.width - drawWidth) / 2;
-              
               ctx.drawImage(armorImage, drawX, 0, drawWidth, canvas.height);
           }
       }
 
-      // Request next frame to keep the loop running
       animationFrameId = requestAnimationFrame(render);
     };
 
     render();
 
-    // Cleanup loop when component unmounts
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
