@@ -241,28 +241,28 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
           // Construct the key to match exactly how we named them in the sources object
           let hairKey = `hair_${appearance.hairStyle}_${appearance.hairColor}`;
-          if (appearance.gender === 'female') {
-              hairKey = `hair_${appearance.hairStyle}_female_${appearance.hairColor}`; // This is the bug fix!
-          }
-
-          const hairImage = imagesRef.current[hairKey];
+      // 4. Draw Equipment Layers
+      if (equipped.body && equipped.body !== 'tunic') {
+          const armorPrefixMap = {
+              'leather_armor': 'armor_leather',
+              'chainmail': 'armor_chainmail',
+              'plate': 'armor_plate',
+              'robe': 'armor_robe'
+          };
+          const prefix = armorPrefixMap[equipped.body];
           
-          if (hairImage) {
-              const scale = canvas.height / hairImage.height;
-              const drawWidth = hairImage.width * scale;
-              const drawX = (canvas.width - drawWidth) / 2;
-              ctx.drawImage(hairImage, drawX, 0, drawWidth, canvas.height);
-          }
-      }
-
-      // 4. Draw Equipment Layers (Top Layer)
-      if (equipped.body === 'leather_armor') {
-          const armorImage = imagesRef.current['leather_armor'];
-          if (armorImage) {
-              const scale = canvas.height / armorImage.height;
-              const drawWidth = armorImage.width * scale;
-              const drawX = (canvas.width - drawWidth) / 2;
-              ctx.drawImage(armorImage, drawX, 0, drawWidth, canvas.height);
+          if (prefix) {
+              // Dynamically search for armor based on gender
+              const armorKey = `${prefix}_${appearance.gender}`;
+              const armorImage = imagesRef.current[armorKey];
+              
+              if (armorImage) {
+                  const scale = canvas.height / armorImage.height;
+                  const drawWidth = armorImage.width * scale;
+                  const drawX = (canvas.width - drawWidth) / 2;
+                  
+                  ctx.drawImage(armorImage, drawX, 0, drawWidth, canvas.height);
+              }
           }
       }
 
