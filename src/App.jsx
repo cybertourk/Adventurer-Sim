@@ -176,7 +176,15 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       robe_yellow_male: `${baseUrl}robe_yellow_male.png`,
       robe_yellow_female: `${baseUrl}robe_yellow_female.png`,
       robe_black_male: `${baseUrl}robe_black_male.png`,
-      robe_black_female: `${baseUrl}robe_black_female.png`
+      robe_black_female: `${baseUrl}robe_black_female.png`,
+
+      // Headgear Layer
+      hat_male_yellow: `${baseUrl}hat_male_yellow.png`,
+      hat_female_yellow: `${baseUrl}hat_female_yellow.png`,
+      iron_helm_male: `${baseUrl}iron_helm_male.png`,
+      iron_helm_female: `${baseUrl}iron_helm_female.png`,
+      leather_cap_male: `${baseUrl}leather_cap_male.png`,
+      leather_cap_female: `${baseUrl}leather_cap_female.png`
     };
 
     let loadedCount = 0;
@@ -244,7 +252,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           ctx.drawImage(eyeImage, drawX, 0, drawWidth, canvas.height);
       }
 
-      // 3. Draw Hair Layer
+      // 3. Draw Hair Layer (Hidden if wearing a full helm)
       const wearingFullHelm = equipped.head === 'iron_helm';
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
           const hairKey = `hair_${appearance.hairStyle}_${appearance.gender}_${appearance.hairColor}`;
@@ -263,10 +271,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       if (equipped.body && equipped.body !== 'tunic' && equipped.body !== 'none') {
           let armorKey = `armor_${equipped.body}_${appearance.gender}`;
           
-          // Special handling for robes to support color variants
           if (equipped.body.startsWith('robe')) {
-              // Defaults to blue if the item ID is just 'robe'. 
-              // Parses specific colors if you update your constants.js later (e.g., 'robe_red')
               const color = equipped.body.includes('_') ? equipped.body.split('_')[1] : 'blue';
               armorKey = `robe_${color}_${appearance.gender}`;
           }
@@ -278,6 +283,27 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
               const drawX = (canvas.width - drawWidth) / 2;
               
               ctx.drawImage(armorImage, drawX, 0, drawWidth, canvas.height);
+          }
+      }
+
+      // 5. Draw Headgear Layer
+      if (equipped.head && equipped.head !== 'none') {
+          let headKey;
+          
+          // Special logic for the wizard hat
+          if (equipped.head === 'wizard_hat') {
+              headKey = `hat_${appearance.gender}_yellow`;
+          } else {
+              headKey = `${equipped.head}_${appearance.gender}`;
+          }
+
+          const headImage = imagesRef.current[headKey];
+          if (headImage) {
+              const scale = canvas.height / headImage.height;
+              const drawWidth = headImage.width * scale;
+              const drawX = (canvas.width - drawWidth) / 2;
+              
+              ctx.drawImage(headImage, drawX, 0, drawWidth, canvas.height);
           }
       }
 
