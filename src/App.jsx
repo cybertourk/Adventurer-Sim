@@ -166,6 +166,10 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
 
       armor_leather_armor_male: `${baseUrl}armor_leather_male.png`,
       armor_leather_armor_female: `${baseUrl}armor_leather_female.png`,
+      armor_chainmail_male: `${baseUrl}armor_chain_male.png`,
+      armor_chainmail_female: `${baseUrl}armor_chain_female.png`,
+      armor_plate_male: `${baseUrl}armor_plate_male.png`,
+      armor_plate_female: `${baseUrl}armor_plate_female.png`,
 
       robe_blue_male: `${baseUrl}robe_blue_male.png`,
       robe_blue_female: `${baseUrl}robe_blue_female.png`,
