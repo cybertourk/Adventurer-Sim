@@ -51,13 +51,11 @@ const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
 const VillageRoadBackground = () => (
   <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
     <div className="absolute inset-0 bg-gradient-to-b from-[#09090b] via-[#18181b] to-[#271c19]/40" />
-    
     <div className="absolute top-16 right-24 w-20 h-20 rounded-full bg-slate-200/10 blur-xl" />
     <div className="absolute top-18 right-26 w-16 h-16 rounded-full bg-indigo-100/20 shadow-[0_0_40px_rgba(199,210,254,0.3)]" />
     <div className="absolute top-10 left-1/4 w-1 h-1 bg-white opacity-40 rounded-full shadow-[0_0_4px_white]" />
     <div className="absolute top-32 left-1/3 w-0.5 h-0.5 bg-white opacity-60 rounded-full" />
     <div className="absolute top-24 right-1/2 w-1.5 h-1.5 bg-white opacity-30 rounded-full" />
-
     <div className="absolute bottom-[35%] left-0 right-0 h-40 flex items-end justify-center gap-2 opacity-30 blur-[1px]">
         <div className="w-12 h-32 bg-[#09090b] [clip-path:polygon(50%_0%,100%_20%,100%_100%,0%_100%,0%_20%)]" />
         <div className="w-8 h-40 bg-[#09090b] [clip-path:polygon(50%_0%,80%_10%,100%_100%,0%_100%,20%_10%)]" />
@@ -65,15 +63,12 @@ const VillageRoadBackground = () => (
         <div className="w-32" />
         <div className="w-16 h-28 bg-[#09090b] [clip-path:polygon(50%_0%,100%_30%,100%_100%,0%_100%,0%_30%)]" />
     </div>
-
     <div className="absolute bottom-[35%] left-0 right-0 h-24 flex items-end justify-between opacity-60 px-10">
         <div className="w-24 h-32 bg-[#050505] [clip-path:polygon(20%_0,40%_15%,15%_30%,35%_50%,0%_70%,20%_100%,100%_100%,80%_80%,100%_50%,70%_30%,90%_10%,60%_0)]" />
         <div className="w-20 h-28 bg-[#050505] [clip-path:polygon(50%_0,70%_20%,60%_40%,80%_60%,50%_100%,20%_100%,10%_60%,30%_40%,20%_20%)]" />
     </div>
-
     <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-gradient-to-t from-[#110d0a] to-[#2a2015]" />
     <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[900px] h-[35%] bg-gradient-to-t from-[#2c1d11] to-[#3a2818] [clip-path:polygon(25%_0,75%_0,100%_100%,0%_100%)] border-x border-black/20" />
-    
     <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/80 via-transparent to-transparent" />
   </div>
 );
@@ -82,18 +77,15 @@ const InnRoomBackground = () => (
   <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#0c0a09]">
     <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#292524_2px,transparent_2px)] [background-size:30px_30px]" />
     <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#44403c_1px,transparent_1px)] [background-size:15px_15px] translate-x-4 translate-y-4" />
-
     <div className="absolute top-12 left-1/4 w-32 h-56 bg-[#050505] border-8 border-[#292524] rounded-t-[4rem] shadow-[inset_0_0_40px_black]">
        <div className="absolute top-8 right-8 w-4 h-4 bg-indigo-100 rounded-full opacity-60 shadow-[0_0_20px_white]" />
        <div className="absolute bottom-0 w-full h-3 bg-black/80" />
        <div className="absolute w-2 h-full left-1/2 bg-[#292524] shadow-[2px_0_5px_rgba(0,0,0,0.5)]" />
        <div className="absolute h-2 w-full top-1/2 bg-[#292524] shadow-[0_2px_5px_rgba(0,0,0,0.5)]" />
     </div>
-
     <div className="absolute bottom-0 left-0 right-0 h-[25%] bg-gradient-to-b from-[#1c140d] to-[#0a0704] border-t-4 border-[#292524]">
        <div className="w-full h-full opacity-30 bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,#000_40px,#000_42px)]" />
     </div>
-
     <div className="absolute bottom-0 right-1/4 w-[500px] h-[300px] bg-amber-600/10 rounded-full blur-[80px]" />
     <div className="absolute bottom-0 right-1/4 w-[300px] h-[150px] bg-red-600/10 rounded-full blur-[60px]" />
   </div>
@@ -182,13 +174,26 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       robe_black_male: `${baseUrl}robe_black_male.png`,
       robe_black_female: `${baseUrl}robe_black_female.png`,
 
-      // Headgear Layer
       hat_male_yellow: `${baseUrl}hat_male_yellow.png`,
       hat_female_yellow: `${baseUrl}hat_female_yellow.png`,
       iron_helm_male: `${baseUrl}iron_helm_male.png`,
       iron_helm_female: `${baseUrl}iron_helm_female.png`,
       leather_cap_male: `${baseUrl}leather_cap_male.png`,
-      leather_cap_female: `${baseUrl}leather_cap_female.png`
+      leather_cap_female: `${baseUrl}leather_cap_female.png`,
+      
+      // Belts & Weapons placeholders (won't crash if missing yet)
+      belt_hip_base_male: `${baseUrl}belt_hip_base_male.png`,
+      belt_hip_base_female: `${baseUrl}belt_hip_base_female.png`,
+      belt_back_base_male: `${baseUrl}belt_back_base_male.png`,
+      belt_back_base_female: `${baseUrl}belt_back_base_female.png`,
+      weapon_dagger: `${baseUrl}weapon_dagger.png`,
+      weapon_sword: `${baseUrl}weapon_sword.png`,
+      weapon_hammer: `${baseUrl}weapon_hammer.png`,
+      weapon_axe: `${baseUrl}weapon_axe.png`,
+      weapon_staff: `${baseUrl}weapon_staff.png`,
+      shield_wooden: `${baseUrl}shield_wooden.png`,
+      shield_tower: `${baseUrl}shield_tower.png`,
+      weapon_orb: `${baseUrl}weapon_orb.png`
     };
 
     let loadedCount = 0;
@@ -204,9 +209,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           setImagesLoaded(true);
         }
       };
-      // Fallback in case an image fails to load so the game doesn't freeze
       img.onerror = () => {
-        console.warn(`Failed to load sprite: ${src}`);
         loadedCount++;
         if (loadedCount === totalImages) setImagesLoaded(true);
       };
@@ -224,91 +227,78 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
     const render = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      if (!isAlive) {
-          ctx.filter = 'grayscale(100%) opacity(50%)';
-      } else {
-          ctx.filter = 'none';
+      if (!isAlive) ctx.filter = 'grayscale(100%) opacity(50%)';
+      else ctx.filter = 'none';
+
+      // Weapon categorizations
+      const hipWeapons = ['dagger', 'sword', 'hammer'];
+      const backWeapons = ['axe', 'staff', 'wooden_shield', 'tower_shield', 'orb'];
+      
+      const hasHipItem = hipWeapons.includes(equipped.mainHand) || hipWeapons.includes(equipped.offHand);
+      const hasBackItem = backWeapons.includes(equipped.mainHand) || backWeapons.includes(equipped.offHand);
+
+      // Map out the core armor string base for the belts
+      let armorBaseStr = 'base';
+      if (equipped.body === 'leather_armor') armorBaseStr = 'armor_leather';
+      else if (equipped.body === 'chainmail') armorBaseStr = 'armor_chain';
+      else if (equipped.body === 'plate') armorBaseStr = 'armor_plate';
+      else if (equipped.body && equipped.body.startsWith('robe')) {
+          const color = equipped.body.includes('_') ? equipped.body.split('_')[1] : 'blue';
+          armorBaseStr = `robe_${color}`;
       }
+
+      // Draw Function Helper
+      const drawLayer = (key) => {
+          const img = imagesRef.current[key];
+          if (img) {
+              const scale = canvas.height / img.height;
+              const drawWidth = img.width * scale;
+              const drawX = (canvas.width - drawWidth) / 2;
+              ctx.drawImage(img, drawX, 0, drawWidth, canvas.height);
+          }
+      };
 
       // 1. Draw Base Body Layer
       const baseKey = `base_${appearance.gender}_${appearance.skinTone}`;
-      let baseImage = imagesRef.current[baseKey];
-      if (!baseImage) {
-          baseImage = appearance.gender === 'female' 
-              ? imagesRef.current['base_female_pale'] 
-              : imagesRef.current['base_male_pale'];
-      }
-      
-      if (baseImage) {
-          const scale = canvas.height / baseImage.height;
-          const drawWidth = baseImage.width * scale;
-          const drawX = (canvas.width - drawWidth) / 2;
-          ctx.drawImage(baseImage, drawX, 0, drawWidth, canvas.height);
-      }
+      if (imagesRef.current[baseKey]) drawLayer(baseKey);
+      else drawLayer(appearance.gender === 'female' ? 'base_female_pale' : 'base_male_pale');
 
       // 2. Draw Eye Layer
-      const eyeKey = `eyes_${appearance.gender}_${appearance.eyeColor}`;
-      const eyeImage = imagesRef.current[eyeKey];
-      if (eyeImage) {
-          const scale = canvas.height / eyeImage.height;
-          const drawWidth = eyeImage.width * scale;
-          const drawX = (canvas.width - drawWidth) / 2;
-          ctx.drawImage(eyeImage, drawX, 0, drawWidth, canvas.height);
-      }
+      drawLayer(`eyes_${appearance.gender}_${appearance.eyeColor}`);
 
-      // 3. Draw Hair Layer (Hidden if wearing a full helm)
+      // 3. Draw Hair Layer
       const wearingFullHelm = equipped.head === 'iron_helm';
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
-          const hairKey = `hair_${appearance.hairStyle}_${appearance.gender}_${appearance.hairColor}`;
-          const hairImage = imagesRef.current[hairKey];
-          
-          if (hairImage) {
-              const scale = canvas.height / hairImage.height;
-              const drawWidth = hairImage.width * scale;
-              const drawX = (canvas.width - drawWidth) / 2;
-              
-              ctx.drawImage(hairImage, drawX, 0, drawWidth, canvas.height);
-          }
+          drawLayer(`hair_${appearance.hairStyle}_${appearance.gender}_${appearance.hairColor}`);
       }
 
       // 4. Draw Equipment Layers (Armor/Robes)
       if (equipped.body && equipped.body !== 'tunic' && equipped.body !== 'none') {
           let armorKey = `armor_${equipped.body}_${appearance.gender}`;
-          
-          if (equipped.body.startsWith('robe')) {
-              const color = equipped.body.includes('_') ? equipped.body.split('_')[1] : 'blue';
-              armorKey = `robe_${color}_${appearance.gender}`;
-          }
-
-          const armorImage = imagesRef.current[armorKey];
-          if (armorImage) {
-              const scale = canvas.height / armorImage.height;
-              const drawWidth = armorImage.width * scale;
-              const drawX = (canvas.width - drawWidth) / 2;
-              
-              ctx.drawImage(armorImage, drawX, 0, drawWidth, canvas.height);
-          }
+          if (equipped.body.startsWith('robe')) armorKey = `${armorBaseStr}_${appearance.gender}`;
+          drawLayer(armorKey);
       }
 
-      // 5. Draw Headgear Layer
-      if (equipped.head && equipped.head !== 'none') {
-          let headKey;
-          
-          // Special logic for the wizard hat
-          if (equipped.head === 'wizard_hat') {
-              headKey = `hat_${appearance.gender}_yellow`;
-          } else {
-              headKey = `${equipped.head}_${appearance.gender}`;
-          }
+      // 5. Draw Belts
+      if (hasBackItem) drawLayer(`belt_back_${armorBaseStr}_${appearance.gender}`);
+      if (hasHipItem) drawLayer(`belt_hip_${armorBaseStr}_${appearance.gender}`);
 
-          const headImage = imagesRef.current[headKey];
-          if (headImage) {
-              const scale = canvas.height / headImage.height;
-              const drawWidth = headImage.width * scale;
-              const drawX = (canvas.width - drawWidth) / 2;
-              
-              ctx.drawImage(headImage, drawX, 0, drawWidth, canvas.height);
-          }
+      // 6. Draw Weapons & Shields
+      // Main Hand
+      if (equipped.mainHand && equipped.mainHand !== 'none' && equipped.mainHand !== 'fist') {
+          drawLayer(`weapon_${equipped.mainHand}`);
+      }
+      
+      // Off Hand
+      if (equipped.offHand && equipped.offHand !== 'none') {
+          if (equipped.offHand.includes('shield')) drawLayer(`shield_${equipped.offHand.split('_')[0]}`);
+          else drawLayer(`weapon_${equipped.offHand}`);
+      }
+
+      // 7. Draw Headgear Layer
+      if (equipped.head && equipped.head !== 'none') {
+          if (equipped.head === 'wizard_hat') drawLayer(`hat_${appearance.gender}_yellow`);
+          else drawLayer(`${equipped.head}_${appearance.gender}`);
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -316,9 +306,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
 
     render();
 
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
+    return () => cancelAnimationFrame(animationFrameId);
   }, [equipped, appearance, isAlive, imagesLoaded]);
 
   return (
