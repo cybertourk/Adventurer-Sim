@@ -115,7 +115,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       hair_long_male_white: `${baseUrl}hair_long_white.png`,
       hair_short_male_black: `${baseUrl}hair_short_black.png`,
       hair_short_male_blonde: `${baseUrl}hair_short_blonde.png`,
-      hair_short_male_brown: `${baseUrl}hair_short_brown.png`,
+      hair_short_male_brown: `${baseUrl}hair_short_male_brown.png`,
       hair_short_male_grey: `${baseUrl}hair_short_grey.png`,
       hair_short_male_red: `${baseUrl}hair_short_red.png`,
       hair_short_male_white: `${baseUrl}hair_short_white.png`,
@@ -223,7 +223,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           }
       };
 
-      // 0. Draw Back Weapons (Behind body)
+      // 0. Draw Back Weapons (Behind the character body)
       if (backWeapons.includes(equipped.mainHand)) drawLayer(`weapon_${equipped.mainHand}`);
       if (backWeapons.includes(equipped.offHand)) drawLayer(`weapon_${equipped.offHand}`);
 
@@ -242,7 +242,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           drawLayer(armorKey);
       }
 
-      // 4. Draw Hair Layer (Renders OVER armor, but UNDER helmet)
+      // 4. Draw Hair Layer (Now renders OVER armor, but UNDER helmet)
       const wearingFullHelm = equipped.head === 'iron_helm';
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
           drawLayer(`hair_${appearance.hairStyle}_${appearance.gender}_${appearance.hairColor}`);
