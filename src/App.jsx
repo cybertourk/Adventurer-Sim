@@ -181,11 +181,9 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       leather_cap_male: `${baseUrl}leather_cap_male.png`,
       leather_cap_female: `${baseUrl}leather_cap_female.png`,
       
-      // Belts & Weapons placeholders (won't crash if missing yet)
-      belt_hip_base_male: `${baseUrl}belt_hip_base_male.png`,
-      belt_hip_base_female: `${baseUrl}belt_hip_base_female.png`,
-      belt_back_base_male: `${baseUrl}belt_back_base_male.png`,
-      belt_back_base_female: `${baseUrl}belt_back_base_female.png`,
+      // Belts & Weapons
+      belt_hip_base: `${baseUrl}belt_hip.png`,
+      belt_back_base: `${baseUrl}belt_back.png`,
       weapon_dagger: `${baseUrl}weapon_dagger.png`,
       weapon_sword: `${baseUrl}weapon_sword.png`,
       weapon_hammer: `${baseUrl}weapon_hammer.png`,
@@ -230,9 +228,9 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       if (!isAlive) ctx.filter = 'grayscale(100%) opacity(50%)';
       else ctx.filter = 'none';
 
-      // Weapon categorizations
-      const hipWeapons = ['dagger', 'sword', 'hammer'];
-      const backWeapons = ['axe', 'staff', 'wooden_shield', 'tower_shield', 'orb'];
+      // UPDATED Weapon categorizations
+      const hipWeapons = ['dagger', 'orb'];
+      const backWeapons = ['sword', 'hammer', 'axe', 'staff'];
       
       const hasHipItem = hipWeapons.includes(equipped.mainHand) || hipWeapons.includes(equipped.offHand);
       const hasBackItem = backWeapons.includes(equipped.mainHand) || backWeapons.includes(equipped.offHand);
@@ -258,6 +256,10 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           }
       };
 
+      // 0. Draw Back Weapons (Behind the character body)
+      if (backWeapons.includes(equipped.mainHand)) drawLayer(`weapon_${equipped.mainHand}`);
+      if (backWeapons.includes(equipped.offHand)) drawLayer(`weapon_${equipped.offHand}`);
+
       // 1. Draw Base Body Layer
       const baseKey = `base_${appearance.gender}_${appearance.skinTone}`;
       if (imagesRef.current[baseKey]) drawLayer(baseKey);
@@ -280,22 +282,25 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       }
 
       // 5. Draw Belts
-      if (hasBackItem) drawLayer(`belt_back_${armorBaseStr}_${appearance.gender}`);
-      if (hasHipItem) drawLayer(`belt_hip_${armorBaseStr}_${appearance.gender}`);
-
-      // 6. Draw Weapons & Shields
-      // Main Hand
-      if (equipped.mainHand && equipped.mainHand !== 'none' && equipped.mainHand !== 'fist') {
-          drawLayer(`weapon_${equipped.mainHand}`);
+      if (hasBackItem) {
+          if (armorBaseStr === 'base') drawLayer('belt_back_base');
+          else drawLayer(`belt_back_${armorBaseStr}_${appearance.gender}`);
       }
-      
-      // Off Hand
-      if (equipped.offHand && equipped.offHand !== 'none') {
-          if (equipped.offHand.includes('shield')) drawLayer(`shield_${equipped.offHand.split('_')[0]}`);
-          else drawLayer(`weapon_${equipped.offHand}`);
+      if (hasHipItem) {
+          if (armorBaseStr === 'base') drawLayer('belt_hip_base');
+          else drawLayer(`belt_hip_${armorBaseStr}_${appearance.gender}`);
       }
 
-      // 7. Draw Headgear Layer
+      // 6. Draw Hip Weapons (On the hip belt)
+      if (hipWeapons.includes(equipped.mainHand)) drawLayer(`weapon_${equipped.mainHand}`);
+      if (hipWeapons.includes(equipped.offHand)) drawLayer(`weapon_${equipped.offHand}`);
+
+      // 7. Draw Left Arm Shield Layer (Overlaps armor and left side of body)
+      if (equipped.offHand && equipped.offHand.includes('shield')) {
+          drawLayer(`shield_${equipped.offHand.split('_')[0]}`);
+      }
+
+      // 8. Draw Headgear Layer
       if (equipped.head && equipped.head !== 'none') {
           if (equipped.head === 'wizard_hat') drawLayer(`hat_${appearance.gender}_yellow`);
           else drawLayer(`${equipped.head}_${appearance.gender}`);
