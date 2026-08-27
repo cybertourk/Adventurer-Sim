@@ -55,50 +55,31 @@ const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onCl
 
 const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
 
-const VillageRoadBackground = () => (
-  <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
-    <div className="absolute inset-0 bg-gradient-to-b from-[#09090b] via-[#18181b] to-[#271c19]/40" />
-    <div className="absolute top-16 right-24 w-20 h-20 rounded-full bg-zinc-200/10 blur-xl" />
-    <div className="absolute top-18 right-26 w-16 h-16 rounded-full bg-indigo-100/20 shadow-[0_0_40px_rgba(199,210,254,0.3)]" />
-    <div className="absolute top-10 left-1/4 w-1 h-1 bg-white opacity-40 rounded-full shadow-[0_0_4px_white]" />
-    <div className="absolute top-32 left-1/3 w-0.5 h-0.5 bg-white opacity-60 rounded-full" />
-    <div className="absolute top-24 right-1/2 w-1.5 h-1.5 bg-white opacity-30 rounded-full" />
-    <div className="absolute bottom-[35%] left-0 right-0 h-40 flex items-end justify-center gap-2 opacity-30 blur-[1px]">
-        <div className="w-12 h-32 bg-[#09090b] [clip-path:polygon(50%_0%,100%_20%,100%_100%,0%_100%,0%_20%)]" />
-        <div className="w-8 h-40 bg-[#09090b] [clip-path:polygon(50%_0%,80%_10%,100%_100%,0%_100%,20%_10%)]" />
-        <div className="w-24 h-20 bg-[#09090b] [clip-path:polygon(20%_0%,80%_0%,100%_100%,0%_100%)]" />
-        <div className="w-32" />
-        <div className="w-16 h-28 bg-[#09090b] [clip-path:polygon(50%_0%,100%_30%,100%_100%,0%_100%,0%_30%)]" />
-    </div>
-    <div className="absolute bottom-[35%] left-0 right-0 h-24 flex items-end justify-between opacity-60 px-10">
-        <div className="w-24 h-32 bg-[#050505] [clip-path:polygon(20%_0,40%_15%,15%_30%,35%_50%,0%_70%,20%_100%,100%_100%,80%_80%,100%_50%,70%_30%,90%_10%,60%_0)]" />
-        <div className="w-20 h-28 bg-[#050505] [clip-path:polygon(50%_0,70%_20%,60%_40%,80%_60%,50%_100%,20%_100%,10%_60%,30%_40%,20%_20%)]" />
-    </div>
-    <div className="absolute bottom-0 left-0 right-0 h-[35%] bg-gradient-to-t from-[#110d0a] to-[#2a2015]" />
-    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[900px] h-[35%] bg-gradient-to-t from-[#2c1d11] to-[#3a2818] [clip-path:polygon(25%_0,75%_0,100%_100%,0%_100%)] border-x border-black/20" />
-    <div className="absolute inset-0 bg-gradient-to-t from-[#09090b]/80 via-transparent to-transparent" />
-  </div>
-);
+// UPDATED: Fully responsive, image-based background handler
+const ResponsiveBackground = ({ locationId }) => {
+    const baseUrl = import.meta.env.BASE_URL;
+    let bgImage = `${baseUrl}bg_village.png`; // Fallback default
+    
+    if (locationId === 'inn_room') bgImage = `${baseUrl}bg_inn.png`;
+    else if (locationId === 'estate') bgImage = `${baseUrl}bg_estate.png`;
 
-const InnRoomBackground = () => (
-  <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none bg-[#0c0a09]">
-    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#292524_2px,transparent_2px)] [background-size:30px_30px]" />
-    <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#44403c_1px,transparent_1px)] [background-size:15px_15px] translate-x-4 translate-y-4" />
-    <div className="absolute top-12 left-1/4 w-32 h-56 bg-[#050505] border-8 border-[#292524] rounded-t-[4rem] shadow-[inset_0_0_40px_black]">
-       <div className="absolute top-8 right-8 w-4 h-4 bg-indigo-100 rounded-full opacity-60 shadow-[0_0_20px_white]" />
-       <div className="absolute bottom-0 w-full h-3 bg-black/80" />
-       <div className="absolute w-2 h-full left-1/2 bg-[#292524] shadow-[2px_0_5px_rgba(0,0,0,0.5)]" />
-       <div className="absolute h-2 w-full top-1/2 bg-[#292524] shadow-[0_2px_5px_rgba(0,0,0,0.5)]" />
-    </div>
-    <div className="absolute bottom-0 left-0 right-0 h-[25%] bg-gradient-to-b from-[#1c140d] to-[#0a0704] border-t-4 border-[#292524]">
-       <div className="w-full h-full opacity-30 bg-[repeating-linear-gradient(90deg,transparent,transparent_40px,#000_40px,#000_42px)]" />
-    </div>
-    <div className="absolute bottom-0 right-1/4 w-[500px] h-[300px] bg-amber-600/10 rounded-full blur-[80px]" />
-    <div className="absolute bottom-0 right-1/4 w-[300px] h-[150px] bg-red-600/10 rounded-full blur-[60px]" />
-  </div>
-);
-
-const getBackground = (locationId) => locationId === 'inn_room' ? InnRoomBackground : VillageRoadBackground;
+    return (
+        <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden bg-[#09090b]">
+            <div 
+                className="absolute inset-0 w-full h-full"
+                style={{
+                    backgroundImage: `url('${bgImage}')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center bottom',
+                    backgroundRepeat: 'no-repeat',
+                    imageRendering: 'pixelated'
+                }}
+            />
+            {/* A gentle dark overlay so the UI remains readable */}
+            <div className="absolute inset-0 bg-zinc-950/30" />
+        </div>
+    );
+};
 
 const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
   const canvasRef = useRef(null);
@@ -522,8 +503,6 @@ const App = () => {
     );
   }
 
-  const Background = getBackground(location);
-
   const metersContent = (
     <>
          <StatBlock label="HP" value={stats.health} max={maxStats.health} alert={stats.health < maxStats.health * 0.3} onClick={() => setActiveDetailModal('health')} />
@@ -556,10 +535,8 @@ const App = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden text-zinc-200 font-sans select-none selection:bg-indigo-500/30">
       
-      {/* Background Layer */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-        <Background />
-      </div>
+      {/* Dynamic Background Layer */}
+      <ResponsiveBackground locationId={location} />
       
       {/* Modals & Overlays */}
       {showMorningReport && dailyLogs[0] && ( <MorningReport log={dailyLogs[0]} onClose={() => setShowMorningReport(false)} /> )}
@@ -666,7 +643,7 @@ const App = () => {
       </div>
 
       {/* Meters & Attributes (Desktop Only - Left Side) */}
-      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto items-start gap-3">
+      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto items-start gap-4">
           {/* Column 1: Core Meters & Trait */}
           <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
               {metersContent}
