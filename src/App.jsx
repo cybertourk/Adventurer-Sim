@@ -25,38 +25,40 @@ const renderEffectsList = (effects) => {
 };
 
 const StatBlock = ({ label, value, max, alert, inverted, onClick, subValue }) => (
-    <button onClick={onClick} className={`flex flex-col items-center justify-center w-11 h-11 md:w-[72px] md:h-[72px] bg-slate-900/90 rounded-xl md:rounded-2xl border backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all hover:scale-105 active:scale-95 ${alert ? 'border-red-500/50 bg-red-950/80' : inverted ? 'border-amber-500/50 bg-amber-950/80' : 'border-slate-700/80 hover:border-slate-500'}`}>
-        <span className={`text-[8px] md:text-[10px] font-bold uppercase tracking-widest ${alert ? 'text-red-400' : inverted ? 'text-amber-500' : 'text-slate-400'}`}>{label}</span>
-        <span className={`text-xs md:text-lg font-bold font-mono ${alert ? 'text-red-400' : inverted ? 'text-amber-300' : 'text-slate-200'}`}>{Math.floor(value)}{max !== undefined && <span className="text-[9px] md:text-xs text-slate-500">/{max}</span>}</span>
-        {subValue !== undefined && <span className="text-[8px] md:text-[10px] text-indigo-400 font-mono">+{subValue}</span>}
+    <button onClick={onClick} className={`flex flex-col items-center justify-center w-[42px] h-[42px] md:w-[60px] md:h-[60px] bg-zinc-900/90 rounded-xl md:rounded-2xl border backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all hover:scale-105 active:scale-95 ${alert ? 'border-red-500/50 bg-red-950/80' : inverted ? 'border-amber-500/50 bg-amber-950/80' : 'border-zinc-700/80 hover:border-zinc-500'}`}>
+        <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-widest ${alert ? 'text-red-400' : inverted ? 'text-amber-500' : 'text-zinc-400'}`}>{label}</span>
+        <span className={`text-xs md:text-base font-bold font-mono ${alert ? 'text-red-400' : inverted ? 'text-amber-300' : 'text-zinc-200'}`}>{Math.floor(value)}{max !== undefined && <span className="text-[8px] md:text-[10px] text-zinc-500">/{max}</span>}</span>
+        {subValue !== undefined && <span className="text-[8px] md:text-[9px] text-indigo-400 font-mono">+{subValue}</span>}
     </button>
 );
 
 const AttributeBlock = ({ label, value, onClick }) => (
-    <button onClick={onClick} className="flex flex-col items-center justify-center w-10 h-10 md:w-16 md:h-16 bg-slate-900/90 rounded-lg md:rounded-xl border border-indigo-900/50 hover:border-indigo-500 shadow-sm transition-all active:scale-95">
+    <button onClick={onClick} className="flex flex-col items-center justify-center w-[42px] h-[42px] md:w-[60px] md:h-[60px] bg-zinc-900/90 rounded-xl md:rounded-2xl border border-indigo-900/50 hover:border-indigo-500 shadow-sm transition-all hover:scale-105 active:scale-95">
         <span className="text-[8px] md:text-[9px] font-bold text-indigo-400 uppercase tracking-widest">{label}</span>
-        <span className="text-sm md:text-lg font-bold font-mono text-indigo-100">{value}</span>
+        <span className="text-xs md:text-base font-bold font-mono text-indigo-100">{value}</span>
     </button>
 );
 
 const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onClick, disabled, description, effects }) => {
   const Icon = IconMap[IconName] || HelpCircle;
   return (
-    <button onClick={onClick} disabled={disabled} className={`flex items-center gap-3 p-3 w-full rounded-lg border text-left transition-all relative overflow-hidden group ${disabled ? 'bg-slate-900/80 border-slate-800 text-slate-600 cursor-not-allowed opacity-70' : 'bg-slate-800/90 border-slate-600 text-slate-200 hover:bg-indigo-950/50 hover:border-indigo-500 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]'}`}>
-      <div className={`p-2 rounded-md ${disabled ? 'bg-slate-800' : 'bg-slate-950 group-hover:text-indigo-400'}`}><Icon size={18} /></div>
+    <button onClick={onClick} disabled={disabled} className={`flex items-center gap-3 p-3 w-full rounded-lg border text-left transition-all relative overflow-hidden group ${disabled ? 'bg-zinc-900/80 border-zinc-800 text-zinc-600 cursor-not-allowed opacity-70' : 'bg-zinc-800/90 border-zinc-600 text-zinc-200 hover:bg-indigo-950/50 hover:border-indigo-500 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]'}`}>
+      <div className={`p-2 rounded-md ${disabled ? 'bg-zinc-800' : 'bg-zinc-950 group-hover:text-indigo-400'}`}><Icon size={18} /></div>
       <div className="flex flex-col flex-1 min-w-0">
-        <div className="flex justify-between items-center mb-0.5"><span className="font-bold text-xs truncate">{label}</span>{days > 0 && <span className="text-[9px] text-slate-400 flex items-center gap-0.5"><Clock size={10}/> {days}d</span>}</div>
-        <span className="text-[10px] text-slate-500 truncate leading-tight">{description}</span>{effects && renderEffectsList(effects)}
+        <div className="flex justify-between items-center mb-0.5"><span className="font-bold text-xs truncate">{label}</span>{days > 0 && <span className="text-[9px] text-zinc-400 flex items-center gap-0.5"><Clock size={10}/> {days}d</span>}</div>
+        <span className="text-[10px] text-zinc-500 truncate leading-tight">{description}</span>{effects && renderEffectsList(effects)}
       </div>
-      {cost > 0 && <div className={`text-[10px] font-mono px-2 py-1 rounded ml-2 ${disabled ? 'bg-slate-800' : 'bg-black/60'} ${costType === 'gp' ? 'text-amber-500' : 'text-cyan-500'}`}>-{cost}{costType}</div>}
+      {cost > 0 && <div className={`text-[10px] font-mono px-2 py-1 rounded ml-2 ${disabled ? 'bg-zinc-800' : 'bg-black/60'} ${costType === 'gp' ? 'text-amber-500' : 'text-cyan-500'}`}>-{cost}{costType}</div>}
     </button>
   );
 };
 
+const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
+
 const VillageRoadBackground = () => (
   <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
     <div className="absolute inset-0 bg-gradient-to-b from-[#09090b] via-[#18181b] to-[#271c19]/40" />
-    <div className="absolute top-16 right-24 w-20 h-20 rounded-full bg-slate-200/10 blur-xl" />
+    <div className="absolute top-16 right-24 w-20 h-20 rounded-full bg-zinc-200/10 blur-xl" />
     <div className="absolute top-18 right-26 w-16 h-16 rounded-full bg-indigo-100/20 shadow-[0_0_40px_rgba(199,210,254,0.3)]" />
     <div className="absolute top-10 left-1/4 w-1 h-1 bg-white opacity-40 rounded-full shadow-[0_0_4px_white]" />
     <div className="absolute top-32 left-1/3 w-0.5 h-0.5 bg-white opacity-60 rounded-full" />
@@ -98,7 +100,6 @@ const InnRoomBackground = () => (
 
 const getBackground = (locationId) => locationId === 'inn_room' ? InnRoomBackground : VillageRoadBackground;
 
-// UPDATED: HTML5 Canvas Engine loading actual 2D Sprites
 const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
@@ -324,26 +325,26 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
 const MorningReport = ({ log, onClose }) => {
   if (!log) return null;
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}>
-      <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-amber-900/40 to-slate-900 p-6 border-b border-slate-800 flex items-center gap-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}>
+      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="bg-gradient-to-r from-amber-900/40 to-zinc-900 p-6 border-b border-zinc-800 flex items-center gap-4">
             <div className="p-3 bg-amber-500/20 rounded-full text-amber-400 border border-amber-500/30"><Sun size={28} /></div>
             <div><h2 className="text-xl font-bold text-white tracking-wide">Day {log.day}</h2><div className="text-xs text-amber-200/60 font-mono uppercase tracking-widest">Morning Report</div></div>
         </div>
         <div className="p-6 space-y-6">
             <div className="relative">
-                <div className="absolute -left-2 -top-2 text-4xl text-slate-700 font-serif">“</div>
-                <p className="text-lg text-slate-200 italic font-serif leading-relaxed px-4">{log.incidentText}</p>
-                <div className="absolute -right-2 -bottom-4 text-4xl text-slate-700 font-serif">”</div>
+                <div className="absolute -left-2 -top-2 text-4xl text-zinc-700 font-serif">“</div>
+                <p className="text-lg text-zinc-200 italic font-serif leading-relaxed px-4">{log.incidentText}</p>
+                <div className="absolute -right-2 -bottom-4 text-4xl text-zinc-700 font-serif">”</div>
             </div>
-            <div className="h-px bg-slate-800 w-full" />
+            <div className="h-px bg-zinc-800 w-full" />
             <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Last Night's Sleep</span>
-                    <span className="text-sm text-slate-300 font-medium flex items-center gap-2">{log.sleepLoc}</span>
+                <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1">Last Night's Sleep</span>
+                    <span className="text-sm text-zinc-300 font-medium flex items-center gap-2">{log.sleepLoc}</span>
                 </div>
-                <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                    <span className="text-[10px] text-slate-500 font-bold uppercase block mb-1">Expenses</span>
+                <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1">Expenses</span>
                     <span className="text-sm text-amber-400 font-medium">{log.rent.includes('Paid') ? log.rent.split(':')[1] : '0g'}</span>
                 </div>
             </div>
@@ -352,7 +353,7 @@ const MorningReport = ({ log, onClose }) => {
                 <span className="text-xs text-indigo-200">{log.status}</span>
             </div>
         </div>
-        <div className="p-4 border-t border-slate-800 bg-slate-950/30 flex justify-end">
+        <div className="p-4 border-t border-zinc-800 bg-zinc-950/30 flex justify-end">
             <button onClick={onClose} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(99,102,241,0.4)]">Start Day</button>
         </div>
       </div>
@@ -362,58 +363,58 @@ const MorningReport = ({ log, onClose }) => {
 
 const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppearance, equipped, attributes, updateAttribute, pointsAvailable, getStatInfo, startGame }) => {
   return (
-    <div className="h-screen bg-slate-950 text-slate-100 font-sans flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
-            <div className="w-full md:w-1/3 bg-gradient-to-b from-slate-900 to-slate-950 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-slate-800 relative">
+    <div className="h-screen bg-zinc-950 text-zinc-100 font-sans flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-4xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
+            <div className="w-full md:w-1/3 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-zinc-800 relative">
                 <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
                 <div className="w-48 h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} /></div>
             </div>
-            <div className="flex-1 p-6 flex flex-col bg-slate-900/50">
-                <div className="flex gap-4 mb-6 border-b border-slate-800">
-                    <button onClick={() => setCreationStep(1)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 1 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-300'}`}>1. Appearance</button>
-                    <button onClick={() => setCreationStep(2)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 2 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-slate-500 hover:text-slate-300'}`}>2. Attributes</button>
+            <div className="flex-1 p-6 flex flex-col bg-zinc-900/50">
+                <div className="flex gap-4 mb-6 border-b border-zinc-800">
+                    <button onClick={() => setCreationStep(1)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 1 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-500 hover:text-zinc-300'}`}>1. Appearance</button>
+                    <button onClick={() => setCreationStep(2)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 2 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-500 hover:text-zinc-300'}`}>2. Attributes</button>
                 </div>
                 <div className="flex-1 overflow-y-auto pr-2 space-y-6">
                     {creationStep === 1 && (
                         <>
-                            <div><h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Gender</h3>
-                                <div className="flex gap-2">{['male', 'female'].map(g => (<button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-2.5 rounded-lg border text-xs font-bold uppercase transition-all ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:bg-slate-700'}`}>{g}</button>))}</div>
+                            <div><h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Gender</h3>
+                                <div className="flex gap-2">{['male', 'female'].map(g => (<button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-2.5 rounded-lg border text-xs font-bold uppercase transition-all ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'bg-zinc-800/80 border-zinc-700 text-zinc-400 hover:bg-zinc-700'}`}>{g}</button>))}</div>
                             </div>
-                            <div><h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Skin Tone</h3>
-                                <div className="flex gap-3">{APPEARANCE_OPTIONS.skinTones.map(t => (<button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-8 h-8 rounded-full border-2 transition-transform ${appearance.skinTone === t.id ? 'border-indigo-400 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'border-slate-700 hover:scale-110'}`} style={{ backgroundColor: t.color }} />))}</div>
+                            <div><h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Skin Tone</h3>
+                                <div className="flex gap-3">{APPEARANCE_OPTIONS.skinTones.map(t => (<button key={t.id} onClick={() => updateAppearance('skinTone', t.id)} className={`w-8 h-8 rounded-full border-2 transition-transform ${appearance.skinTone === t.id ? 'border-indigo-400 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'border-zinc-700 hover:scale-110'}`} style={{ backgroundColor: t.color }} />))}</div>
                             </div>
-                            <div><h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Eye Color</h3>
-                                <div className="flex gap-3 flex-wrap">{APPEARANCE_OPTIONS.eyeColors.map(c => (<button key={c.id} onClick={() => updateAppearance('eyeColor', c.id)} className={`w-6 h-6 rounded-full border-2 transition-transform ${appearance.eyeColor === c.id ? 'border-indigo-400 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'border-slate-700 hover:scale-110'}`} style={{ backgroundColor: c.color }} />))}</div>
+                            <div><h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Eye Color</h3>
+                                <div className="flex gap-3 flex-wrap">{APPEARANCE_OPTIONS.eyeColors.map(c => (<button key={c.id} onClick={() => updateAppearance('eyeColor', c.id)} className={`w-6 h-6 rounded-full border-2 transition-transform ${appearance.eyeColor === c.id ? 'border-indigo-400 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'border-zinc-700 hover:scale-110'}`} style={{ backgroundColor: c.color }} />))}</div>
                             </div>
-                            <div><h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Hair Style</h3>
-                                <div className="grid grid-cols-3 gap-2">{APPEARANCE_OPTIONS.hairStyles.map(s => (<button key={s.id} onClick={() => updateAppearance('hairStyle', s.id)} className={`py-2 rounded-lg border text-xs font-bold transition-all ${appearance.hairStyle === s.id ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:bg-slate-700'}`}>{s.label}</button>))}</div>
+                            <div><h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Hair Style</h3>
+                                <div className="grid grid-cols-3 gap-2">{APPEARANCE_OPTIONS.hairStyles.map(s => (<button key={s.id} onClick={() => updateAppearance('hairStyle', s.id)} className={`py-2 rounded-lg border text-xs font-bold transition-all ${appearance.hairStyle === s.id ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'bg-zinc-800/80 border-zinc-700 text-zinc-400 hover:bg-zinc-700'}`}>{s.label}</button>))}</div>
                             </div>
-                            <div><h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Hair Color</h3>
-                                <div className="flex gap-3 flex-wrap">{APPEARANCE_OPTIONS.hairColors.map(c => (<button key={c.id} onClick={() => updateAppearance('hairColor', c.id)} className={`w-7 h-7 rounded border-2 transition-transform ${appearance.hairColor === c.id ? 'border-indigo-400 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'border-slate-700 hover:scale-110'}`} style={{ backgroundColor: c.color }} />))}</div>
+                            <div><h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Hair Color</h3>
+                                <div className="flex gap-3 flex-wrap">{APPEARANCE_OPTIONS.hairColors.map(c => (<button key={c.id} onClick={() => updateAppearance('hairColor', c.id)} className={`w-7 h-7 rounded border-2 transition-transform ${appearance.hairColor === c.id ? 'border-indigo-400 scale-125 shadow-[0_0_8px_rgba(99,102,241,0.5)]' : 'border-zinc-700 hover:scale-110'}`} style={{ backgroundColor: c.color }} />))}</div>
                             </div>
                         </>
                     )}
                     {creationStep === 2 && (
                         <>
-                            <div className="flex justify-between items-center bg-slate-800/80 border border-slate-700 p-4 rounded-xl mb-4 shadow-inner">
-                                <span className="text-sm font-bold text-slate-300 uppercase tracking-widest">Points Available</span>
-                                <span className={`text-2xl font-mono font-bold ${pointsAvailable > 0 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'text-slate-500'}`}>{pointsAvailable}</span>
+                            <div className="flex justify-between items-center bg-zinc-800/80 border border-zinc-700 p-4 rounded-xl mb-4 shadow-inner">
+                                <span className="text-sm font-bold text-zinc-300 uppercase tracking-widest">Points Available</span>
+                                <span className={`text-2xl font-mono font-bold ${pointsAvailable > 0 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.5)]' : 'text-zinc-500'}`}>{pointsAvailable}</span>
                             </div>
                             {Object.keys(attributes).map(attr => (
-                                <div key={attr} className="flex items-center justify-between p-3 bg-slate-800/40 rounded-lg border border-slate-700/50 hover:bg-slate-800/60 transition-colors">
-                                    <div className="flex flex-col"><span className="text-sm font-bold text-indigo-200 uppercase tracking-wider">{attr}</span><span className="text-[10px] text-slate-400">{getStatInfo(attr).desc}</span></div>
-                                    <div className="flex items-center gap-3 bg-slate-900/50 p-1 rounded-lg border border-slate-800">
-                                        <button onClick={() => updateAttribute(attr, -1)} className="p-1.5 bg-slate-800 rounded hover:bg-slate-700 text-slate-300 transition-colors"><Minus size={14} /></button>
+                                <div key={attr} className="flex items-center justify-between p-3 bg-zinc-800/40 rounded-lg border border-zinc-700/50 hover:bg-zinc-800/60 transition-colors">
+                                    <div className="flex flex-col"><span className="text-sm font-bold text-indigo-200 uppercase tracking-wider">{attr}</span><span className="text-[10px] text-zinc-400">{getStatInfo(attr).desc}</span></div>
+                                    <div className="flex items-center gap-3 bg-zinc-900/50 p-1 rounded-lg border border-zinc-800">
+                                        <button onClick={() => updateAttribute(attr, -1)} className="p-1.5 bg-zinc-800 rounded hover:bg-zinc-700 text-zinc-300 transition-colors"><Minus size={14} /></button>
                                         <span className="w-6 text-center font-mono font-bold text-white text-lg">{attributes[attr]}</span>
-                                        <button onClick={() => updateAttribute(attr, 1)} className="p-1.5 bg-slate-800 rounded hover:bg-slate-700 text-slate-300 transition-colors" disabled={pointsAvailable <= 0}><Plus size={14} /></button>
+                                        <button onClick={() => updateAttribute(attr, 1)} className="p-1.5 bg-zinc-800 rounded hover:bg-zinc-700 text-zinc-300 transition-colors" disabled={pointsAvailable <= 0}><Plus size={14} /></button>
                                     </div>
                                 </div>
                             ))}
                         </>
                     )}
                 </div>
-                <div className="mt-6 pt-4 border-t border-slate-800 flex justify-end">
-                    {creationStep === 1 ? ( <button onClick={() => setCreationStep(2)} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wider uppercase text-sm rounded-xl transition-all shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_20px_rgba(99,102,241,0.5)]">Next: Attributes</button> ) : ( <button onClick={startGame} disabled={pointsAvailable > 0} className={`px-8 py-3 font-bold tracking-wider uppercase text-sm rounded-xl transition-all ${pointsAvailable > 0 ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(52,211,153,0.3)] hover:shadow-[0_0_20px_rgba(52,211,153,0.5)]'}`}>Start Adventure</button> )}
+                <div className="mt-6 pt-4 border-t border-zinc-800 flex justify-end">
+                    {creationStep === 1 ? ( <button onClick={() => setCreationStep(2)} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wider uppercase text-sm rounded-xl transition-all shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_20px_rgba(99,102,241,0.5)]">Next: Attributes</button> ) : ( <button onClick={startGame} disabled={pointsAvailable > 0} className={`px-8 py-3 font-bold tracking-wider uppercase text-sm rounded-xl transition-all ${pointsAvailable > 0 ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(52,211,153,0.3)] hover:shadow-[0_0_20px_rgba(52,211,153,0.5)]'}`}>Start Adventure</button> )}
                 </div>
             </div>
         </div>
@@ -545,7 +546,7 @@ const App = () => {
   const modalDetails = activeDetailModal ? getModalDetails(activeDetailModal) : null;
 
   return (
-    <div className="relative w-full h-screen overflow-hidden text-slate-200 font-sans selection:bg-indigo-500/30">
+    <div className="relative w-full h-screen overflow-hidden text-zinc-200 font-sans select-none selection:bg-indigo-500/30">
       
       {/* Background Layer */}
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -556,24 +557,24 @@ const App = () => {
       {showMorningReport && dailyLogs[0] && ( <MorningReport log={dailyLogs[0]} onClose={() => setShowMorningReport(false)} /> )}
 
       {activeDetailModal && modalDetails && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setActiveDetailModal(null)}>
-              <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
-                  <div className="p-4 border-b border-slate-800 bg-slate-950/50 flex justify-between items-center">
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setActiveDetailModal(null)}>
+              <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                  <div className="p-4 border-b border-zinc-800 bg-zinc-950/50 flex justify-between items-center">
                       <h3 className="font-bold text-lg text-indigo-400 uppercase tracking-widest">{modalDetails.title}</h3>
-                      <button onClick={() => setActiveDetailModal(null)} className="text-slate-500 hover:text-slate-300 transition-colors"><X size={18}/></button>
+                      <button onClick={() => setActiveDetailModal(null)} className="text-zinc-500 hover:text-zinc-300 transition-colors"><X size={18}/></button>
                   </div>
                   <div className="p-5 space-y-4">
-                      <p className="text-sm text-slate-300 leading-relaxed italic">{modalDetails.description}</p>
+                      <p className="text-sm text-zinc-300 leading-relaxed italic">{modalDetails.description}</p>
                       
                       {!modalDetails.isQuirk && (
-                          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 space-y-3">
-                              <div className="flex justify-between items-center text-sm font-bold text-slate-400">
+                          <div className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/50 space-y-3">
+                              <div className="flex justify-between items-center text-sm font-bold text-zinc-400">
                                   <span>Base Value:</span>
-                                  <span className="font-mono text-slate-200">{modalDetails.base}{modalDetails.max ? ` / ${modalDetails.max}` : ''}</span>
+                                  <span className="font-mono text-zinc-200">{modalDetails.base}{modalDetails.max ? ` / ${modalDetails.max}` : ''}</span>
                               </div>
                               
                               {modalDetails.modifiers?.map((mod, i) => (
-                                  <div key={i} className="flex justify-between items-center text-xs text-slate-400">
+                                  <div key={i} className="flex justify-between items-center text-xs text-zinc-400">
                                       <span>{mod.source}</span>
                                       <span className={`font-mono font-bold ${mod.value > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                                           {mod.value > 0 ? '+' : ''}{mod.value}
@@ -582,7 +583,7 @@ const App = () => {
                               ))}
                               
                               {modalDetails.modifiers?.length > 0 && (
-                                  <div className="pt-3 mt-3 border-t border-slate-700/50 flex justify-between items-center text-sm font-bold text-slate-200">
+                                  <div className="pt-3 mt-3 border-t border-zinc-700/50 flex justify-between items-center text-sm font-bold text-zinc-200">
                                       <span>Current Total:</span>
                                       <span className="font-mono text-indigo-400">{modalDetails.total}</span>
                                   </div>
@@ -610,27 +611,27 @@ const App = () => {
 
       {/* Top HUD Layer */}
       <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 pointer-events-none flex flex-col gap-2">
-        <header className="pointer-events-auto bg-slate-900/90 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-3 md:p-4 flex flex-wrap items-center justify-between gap-2 md:gap-4 shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
+        <header className="pointer-events-auto bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/60 rounded-2xl p-3 md:p-4 flex flex-wrap items-center justify-between gap-2 md:gap-4 shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
             <div className="flex items-center gap-3 md:gap-5">
                 <div className="flex flex-col">
-                    <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">Time</span>
+                    <span className="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Time</span>
                     <span className="text-lg md:text-xl font-bold text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">Day {days}</span>
                 </div>
-                <div className="w-px h-6 md:h-8 bg-slate-700/60 hidden md:block"></div>
+                <div className="w-px h-6 md:h-8 bg-zinc-700/60 hidden md:block"></div>
                 <div className="flex flex-col">
-                    <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">Location</span>
-                    <span className="text-xs md:text-sm font-bold text-slate-200">{LOCATIONS[location]?.name}</span>
+                    <span className="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Location</span>
+                    <span className="text-xs md:text-sm font-bold text-zinc-200">{LOCATIONS[location]?.name}</span>
                 </div>
-                <div className="w-px h-6 md:h-8 bg-slate-700/60 hidden md:block"></div>
+                <div className="w-px h-6 md:h-8 bg-zinc-700/60 hidden md:block"></div>
                 <div className="flex flex-col">
-                    <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">Housing</span>
+                    <span className="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Housing</span>
                     <span className={`text-xs md:text-sm font-bold ${housing === 'homeless' ? 'text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.4)]' : 'text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.4)]'}`}>
                         {housing === 'inn' ? 'Inn Room' : housing === 'estate' ? 'Estate' : 'Homeless'}
                     </span>
                 </div>
             </div>
             
-            <div className="flex items-center gap-3 md:gap-6 bg-slate-950/70 px-3 py-1.5 md:py-2 rounded-xl border border-slate-800/80 shadow-inner">
+            <div className="flex items-center gap-3 md:gap-6 bg-zinc-950/70 px-3 py-1.5 md:py-2 rounded-xl border border-zinc-800/80 shadow-inner">
                 <div className="flex items-center gap-2">
                     <div className="p-1 md:p-1.5 bg-amber-500/20 rounded-lg text-amber-400 border border-amber-500/30"><Coins size={14} className="md:w-4 md:h-4" /></div>
                     <span className="text-base md:text-lg font-mono font-bold text-amber-400 drop-shadow-[0_0_5px_rgba(245,158,11,0.3)]">{resources.gold}g</span>
@@ -647,31 +648,35 @@ const App = () => {
 
         {/* Meters & Attributes (Mobile Only) */}
         <div className="md:hidden pointer-events-auto flex flex-col items-center gap-2 max-w-fit mx-auto mt-1">
-            <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl py-2 px-3 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex justify-center gap-2">
+            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex justify-center gap-1.5">
                 {metersContent}
             </div>
-            <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl py-1.5 px-3 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex justify-center gap-2">
+            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex justify-center gap-1.5">
                 {attributesContent}
             </div>
         </div>
       </div>
 
       {/* Meters & Attributes (Desktop Only - Left Side) */}
-      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto flex-col items-center gap-3 w-[96px]">
-          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3 w-full">
+      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto items-start gap-4">
+          {/* Column 1: Core Meters */}
+          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
               {metersContent}
           </div>
 
-          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-2 w-full">
-              {attributesContent}
+          {/* Column 2: Attributes & Trait */}
+          <div className="flex flex-col gap-3">
+              <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
+                  {attributesContent}
+              </div>
+              
+              {quirk && (
+                  <button onClick={() => setActiveDetailModal('quirk')} className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-2 py-2.5 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-center text-center w-full animate-in fade-in zoom-in duration-500 hover:bg-indigo-900 transition-colors">
+                      <span className="text-[8px] text-indigo-400 uppercase tracking-widest mb-1 border-b border-indigo-500/30 pb-0.5 w-full">Trait</span>
+                      <span className="leading-tight text-indigo-100">{quirk.name}</span>
+                  </button>
+              )}
           </div>
-          
-          {quirk && (
-              <button onClick={() => setActiveDetailModal('quirk')} className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-2 py-2.5 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-center text-center w-full animate-in fade-in zoom-in duration-500 hover:bg-indigo-900 transition-colors">
-                  <span className="text-[8px] text-indigo-400 uppercase tracking-widest mb-1 border-b border-indigo-500/30 pb-0.5 w-full">Trait</span>
-                  <span className="leading-tight text-indigo-100">{quirk.name}</span>
-              </button>
-          )}
       </div>
       
       <div className="md:hidden absolute bottom-24 left-4 z-20 pointer-events-auto">
@@ -704,7 +709,7 @@ const App = () => {
 
       {/* Navigation Layer (Mobile: Bottom, Desktop: Right) */}
       <div className="absolute bottom-6 md:bottom-auto md:top-1/2 left-1/2 md:left-auto md:right-6 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2 z-20 pointer-events-auto">
-          <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-row md:flex-col gap-2">
+          <div className="bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-row md:flex-col gap-2">
               {[
                 { id: 'actions', icon: Tent, label: 'Actions' },
                 { id: 'inventory', icon: Backpack, label: 'Bag' },
@@ -720,7 +725,7 @@ const App = () => {
                       className={`flex flex-col items-center justify-center w-16 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl transition-all ${
                           isActive 
                               ? 'bg-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.5)] border border-indigo-400 scale-105' 
-                              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-transparent'
+                              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border border-transparent'
                       }`}
                   >
                       <Icon size={isActive ? 24 : 20} className="mb-1" />
@@ -735,11 +740,11 @@ const App = () => {
       {openPanel && (
           <div className="absolute inset-0 z-30 pointer-events-none flex justify-center items-end sm:items-center p-2 sm:p-6 pb-28 sm:pb-6">
               
-              <div className="absolute inset-0 bg-slate-950/70 pointer-events-auto backdrop-blur-md transition-opacity" onClick={() => setOpenPanel(null)} />
+              <div className="absolute inset-0 bg-zinc-950/70 pointer-events-auto backdrop-blur-md transition-opacity" onClick={() => setOpenPanel(null)} />
               
-              <div className="pointer-events-auto relative bg-slate-900/95 backdrop-blur-xl border border-slate-700/80 rounded-3xl sm:rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] w-full max-w-2xl max-h-[75vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-300">
+              <div className="pointer-events-auto relative bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/80 rounded-3xl sm:rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] w-full max-w-2xl max-h-[75vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-300">
                  
-                 <div className="flex justify-between items-center p-4 sm:p-5 border-b border-slate-700/80 bg-slate-950/60 shadow-sm">
+                 <div className="flex justify-between items-center p-4 sm:p-5 border-b border-zinc-700/80 bg-zinc-950/60 shadow-sm">
                      <h2 className="font-bold uppercase tracking-widest text-indigo-400 flex items-center gap-3 text-lg drop-shadow-[0_0_5px_rgba(99,102,241,0.4)]">
                         {openPanel === 'actions' && <Tent size={20}/>}
                         {openPanel === 'inventory' && <Backpack size={20}/>}
@@ -747,18 +752,18 @@ const App = () => {
                         {openPanel === 'log' && <List size={20}/>}
                         {openPanel}
                      </h2>
-                     <button onClick={() => setOpenPanel(null)} className="p-2 bg-slate-800 rounded-full hover:bg-red-900/80 hover:text-red-400 transition-colors border border-slate-700 shadow-sm">
+                     <button onClick={() => setOpenPanel(null)} className="p-2 bg-zinc-800 rounded-full hover:bg-red-900/80 hover:text-red-400 transition-colors border border-zinc-700 shadow-sm">
                          <X size={16} strokeWidth={3} />
                      </button>
                  </div>
 
-                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth bg-gradient-to-b from-transparent to-slate-950/30">
+                 <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth bg-gradient-to-b from-transparent to-zinc-950/30">
                      
                      {/* --- ACTIONS PANEL --- */}
                      {openPanel === 'actions' && (
                         <>
                            <div>
-                              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-slate-800 pb-1">Maintenance</h3>
+                              <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1">Maintenance</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                  {MAINTENANCE_ACTIONS.map(action => (
                                     <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead || (action.cost > 0 && resources.gold < action.cost)} />
@@ -773,7 +778,7 @@ const App = () => {
                            
                            {dailyQuests.labor.length > 0 && (
                               <div>
-                                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-slate-800 pb-1"><Hammer size={14} className="text-amber-500"/> Labor (STR/CON)</h3>
+                                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Hammer size={14} className="text-amber-500"/> Labor (STR/CON)</h3>
                                   <div className="grid grid-cols-1 gap-3">
                                       {dailyQuests.labor.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
@@ -782,7 +787,7 @@ const App = () => {
 
                            {dailyQuests.adventure.length > 0 && (
                               <div>
-                                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-slate-800 pb-1"><Shield size={14} className="text-indigo-400"/> Adventure (STR/DEX/AC)</h3>
+                                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Shield size={14} className="text-indigo-400"/> Adventure (STR/DEX/AC)</h3>
                                   <div className="grid grid-cols-1 gap-3">
                                       {dailyQuests.adventure.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
@@ -791,7 +796,7 @@ const App = () => {
 
                            {dailyQuests.social.length > 0 && (
                               <div>
-                                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-slate-800 pb-1"><User size={14} className="text-emerald-400"/> Social (CHA)</h3>
+                                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><User size={14} className="text-emerald-400"/> Social (CHA)</h3>
                                   <div className="grid grid-cols-1 gap-3">
                                       {dailyQuests.social.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
@@ -804,23 +809,23 @@ const App = () => {
                      {openPanel === 'inventory' && (
                         <div className="space-y-6">
                             <div>
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-800 pb-1">Equipped</h3>
+                                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">Equipped</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     {Object.entries(equipped).map(([slot, itemId]) => {
                                         const item = ITEM_DB[slot]?.find(i => i.id === itemId);
                                         const isDefault = itemId === 'none' || itemId === 'fist' || itemId === 'tunic';
                                         return (
-                                            <div key={slot} className="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3 flex flex-col items-center justify-between text-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden h-full min-h-[90px]">
+                                            <div key={slot} className="bg-zinc-900/80 border border-zinc-700/60 rounded-xl p-3 flex flex-col items-center justify-between text-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden h-full min-h-[90px]">
                                                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
                                                 <div className="flex flex-col items-center z-10 w-full">
                                                     <span className="text-[9px] text-indigo-400 uppercase font-bold tracking-widest mb-1">{slot}</span>
-                                                    <span className="text-sm font-bold text-slate-200">{item ? item.name : 'None'}</span>
+                                                    <span className="text-sm font-bold text-zinc-200">{item ? item.name : 'None'}</span>
                                                     <div className="mt-1">{item && renderItemStats(item)}</div>
                                                 </div>
                                                 {!isDefault && (
                                                     <button 
                                                         onClick={() => equipItem({ id: slot === 'mainHand' ? 'fist' : 'none', type: slot, category: 'Equipment' })} 
-                                                        className="mt-3 z-10 w-full py-1.5 text-[9px] font-bold uppercase tracking-widest bg-slate-950/60 text-slate-400 border border-slate-700/50 rounded-lg hover:bg-red-950/80 hover:text-red-400 hover:border-red-900/50 transition-all shadow-sm"
+                                                        className="mt-3 z-10 w-full py-1.5 text-[9px] font-bold uppercase tracking-widest bg-zinc-950/60 text-zinc-400 border border-zinc-700/50 rounded-lg hover:bg-red-950/80 hover:text-red-400 hover:border-red-900/50 transition-all shadow-sm"
                                                     >
                                                         Unequip
                                                     </button>
@@ -832,10 +837,10 @@ const App = () => {
                             </div>
 
                             <div>
-                                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-800 pb-1">Backpack</h3>
+                                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">Backpack</h3>
                                 {visibleInventory.length === 0 ? (
-                                    <div className="p-8 text-center bg-slate-900/50 rounded-xl border border-slate-700/50 border-dashed">
-                                        <p className="text-sm text-slate-500 font-medium">Your backpack is empty.</p>
+                                    <div className="p-8 text-center bg-zinc-900/50 rounded-xl border border-zinc-700/50 border-dashed">
+                                        <p className="text-sm text-zinc-500 font-medium">Your backpack is empty.</p>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -844,18 +849,18 @@ const App = () => {
                                             if(!item) return null;
                                             const isEquipped = Object.values(equipped).includes(itemId);
                                             return (
-                                                <div key={idx} className="bg-slate-800/90 border border-slate-700/80 rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
+                                                <div key={idx} className="bg-zinc-800/90 border border-zinc-700/80 rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
-                                                            <span className="font-bold text-sm text-slate-200 block">{item.name}</span>
-                                                            <span className="text-[10px] text-slate-500 uppercase tracking-widest">{item.category}</span>
+                                                            <span className="font-bold text-sm text-zinc-200 block">{item.name}</span>
+                                                            <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{item.category}</span>
                                                         </div>
                                                         <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-700/50">{Math.floor(item.cost/2)}g Value</span>
                                                     </div>
                                                     {renderItemStats(item)}
                                                     <div className="mt-4 flex gap-2">
                                                         {['head', 'body', 'mainHand', 'offHand'].includes(item.type) && (
-                                                            <button onClick={() => equipItem(item)} disabled={isEquipped} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${isEquipped ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-slate-700 text-slate-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-slate-600 hover:border-indigo-500'}`}>
+                                                            <button onClick={() => equipItem(item)} disabled={isEquipped} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${isEquipped ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-zinc-700 text-zinc-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-zinc-600 hover:border-indigo-500'}`}>
                                                                 {isEquipped ? 'Equipped' : 'Equip'}
                                                             </button>
                                                         )}
@@ -865,7 +870,7 @@ const App = () => {
                                                             </button>
                                                         )}
                                                         {!isEquipped && (
-                                                            <button onClick={() => sellItem(item)} className="px-5 py-2.5 bg-slate-900 border border-slate-700 text-slate-400 hover:bg-amber-600 hover:text-white hover:border-amber-500 rounded-lg text-xs font-bold tracking-wider uppercase transition-all hover:shadow-[0_0_15px_rgba(217,119,6,0.4)]">
+                                                            <button onClick={() => sellItem(item)} className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-zinc-400 hover:bg-amber-600 hover:text-white hover:border-amber-500 rounded-lg text-xs font-bold tracking-wider uppercase transition-all hover:shadow-[0_0_15px_rgba(217,119,6,0.4)]">
                                                                 Sell
                                                             </button>
                                                         )}
@@ -882,12 +887,12 @@ const App = () => {
                      {/* --- SHOP PANEL --- */}
                      {openPanel === 'shop' && (
                         <div>
-                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-4 gap-3 border-b border-slate-800 pb-3">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-4 gap-3 border-b border-zinc-800 pb-3">
                                 <div>
-                                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest">Daily Market</h3>
-                                    <p className="text-[10px] text-slate-500 mt-1">Stock refreshes every day.</p>
+                                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Daily Market</h3>
+                                    <p className="text-[10px] text-zinc-500 mt-1">Stock refreshes every day.</p>
                                 </div>
-                                <button onClick={() => passTime(1)} className="text-[10px] bg-slate-800 px-4 py-2.5 rounded-lg border border-slate-700 hover:bg-indigo-900/60 hover:border-indigo-500/50 text-slate-300 hover:text-indigo-200 font-bold uppercase tracking-wider transition-all flex items-center gap-2">
+                                <button onClick={() => passTime(1)} className="text-[10px] bg-zinc-800 px-4 py-2.5 rounded-lg border border-zinc-700 hover:bg-indigo-900/60 hover:border-indigo-500/50 text-zinc-300 hover:text-indigo-200 font-bold uppercase tracking-wider transition-all flex items-center gap-2">
                                     <Clock size={12}/> Skip Day
                                 </button>
                             </div>
@@ -900,21 +905,21 @@ const App = () => {
                                     const canAfford = resources.gold >= cost;
 
                                     return (
-                                        <div key={itemId} className={`bg-slate-800/80 border rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-all ${canAfford ? 'border-slate-600 hover:border-indigo-500/70 hover:bg-slate-800' : 'border-slate-800 opacity-60 grayscale-[0.5]'}`}>
+                                        <div key={itemId} className={`bg-zinc-800/80 border rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-all ${canAfford ? 'border-zinc-600 hover:border-indigo-500/70 hover:bg-zinc-800' : 'border-zinc-800 opacity-60 grayscale-[0.5]'}`}>
                                             <div>
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div>
-                                                        <span className="font-bold text-sm text-slate-200 block">{item.name}</span>
+                                                        <span className="font-bold text-sm text-zinc-200 block">{item.name}</span>
                                                         <span className="text-[9px] text-indigo-400/80 uppercase tracking-widest">{item.category}</span>
                                                     </div>
                                                     <span className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded-md border ${canAfford ? 'text-amber-400 bg-amber-950/60 border-amber-500/40' : 'text-red-400 bg-red-950/60 border-red-500/40'}`}>
                                                         {cost}g
                                                     </span>
                                                 </div>
-                                                <p className="text-[10px] text-slate-400 mb-3 leading-relaxed">{item.description}</p>
+                                                <p className="text-[10px] text-zinc-400 mb-3 leading-relaxed">{item.description}</p>
                                                 {renderItemStats(item)}
                                             </div>
-                                            <button onClick={() => buyItem(item)} disabled={!canAfford || isDead} className={`mt-4 w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${canAfford && !isDead ? 'bg-indigo-900/40 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] hover:border-indigo-500' : 'bg-slate-900 text-slate-700 cursor-not-allowed border border-slate-800'}`}>
+                                            <button onClick={() => buyItem(item)} disabled={!canAfford || isDead} className={`mt-4 w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${canAfford && !isDead ? 'bg-indigo-900/40 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] hover:border-indigo-500' : 'bg-zinc-900 text-zinc-700 cursor-not-allowed border border-zinc-800'}`}>
                                                 Purchase
                                             </button>
                                         </div>
@@ -928,20 +933,20 @@ const App = () => {
                      {openPanel === 'log' && (
                         <div className="space-y-3 pb-4">
                             {dailyLogs.length === 0 ? (
-                                <div className="p-8 text-center bg-slate-900/50 rounded-xl border border-slate-700/50 border-dashed">
-                                    <p className="text-sm text-slate-500 font-medium">No events recorded yet.</p>
+                                <div className="p-8 text-center bg-zinc-900/50 rounded-xl border border-zinc-700/50 border-dashed">
+                                    <p className="text-sm text-zinc-500 font-medium">No events recorded yet.</p>
                                 </div>
                             ) : (
                                 dailyLogs.map(log => (
-                                    <div key={log.id} className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)]">
+                                    <div key={log.id} className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)]">
                                         <div className="flex justify-between items-center mb-3">
-                                            <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border ${log.type === 'morning' ? 'bg-amber-950/60 text-amber-500 border-amber-700/50' : 'bg-slate-900 text-slate-400 border-slate-700'}`}>
+                                            <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border ${log.type === 'morning' ? 'bg-amber-950/60 text-amber-500 border-amber-700/50' : 'bg-zinc-900 text-zinc-400 border-zinc-700'}`}>
                                                 {log.type === 'morning' ? 'Morning Report' : 'Action Log'}
                                             </span>
-                                            <span className="text-[10px] font-mono font-bold text-slate-500">Day {log.day}</span>
+                                            <span className="text-[10px] font-mono font-bold text-zinc-500">Day {log.day}</span>
                                         </div>
-                                        <p className="text-sm font-bold text-slate-200">{log.title || log.incidentTitle}</p>
-                                        <p className="text-xs text-slate-400 mt-1.5 leading-relaxed">{log.text || log.incidentText}</p>
+                                        <p className="text-sm font-bold text-zinc-200">{log.title || log.incidentTitle}</p>
+                                        <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">{log.text || log.incidentText}</p>
                                         {(log.changes || log.status !== 'Success') && (
                                             <div className={`mt-3 p-2.5 rounded-lg text-[10px] font-bold border tracking-wide ${log.status === 'Failed' ? 'bg-red-950/50 text-red-400 border-red-900/50' : 'bg-indigo-950/50 text-indigo-300 border-indigo-900/50'}`}>
                                                 {log.changes || log.status}
@@ -950,7 +955,7 @@ const App = () => {
                                     </div>
                                 ))
                             )}
-                            <div className="flex justify-center mt-8 pt-4 border-t border-slate-800">
+                            <div className="flex justify-center mt-8 pt-4 border-t border-zinc-800">
                                 <button onClick={resetGame} className="text-[10px] text-red-500/50 hover:text-red-400 font-bold uppercase tracking-widest transition-colors flex items-center gap-1 bg-red-950/20 px-4 py-2 rounded-lg border border-red-900/30 hover:bg-red-900/40">
                                     <X size={12}/> Hard Reset Game
                                 </button>
