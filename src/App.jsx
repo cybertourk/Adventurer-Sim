@@ -257,17 +257,17 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       // 2. Draw Eye Layer
       drawLayer(`eyes_${appearance.gender}_${appearance.eyeColor}`);
 
-      // 3. Draw Hair Layer
-      const wearingFullHelm = equipped.head === 'iron_helm';
-      if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
-          drawLayer(`hair_${appearance.hairStyle}_${appearance.gender}_${appearance.hairColor}`);
-      }
-
-      // 4. Draw Equipment Layers (Armor/Robes)
+      // 3. Draw Equipment Layers (Armor/Robes)
       if (equipped.body && equipped.body !== 'tunic' && equipped.body !== 'none') {
           let armorKey = `armor_${equipped.body}_${appearance.gender}`;
           if (equipped.body.startsWith('robe')) armorKey = `${armorBaseStr}_${appearance.gender}`;
           drawLayer(armorKey);
+      }
+
+      // 4. Draw Hair Layer (Now renders OVER armor, but UNDER helmet)
+      const wearingFullHelm = equipped.head === 'iron_helm';
+      if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
+          drawLayer(`hair_${appearance.hairStyle}_${appearance.gender}_${appearance.hairColor}`);
       }
 
       // 5. Draw Belts
@@ -447,14 +447,14 @@ const App = () => {
       dex: { name: 'Dexterity', desc: 'Increases evasion and success in physical adventures.' },
       con: { name: 'Constitution', desc: 'Increases max health and resistance to fatigue.' },
       int: { name: 'Intelligence', desc: 'Increases success in magical tasks and some events.' },
-      cha: { name: 'Charisma', desc: 'Increases success in social interactions and haggling.' }
+      cha: { name: 'Charisma', desc: 'Increases success in social interactions and haggling.' },
+      ac:  { name: 'Armor Class', desc: 'Total defense rating provided by equipment.' }
     };
     return info[attr] || { name: attr, desc: '' };
   };
 
   const getAttributeTotal = (attrKey) => {
-      if (!attributes) return 0;
-      let total = attributes[attrKey] || 0;
+      let total = attributes ? (attributes[attrKey] || 0) : 0;
       if (quirk && quirk.effects?.stats?.[attrKey]) total += quirk.effects.stats[attrKey];
       Object.values(equipped).forEach(itemId => {
            const item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].find(i => i.id === itemId);
@@ -464,7 +464,7 @@ const App = () => {
   };
 
   const getModalDetails = (statKey) => {
-      let isAttribute = ['str', 'dex', 'con', 'int', 'cha'].includes(statKey);
+      let isAttribute = ['str', 'dex', 'con', 'int', 'cha', 'ac'].includes(statKey);
       let isMeter = ['health', 'hunger', 'thirst', 'mood', 'stress'].includes(statKey);
 
       let details = { title: '', description: '', base: 0, modifiers: [], total: 0 };
@@ -472,8 +472,8 @@ const App = () => {
       if (isAttribute) {
           details.title = getStatInfo(statKey).name;
           details.description = getStatInfo(statKey).desc;
-          details.base = attributes[statKey];
-          details.total = attributes[statKey];
+          details.base = attributes[statKey] || 0;
+          details.total = attributes[statKey] || 0;
           
           if (quirk && quirk.effects?.stats && quirk.effects.stats[statKey]) {
               const val = quirk.effects.stats[statKey];
@@ -531,12 +531,20 @@ const App = () => {
          <StatBlock label="Thirst" value={stats.thirst} max={maxStats.thirst} alert={stats.thirst > 70} inverted onClick={() => setActiveDetailModal('thirst')} />
          <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} onClick={() => setActiveDetailModal('mood')} />
          <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 70} inverted onClick={() => setActiveDetailModal('stress')} />
+         {quirk ? (
+             <button onClick={() => setActiveDetailModal('quirk')} className="flex flex-col items-center justify-center w-[42px] h-[42px] md:w-[60px] md:h-[60px] bg-indigo-950/80 rounded-xl md:rounded-2xl border border-indigo-500/40 hover:border-indigo-400 shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all hover:scale-105 active:scale-95 px-1">
+                 <span className="text-[7px] md:text-[9px] font-bold text-indigo-400 uppercase tracking-widest mb-0.5">Trait</span>
+                 <span className="text-[8px] md:text-[10px] font-bold text-indigo-100 leading-tight text-center w-full truncate">{quirk.name}</span>
+             </button>
+         ) : (
+             <div className="w-[42px] h-[42px] md:w-[60px] md:h-[60px] opacity-0" />
+         )}
     </>
   );
 
   const attributesContent = (
     <>
-         {['str', 'dex', 'con', 'int', 'cha'].map(attr => (
+         {['str', 'dex', 'con', 'int', 'cha', 'ac'].map(attr => (
              <AttributeBlock key={attr} label={attr} value={getAttributeTotal(attr)} onClick={() => setActiveDetailModal(attr)} />
          ))}
     </>
@@ -658,34 +666,16 @@ const App = () => {
       </div>
 
       {/* Meters & Attributes (Desktop Only - Left Side) */}
-      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto items-start gap-4">
-          {/* Column 1: Core Meters */}
+      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto items-start gap-3">
+          {/* Column 1: Core Meters & Trait */}
           <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
               {metersContent}
           </div>
 
-          {/* Column 2: Attributes & Trait */}
-          <div className="flex flex-col gap-3">
-              <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
-                  {attributesContent}
-              </div>
-              
-              {quirk && (
-                  <button onClick={() => setActiveDetailModal('quirk')} className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-2 py-2.5 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-center text-center w-full animate-in fade-in zoom-in duration-500 hover:bg-indigo-900 transition-colors">
-                      <span className="text-[8px] text-indigo-400 uppercase tracking-widest mb-1 border-b border-indigo-500/30 pb-0.5 w-full">Trait</span>
-                      <span className="leading-tight text-indigo-100">{quirk.name}</span>
-                  </button>
-              )}
+          {/* Column 2: Attributes & AC */}
+          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
+              {attributesContent}
           </div>
-      </div>
-      
-      <div className="md:hidden absolute bottom-24 left-4 z-20 pointer-events-auto">
-         {quirk && (
-            <button onClick={() => setActiveDetailModal('quirk')} className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-3 py-2 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-start text-left max-w-[120px] animate-in fade-in zoom-in duration-500 hover:bg-indigo-900 transition-colors">
-                <span className="text-[8px] text-indigo-400 uppercase tracking-widest mb-0.5">Trait</span>
-                <span className="leading-tight text-indigo-100">{quirk.name}</span>
-            </button>
-         )}
       </div>
 
       {/* Main Character Layer (Now using Canvas) */}
