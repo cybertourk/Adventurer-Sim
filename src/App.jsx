@@ -99,7 +99,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
   const imagesRef = useRef({});
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
-  // Preload all available sprite layers
   useEffect(() => {
     const baseUrl = import.meta.env.BASE_URL; 
     
@@ -109,60 +108,51 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       base_male_tan: `${baseUrl}base_male_tan.png`,
       base_male_dark: `${baseUrl}base_male_dark.png`,
       base_male_deep: `${baseUrl}base_male_deep.png`,
-      
       base_female_pale: `${baseUrl}base_female_pale.png`,
       base_female_fair: `${baseUrl}base_female_fair.png`,
       base_female_tan: `${baseUrl}base_female_tan.png`,
       base_female_dark: `${baseUrl}base_female_dark.png`,
       base_female_deep: `${baseUrl}base_female_deep.png`,
-
       eyes_male_blue: `${baseUrl}eyes_male_blue.png`,
       eyes_male_brown: `${baseUrl}eyes_male_brown.png`,
       eyes_male_green: `${baseUrl}eyes_male_green.png`,
       eyes_male_hazel: `${baseUrl}eyes_male_hazel.png`,
       eyes_male_red: `${baseUrl}eyes_male_red.png`,
-
       eyes_female_blue: `${baseUrl}eyes_female_blue.png`,
       eyes_female_brown: `${baseUrl}eyes_female_brown.png`,
       eyes_female_green: `${baseUrl}eyes_female_green.png`,
       eyes_female_hazel: `${baseUrl}eyes_female_hazel.png`,
       eyes_female_red: `${baseUrl}eyes_female_red.png`,
-      
       hair_long_male_black: `${baseUrl}hair_long_black.png`,
       hair_long_male_blonde: `${baseUrl}hair_long_blonde.png`,
       hair_long_male_brown: `${baseUrl}hair_long_brown.png`,
       hair_long_male_grey: `${baseUrl}hair_long_grey.png`,
       hair_long_male_red: `${baseUrl}hair_long_red.png`,
       hair_long_male_white: `${baseUrl}hair_long_white.png`,
-      
       hair_short_male_black: `${baseUrl}hair_short_black.png`,
       hair_short_male_blonde: `${baseUrl}hair_short_blonde.png`,
       hair_short_male_brown: `${baseUrl}hair_short_brown.png`,
       hair_short_male_grey: `${baseUrl}hair_short_grey.png`,
       hair_short_male_red: `${baseUrl}hair_short_red.png`,
       hair_short_male_white: `${baseUrl}hair_short_white.png`,
-      
       hair_long_female_black: `${baseUrl}hair_long_female_black.png`,
       hair_long_female_blonde: `${baseUrl}hair_long_female_blonde.png`,
       hair_long_female_brown: `${baseUrl}hair_long_female_brown.png`,
       hair_long_female_grey: `${baseUrl}hair_long_female_grey.png`,
       hair_long_female_red: `${baseUrl}hair_long_female_red.png`,
       hair_long_female_white: `${baseUrl}hair_long_female_white.png`,
-      
       hair_short_female_black: `${baseUrl}hair_short_female_black.png`,
       hair_short_female_blonde: `${baseUrl}hair_short_female_blonde.png`,
       hair_short_female_brown: `${baseUrl}hair_short_female_brown.png`,
       hair_short_female_grey: `${baseUrl}hair_short_female_grey.png`,
       hair_short_female_red: `${baseUrl}hair_short_female_red.png`,
       hair_short_female_white: `${baseUrl}hair_short_female_white.png`,
-
       armor_leather_armor_male: `${baseUrl}armor_leather_male.png`,
       armor_leather_armor_female: `${baseUrl}armor_leather_female.png`,
       armor_chainmail_male: `${baseUrl}armor_chain_male.png`,
       armor_chainmail_female: `${baseUrl}armor_chain_female.png`,
       armor_plate_male: `${baseUrl}armor_plate_male.png`,
       armor_plate_female: `${baseUrl}armor_plate_female.png`,
-
       robe_blue_male: `${baseUrl}robe_blue_male.png`,
       robe_blue_female: `${baseUrl}robe_blue_female.png`,
       robe_red_male: `${baseUrl}robe_red_male.png`,
@@ -173,15 +163,12 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       robe_yellow_female: `${baseUrl}robe_yellow_female.png`,
       robe_black_male: `${baseUrl}robe_black_male.png`,
       robe_black_female: `${baseUrl}robe_black_female.png`,
-
       hat_male_yellow: `${baseUrl}hat_male_yellow.png`,
       hat_female_yellow: `${baseUrl}hat_female_yellow.png`,
       iron_helm_male: `${baseUrl}iron_helm_male.png`,
       iron_helm_female: `${baseUrl}iron_helm_female.png`,
       leather_cap_male: `${baseUrl}leather_cap_male.png`,
       leather_cap_female: `${baseUrl}leather_cap_female.png`,
-      
-      // Belts & Weapons
       belt_hip_base: `${baseUrl}belt_hip.png`,
       belt_back_base: `${baseUrl}belt_back.png`,
       weapon_dagger: `${baseUrl}weapon_dagger.png`,
@@ -214,7 +201,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
     });
   }, []);
 
-  // Main Game Loop Render
   useEffect(() => {
     if (!imagesLoaded) return;
     
@@ -228,14 +214,12 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       if (!isAlive) ctx.filter = 'grayscale(100%) opacity(50%)';
       else ctx.filter = 'none';
 
-      // UPDATED Weapon categorizations
       const hipWeapons = ['dagger', 'orb'];
       const backWeapons = ['sword', 'hammer', 'axe', 'staff'];
       
       const hasHipItem = hipWeapons.includes(equipped.mainHand) || hipWeapons.includes(equipped.offHand);
       const hasBackItem = backWeapons.includes(equipped.mainHand) || backWeapons.includes(equipped.offHand);
 
-      // Map out the core armor string base for the belts
       let armorBaseStr = 'base';
       if (equipped.body === 'leather_armor') armorBaseStr = 'armor_leather';
       else if (equipped.body === 'chainmail') armorBaseStr = 'armor_chain';
@@ -245,7 +229,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           armorBaseStr = `robe_${color}`;
       }
 
-      // Draw Function Helper
       const drawLayer = (key) => {
           const img = imagesRef.current[key];
           if (img) {
@@ -476,6 +459,9 @@ const App = () => {
     </>
   );
 
+  // Exclude default placeholder items from the visible backpack inventory
+  const visibleInventory = inventory.filter(id => id !== 'none' && id !== 'fist' && id !== 'tunic');
+
   return (
     <div className="relative w-full h-screen overflow-hidden text-slate-200 font-sans selection:bg-indigo-500/30">
       
@@ -693,13 +679,24 @@ const App = () => {
                                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-800 pb-1">Equipped</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     {Object.entries(equipped).map(([slot, itemId]) => {
-                                        const item = ITEM_DB[slot].find(i => i.id === itemId);
+                                        const item = ITEM_DB[slot]?.find(i => i.id === itemId);
+                                        const isDefault = itemId === 'none' || itemId === 'fist' || itemId === 'tunic';
                                         return (
-                                            <div key={slot} className="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3 flex flex-col items-center justify-center text-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                                            <div key={slot} className="bg-slate-900/80 border border-slate-700/60 rounded-xl p-3 flex flex-col items-center justify-between text-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden h-full min-h-[90px]">
                                                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
-                                                <span className="text-[9px] text-indigo-400 uppercase font-bold tracking-widest mb-1 z-10">{slot}</span>
-                                                <span className="text-sm font-bold text-slate-200 z-10">{item ? item.name : 'None'}</span>
-                                                <div className="z-10">{item && renderItemStats(item)}</div>
+                                                <div className="flex flex-col items-center z-10 w-full">
+                                                    <span className="text-[9px] text-indigo-400 uppercase font-bold tracking-widest mb-1">{slot}</span>
+                                                    <span className="text-sm font-bold text-slate-200">{item ? item.name : 'None'}</span>
+                                                    <div className="mt-1">{item && renderItemStats(item)}</div>
+                                                </div>
+                                                {!isDefault && (
+                                                    <button 
+                                                        onClick={() => equipItem({ id: slot === 'mainHand' ? 'fist' : 'none', type: slot, category: 'Equipment' })} 
+                                                        className="mt-3 z-10 w-full py-1.5 text-[9px] font-bold uppercase tracking-widest bg-slate-950/60 text-slate-400 border border-slate-700/50 rounded-lg hover:bg-red-950/80 hover:text-red-400 hover:border-red-900/50 transition-all shadow-sm"
+                                                    >
+                                                        Unequip
+                                                    </button>
+                                                )}
                                             </div>
                                         );
                                     })}
@@ -708,13 +705,13 @@ const App = () => {
 
                             <div>
                                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-800 pb-1">Backpack</h3>
-                                {inventory.filter(id => id !== 'none' && id !== 'fist').length === 0 ? (
+                                {visibleInventory.length === 0 ? (
                                     <div className="p-8 text-center bg-slate-900/50 rounded-xl border border-slate-700/50 border-dashed">
                                         <p className="text-sm text-slate-500 font-medium">Your backpack is empty.</p>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {inventory.filter(id => id !== 'none' && id !== 'fist').map((itemId, idx) => {
+                                        {visibleInventory.map((itemId, idx) => {
                                             const item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === itemId);
                                             if(!item) return null;
                                             const isEquipped = Object.values(equipped).includes(itemId);
