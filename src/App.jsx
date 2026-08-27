@@ -32,6 +32,13 @@ const StatBlock = ({ label, value, max, alert, inverted, onClick, subValue }) =>
     </button>
 );
 
+const AttributeBlock = ({ label, value, onClick }) => (
+    <button onClick={onClick} className="flex flex-col items-center justify-center w-10 h-10 md:w-16 md:h-16 bg-slate-900/90 rounded-lg md:rounded-xl border border-indigo-900/50 hover:border-indigo-500 shadow-sm transition-all active:scale-95">
+        <span className="text-[8px] md:text-[9px] font-bold text-indigo-400 uppercase tracking-widest">{label}</span>
+        <span className="text-sm md:text-lg font-bold font-mono text-indigo-100">{value}</span>
+    </button>
+);
+
 const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onClick, disabled, description, effects }) => {
   const Icon = IconMap[IconName] || HelpCircle;
   return (
@@ -45,8 +52,6 @@ const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onCl
     </button>
   );
 };
-
-const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
 
 const VillageRoadBackground = () => (
   <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
@@ -214,7 +219,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       if (!isAlive) ctx.filter = 'grayscale(100%) opacity(50%)';
       else ctx.filter = 'none';
 
-      // 'book' triggers the hip belt
       const hipWeapons = ['dagger', 'book'];
       const backWeapons = ['sword', 'hammer', 'axe', 'staff'];
       
@@ -428,6 +432,7 @@ const App = () => {
 
   const [openPanel, setOpenPanel] = useState(null);
   const [showMorningReport, setShowMorningReport] = useState(false);
+  const [activeDetailModal, setActiveDetailModal] = useState(null);
 
   useEffect(() => {
     if (dailyLogs.length > 0 && dailyLogs[0].type === 'morning' && dailyLogs[0].day === days) {
@@ -446,6 +451,66 @@ const App = () => {
     return info[attr] || { name: attr, desc: '' };
   };
 
+  const getAttributeTotal = (attrKey) => {
+      if (!attributes) return 0;
+      let total = attributes[attrKey] || 0;
+      if (quirk && quirk.effects?.stats?.[attrKey]) total += quirk.effects.stats[attrKey];
+      Object.values(equipped).forEach(itemId => {
+           const item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].find(i => i.id === itemId);
+           if (item?.stats?.[attrKey]) total += item.stats[attrKey];
+      });
+      return total;
+  };
+
+  const getModalDetails = (statKey) => {
+      let isAttribute = ['str', 'dex', 'con', 'int', 'cha'].includes(statKey);
+      let isMeter = ['health', 'hunger', 'thirst', 'mood', 'stress'].includes(statKey);
+
+      let details = { title: '', description: '', base: 0, modifiers: [], total: 0 };
+
+      if (isAttribute) {
+          details.title = getStatInfo(statKey).name;
+          details.description = getStatInfo(statKey).desc;
+          details.base = attributes[statKey];
+          details.total = attributes[statKey];
+          
+          if (quirk && quirk.effects?.stats && quirk.effects.stats[statKey]) {
+              const val = quirk.effects.stats[statKey];
+              details.modifiers.push({ source: `Trait: ${quirk.name}`, value: val });
+              details.total += val;
+          }
+
+          Object.entries(equipped).forEach(([slot, itemId]) => {
+              if (itemId !== 'none' && itemId !== 'fist' && itemId !== 'tunic') {
+                  let item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].find(i => i.id === itemId);
+                  if (item && item.stats && item.stats[statKey]) {
+                      details.modifiers.push({ source: item.name, value: item.stats[statKey] });
+                      details.total += item.stats[statKey];
+                  }
+              }
+          });
+      } else if (isMeter) {
+          const meterInfo = {
+              health: { name: 'Health', desc: 'Your life force. If it drops to 0, your adventure ends abruptly.' },
+              hunger: { name: 'Hunger', desc: 'How starved you are. High hunger passively damages health and raises stress.' },
+              thirst: { name: 'Thirst', desc: 'Your hydration level. High thirst rapidly increases fatigue and stress.' },
+              mood: { name: 'Mood', desc: 'Your current mental well-being. A high mood vastly improves social interactions.' },
+              stress: { name: 'Stress', desc: 'Mental pressure from the daily grind. High stress leads to negative autonomy events.' }
+          };
+          details.title = meterInfo[statKey].name;
+          details.description = meterInfo[statKey].desc;
+          details.base = stats[statKey];
+          details.total = stats[statKey];
+          details.max = maxStats[statKey];
+      } else if (statKey === 'quirk') {
+           details.title = quirk.name;
+           details.description = quirk.desc;
+           details.isQuirk = true;
+      }
+
+      return details;
+  };
+
   if (!gameStarted) {
     return (
       <CreationScreen 
@@ -460,16 +525,24 @@ const App = () => {
 
   const metersContent = (
     <>
-         <StatBlock label="HP" value={stats.health} max={maxStats.health} alert={stats.health < maxStats.health * 0.3} />
-         <StatBlock label="Hunger" value={stats.hunger} max={maxStats.hunger} alert={stats.hunger > 70} inverted />
-         <StatBlock label="Thirst" value={stats.thirst} max={maxStats.thirst} alert={stats.thirst > 70} inverted />
-         <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} />
-         <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 70} inverted />
+         <StatBlock label="HP" value={stats.health} max={maxStats.health} alert={stats.health < maxStats.health * 0.3} onClick={() => setActiveDetailModal('health')} />
+         <StatBlock label="Hunger" value={stats.hunger} max={maxStats.hunger} alert={stats.hunger > 70} inverted onClick={() => setActiveDetailModal('hunger')} />
+         <StatBlock label="Thirst" value={stats.thirst} max={maxStats.thirst} alert={stats.thirst > 70} inverted onClick={() => setActiveDetailModal('thirst')} />
+         <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} onClick={() => setActiveDetailModal('mood')} />
+         <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 70} inverted onClick={() => setActiveDetailModal('stress')} />
     </>
   );
 
-  // Exclude default placeholder items from the visible backpack inventory
+  const attributesContent = (
+    <>
+         {['str', 'dex', 'con', 'int', 'cha'].map(attr => (
+             <AttributeBlock key={attr} label={attr} value={getAttributeTotal(attr)} onClick={() => setActiveDetailModal(attr)} />
+         ))}
+    </>
+  );
+
   const visibleInventory = inventory.filter(id => id !== 'none' && id !== 'fist' && id !== 'tunic');
+  const modalDetails = activeDetailModal ? getModalDetails(activeDetailModal) : null;
 
   return (
     <div className="relative w-full h-screen overflow-hidden text-slate-200 font-sans selection:bg-indigo-500/30">
@@ -481,6 +554,45 @@ const App = () => {
       
       {/* Modals & Overlays */}
       {showMorningReport && dailyLogs[0] && ( <MorningReport log={dailyLogs[0]} onClose={() => setShowMorningReport(false)} /> )}
+
+      {activeDetailModal && modalDetails && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setActiveDetailModal(null)}>
+              <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+                  <div className="p-4 border-b border-slate-800 bg-slate-950/50 flex justify-between items-center">
+                      <h3 className="font-bold text-lg text-indigo-400 uppercase tracking-widest">{modalDetails.title}</h3>
+                      <button onClick={() => setActiveDetailModal(null)} className="text-slate-500 hover:text-slate-300 transition-colors"><X size={18}/></button>
+                  </div>
+                  <div className="p-5 space-y-4">
+                      <p className="text-sm text-slate-300 leading-relaxed italic">{modalDetails.description}</p>
+                      
+                      {!modalDetails.isQuirk && (
+                          <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50 space-y-3">
+                              <div className="flex justify-between items-center text-sm font-bold text-slate-400">
+                                  <span>Base Value:</span>
+                                  <span className="font-mono text-slate-200">{modalDetails.base}{modalDetails.max ? ` / ${modalDetails.max}` : ''}</span>
+                              </div>
+                              
+                              {modalDetails.modifiers?.map((mod, i) => (
+                                  <div key={i} className="flex justify-between items-center text-xs text-slate-400">
+                                      <span>{mod.source}</span>
+                                      <span className={`font-mono font-bold ${mod.value > 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                          {mod.value > 0 ? '+' : ''}{mod.value}
+                                      </span>
+                                  </div>
+                              ))}
+                              
+                              {modalDetails.modifiers?.length > 0 && (
+                                  <div className="pt-3 mt-3 border-t border-slate-700/50 flex justify-between items-center text-sm font-bold text-slate-200">
+                                      <span>Current Total:</span>
+                                      <span className="font-mono text-indigo-400">{modalDetails.total}</span>
+                                  </div>
+                              )}
+                          </div>
+                      )}
+                  </div>
+              </div>
+          </div>
+      )}
 
       {/* Messages Toast */}
       <div className="absolute top-[140px] md:top-[120px] left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-auto w-full max-w-sm px-4">
@@ -533,34 +645,41 @@ const App = () => {
             </div>
         </header>
 
-        {/* Meters (Mobile Only) */}
+        {/* Meters & Attributes (Mobile Only) */}
         <div className="md:hidden pointer-events-auto flex flex-col items-center gap-2 max-w-fit mx-auto mt-1">
             <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl py-2 px-3 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex justify-center gap-2">
                 {metersContent}
             </div>
+            <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl py-1.5 px-3 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex justify-center gap-2">
+                {attributesContent}
+            </div>
         </div>
       </div>
 
-      {/* Meters (Desktop Only - Left Side) */}
+      {/* Meters & Attributes (Desktop Only - Left Side) */}
       <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto flex-col items-center gap-3 w-[96px]">
           <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3 w-full">
               {metersContent}
           </div>
+
+          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-2 w-full">
+              {attributesContent}
+          </div>
           
           {quirk && (
-              <div className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-2 py-2.5 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-center text-center w-full animate-in fade-in zoom-in duration-500">
+              <button onClick={() => setActiveDetailModal('quirk')} className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-2 py-2.5 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-center text-center w-full animate-in fade-in zoom-in duration-500 hover:bg-indigo-900 transition-colors">
                   <span className="text-[8px] text-indigo-400 uppercase tracking-widest mb-1 border-b border-indigo-500/30 pb-0.5 w-full">Trait</span>
                   <span className="leading-tight text-indigo-100">{quirk.name}</span>
-              </div>
+              </button>
           )}
       </div>
       
       <div className="md:hidden absolute bottom-24 left-4 z-20 pointer-events-auto">
          {quirk && (
-            <div className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-3 py-2 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-start text-left max-w-[120px] animate-in fade-in zoom-in duration-500">
+            <button onClick={() => setActiveDetailModal('quirk')} className="bg-indigo-950/80 backdrop-blur-md border border-indigo-500/40 text-indigo-200 text-[10px] px-3 py-2 rounded-xl font-bold shadow-[0_5px_15px_rgba(99,102,241,0.2)] flex flex-col items-start text-left max-w-[120px] animate-in fade-in zoom-in duration-500 hover:bg-indigo-900 transition-colors">
                 <span className="text-[8px] text-indigo-400 uppercase tracking-widest mb-0.5">Trait</span>
                 <span className="leading-tight text-indigo-100">{quirk.name}</span>
-            </div>
+            </button>
          )}
       </div>
 
