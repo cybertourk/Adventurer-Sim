@@ -55,10 +55,9 @@ const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onCl
 
 const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
 
-// UPDATED: Fully responsive, image-based background handler
 const ResponsiveBackground = ({ locationId }) => {
     const baseUrl = import.meta.env.BASE_URL;
-    let bgImage = `${baseUrl}bg_village.png`; // Fallback default
+    let bgImage = `${baseUrl}bg_village.png`;
     
     if (locationId === 'inn_room') bgImage = `${baseUrl}bg_inn.png`;
     else if (locationId === 'estate') bgImage = `${baseUrl}bg_estate.png`;
@@ -71,12 +70,10 @@ const ResponsiveBackground = ({ locationId }) => {
                     backgroundImage: `url('${bgImage}')`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center bottom',
-                    backgroundRepeat: 'no-repeat',
-                    imageRendering: 'pixelated'
+                    backgroundRepeat: 'no-repeat'
                 }}
             />
-            {/* A gentle dark overlay so the UI remains readable */}
-            <div className="absolute inset-0 bg-zinc-950/30" />
+            <div className="absolute inset-0 bg-zinc-950/20" />
         </div>
     );
 };
@@ -226,7 +223,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           }
       };
 
-      // 0. Draw Back Weapons (Behind the character body)
+      // 0. Draw Back Weapons (Behind body)
       if (backWeapons.includes(equipped.mainHand)) drawLayer(`weapon_${equipped.mainHand}`);
       if (backWeapons.includes(equipped.offHand)) drawLayer(`weapon_${equipped.offHand}`);
 
@@ -245,7 +242,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           drawLayer(armorKey);
       }
 
-      // 4. Draw Hair Layer (Now renders OVER armor, but UNDER helmet)
+      // 4. Draw Hair Layer (Renders OVER armor, but UNDER helmet)
       const wearingFullHelm = equipped.head === 'iron_helm';
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
           drawLayer(`hair_${appearance.hairStyle}_${appearance.gender}_${appearance.hairColor}`);
@@ -655,7 +652,7 @@ const App = () => {
           </div>
       </div>
 
-      {/* Main Character Layer (Now using Canvas) */}
+      {/* Main Character Layer */}
       <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[160px] pb-[100px] md:pt-[100px] md:pb-[40px] pointer-events-none">
           {isDead && (
              <div className="absolute inset-0 bg-red-950/90 z-40 flex flex-col items-center justify-center backdrop-blur-md pointer-events-auto">
@@ -666,7 +663,6 @@ const App = () => {
              </div>
           )}
           
-          {/* Main Canvas Container */}
           <div className="w-full h-full flex items-end justify-center transition-all duration-500">
              <div className="w-auto h-full max-h-[600px] aspect-[2/3] max-w-[95vw]">
                 <CharacterCanvas equipped={equipped} appearance={appearance} isAlive={!isDead} />
