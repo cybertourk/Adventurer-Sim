@@ -178,7 +178,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       weapon_staff: `${baseUrl}weapon_staff.png`,
       shield_wooden: `${baseUrl}shield_wooden.png`,
       shield_tower: `${baseUrl}shield_tower.png`,
-      weapon_orb: `${baseUrl}weapon_orb.png`
+      offhand_book: `${baseUrl}offhand_book.png`
     };
 
     let loadedCount = 0;
@@ -214,7 +214,8 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       if (!isAlive) ctx.filter = 'grayscale(100%) opacity(50%)';
       else ctx.filter = 'none';
 
-      const hipWeapons = ['dagger', 'orb'];
+      // 'book' triggers the hip belt
+      const hipWeapons = ['dagger', 'book'];
       const backWeapons = ['sword', 'hammer', 'axe', 'staff'];
       
       const hasHipItem = hipWeapons.includes(equipped.mainHand) || hipWeapons.includes(equipped.offHand);
@@ -274,13 +275,21 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           else drawLayer(`belt_hip_${armorBaseStr}_${appearance.gender}`);
       }
 
-      // 6. Draw Hip Weapons (On the hip belt)
-      if (hipWeapons.includes(equipped.mainHand)) drawLayer(`weapon_${equipped.mainHand}`);
-      if (hipWeapons.includes(equipped.offHand)) drawLayer(`weapon_${equipped.offHand}`);
+      // 6. Draw Hip Weapons (On the hip belt, skip the book here)
+      if (hipWeapons.includes(equipped.mainHand) && equipped.mainHand !== 'book') {
+          drawLayer(`weapon_${equipped.mainHand}`);
+      }
+      if (hipWeapons.includes(equipped.offHand) && equipped.offHand !== 'book') {
+          drawLayer(`weapon_${equipped.offHand}`);
+      }
 
-      // 7. Draw Left Arm Shield Layer (Overlaps armor and left side of body)
-      if (equipped.offHand && equipped.offHand.includes('shield')) {
-          drawLayer(`shield_${equipped.offHand.split('_')[0]}`);
+      // 7. Draw Left Arm Shield/Book Layer (Overlaps armor and left side of body)
+      if (equipped.offHand && equipped.offHand !== 'none') {
+          if (equipped.offHand.includes('shield')) {
+              drawLayer(`shield_${equipped.offHand.split('_')[0]}`);
+          } else if (equipped.offHand === 'book') {
+              drawLayer('offhand_book');
+          }
       }
 
       // 8. Draw Headgear Layer
