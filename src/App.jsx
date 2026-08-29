@@ -116,7 +116,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       hair_long_male_white: `${baseUrl}hair_long_white.png`,
       hair_short_male_black: `${baseUrl}hair_short_black.png`,
       hair_short_male_blonde: `${baseUrl}hair_short_blonde.png`,
-      hair_short_male_brown: `${baseUrl}hair_short_male_brown.png`,
+      hair_short_male_brown: `${baseUrl}hair_short_brown.png`,
       hair_short_male_grey: `${baseUrl}hair_short_grey.png`,
       hair_short_male_red: `${baseUrl}hair_short_red.png`,
       hair_short_male_white: `${baseUrl}hair_short_white.png`,
@@ -167,7 +167,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       belt_hip_robe2: `${baseUrl}belt_hip_robe2.png`,
       belt_back_robe2: `${baseUrl}belt_back_robe2.png`,
 
-      // Weapons & Shields (Corrected Filenames)
+      // Weapons & Shields
       weapon_dagger: `${baseUrl}weapon_dagger.png`,
       weapon_sword: `${baseUrl}weapon_sword.png`,
       weapon_hammer: `${baseUrl}weapon_warhammer.png`,
