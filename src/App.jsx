@@ -154,8 +154,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       iron_helm_female: `${baseUrl}iron_helm_female.png`,
       leather_cap_male: `${baseUrl}leather_cap_male.png`,
       leather_cap_female: `${baseUrl}leather_cap_female.png`,
-      
-      // Belts
       belt_hip_base: `${baseUrl}belt_hip.png`,
       belt_back_base: `${baseUrl}belt_back.png`,
       belt_hip_chain_mail: `${baseUrl}belt_hip_chain_mail.png`,
@@ -170,14 +168,14 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       belt_back_robe2: `${baseUrl}belt_back_robe2.png`,
 
       // Weapons & Shields
-      weapon_dagger: `${baseUrl}weapon_dagger.png`,
-      weapon_sword: `${baseUrl}weapon_sword.png`,
-      weapon_hammer: `${baseUrl}weapon_hammer.png`,
-      weapon_axe: `${baseUrl}weapon_axe.png`,
-      weapon_staff: `${baseUrl}weapon_staff.png`,
-      shield_wooden: `${baseUrl}shield_wooden.png`,
-      shield_tower: `${baseUrl}shield_tower.png`,
-      offhand_book: `${baseUrl}offhand_book.png`
+      weapon_dagger: `${baseUrl}weapon_dagger_2.png`,
+      weapon_sword: `${baseUrl}weapon_sword_2.png`,
+      weapon_hammer: `${baseUrl}weapon_warhammer.png`,
+      weapon_axe: `${baseUrl}weapon_battleaxe.png`,
+      weapon_staff: `${baseUrl}weapon_staff_2.png`,
+      shield_wooden: `${baseUrl}offhand_shield.png`,
+      shield_tower: `${baseUrl}offhand_tower_shield.png`,
+      offhand_book: `${baseUrl}offhand_book_2.png`
     };
 
     let loadedCount = 0;
@@ -219,14 +217,12 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       const hasHipItem = hipWeapons.includes(equipped.mainHand) || hipWeapons.includes(equipped.offHand);
       const hasBackItem = backWeapons.includes(equipped.mainHand) || backWeapons.includes(equipped.offHand);
 
-      // Determine belt suffix based strictly on armor type
       let beltSuffix = 'base';
       if (equipped.body === 'leather_armor') beltSuffix = 'leather';
       else if (equipped.body === 'chainmail') beltSuffix = 'chain_mail';
       else if (equipped.body === 'plate') beltSuffix = 'plate';
       else if (equipped.body && equipped.body.startsWith('robe')) beltSuffix = 'robe1';
 
-      // Base armor string logic for actual armor files
       let armorBaseStr = 'base';
       if (equipped.body === 'leather_armor') armorBaseStr = 'armor_leather';
       else if (equipped.body === 'chainmail') armorBaseStr = 'armor_chain';
@@ -265,7 +261,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           drawLayer(armorKey);
       }
 
-      // 4. Draw Hair Layer (Renders OVER armor, but UNDER helmet)
+      // 4. Draw Hair Layer
       const wearingFullHelm = equipped.head === 'iron_helm';
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
           drawLayer(`hair_${appearance.hairStyle}_${appearance.gender}_${appearance.hairColor}`);
@@ -279,7 +275,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           drawLayer(`belt_hip_${beltSuffix}`);
       }
 
-      // 6. Draw Hip Weapons (On the hip belt, skip the book here)
+      // 6. Draw Hip Weapons
       if (hipWeapons.includes(equipped.mainHand) && equipped.mainHand !== 'book') {
           drawLayer(`weapon_${equipped.mainHand}`);
       }
@@ -287,7 +283,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           drawLayer(`weapon_${equipped.offHand}`);
       }
 
-      // 7. Draw Left Arm Shield/Book Layer (Overlaps armor and left side of body)
+      // 7. Draw Left Arm Shield/Book Layer
       if (equipped.offHand && equipped.offHand !== 'none') {
           if (equipped.offHand.includes('shield')) {
               drawLayer(`shield_${equipped.offHand.split('_')[0]}`);
