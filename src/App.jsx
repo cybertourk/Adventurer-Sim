@@ -117,8 +117,8 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       hair_short_male_black: `${baseUrl}hair_short_black.png`,
       hair_short_male_blonde: `${baseUrl}hair_short_blonde.png`,
       hair_short_male_brown: `${baseUrl}hair_short_male_brown.png`,
-      hair_short_male_grey: `${baseUrl}hair_short_male_grey.png`,
-      hair_short_male_red: `${baseUrl}hair_short_male_red.png`,
+      hair_short_male_grey: `${baseUrl}hair_short_grey.png`,
+      hair_short_male_red: `${baseUrl}hair_short_red.png`,
       hair_short_male_white: `${baseUrl}hair_short_white.png`,
       hair_long_female_black: `${baseUrl}hair_long_female_black.png`,
       hair_long_female_blonde: `${baseUrl}hair_long_female_blonde.png`,
@@ -167,15 +167,15 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       belt_hip_robe2: `${baseUrl}belt_hip_robe2.png`,
       belt_back_robe2: `${baseUrl}belt_back_robe2.png`,
 
-      // Weapons & Shields
-      weapon_dagger: `${baseUrl}weapon_dagger_2.png`,
-      weapon_sword: `${baseUrl}weapon_sword_2.png`,
+      // Weapons & Shields (Corrected Filenames)
+      weapon_dagger: `${baseUrl}weapon_dagger.png`,
+      weapon_sword: `${baseUrl}weapon_sword.png`,
       weapon_hammer: `${baseUrl}weapon_warhammer.png`,
       weapon_axe: `${baseUrl}weapon_battleaxe.png`,
-      weapon_staff: `${baseUrl}weapon_staff_2.png`,
+      weapon_staff: `${baseUrl}weapon_staff.png`,
       shield_wooden: `${baseUrl}offhand_shield.png`,
       shield_tower: `${baseUrl}offhand_tower_shield.png`,
-      offhand_book: `${baseUrl}offhand_book_2.png`
+      offhand_book: `${baseUrl}offhand_book.png`
     };
 
     let loadedCount = 0;
