@@ -4,6 +4,17 @@ import {
   AUTONOMY_EVENTS, QUIRKS, LOCATIONS
 } from '../data/constants';
 
+const rollTieredItems = (pool, count) => {
+    const groups = {};
+    pool.forEach(item => {
+        const base = item.id.startsWith('robe_') ? 'robe' : item.id.startsWith('hat_') ? 'hat' : item.id;
+        if (!groups[base]) groups[base] = [];
+        groups[base].push(item);
+    });
+    const baseKeys = Object.keys(groups).sort(() => 0.5 - Math.random()).slice(0, count);
+    return baseKeys.map(base => groups[base][Math.floor(Math.random() * groups[base].length)]);
+};
+
 export const useGameLogic = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [creationStep, setCreationStep] = useState(1);
@@ -55,10 +66,9 @@ export const useGameLogic = () => {
   const addToLog = (logEntry) => setDailyLogs(prev => [{ ...logEntry, id: Date.now() }, ...prev]);
 
   const refreshShop = () => {
-    const allItems = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies];
-    const purchasable = allItems.filter(i => i.cost > 0);
-    const shuffled = [...purchasable].sort(() => 0.5 - Math.random());
-    setShopStock(shuffled.slice(0, 6).map(i => i.id));
+    const purchasable = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].filter(i => i.cost > 0);
+    const selected = rollTieredItems(purchasable, 6);
+    setShopStock(selected.map(i => i.id));
   };
 
   const generateDailyQuests = (currentTier) => {
@@ -276,7 +286,7 @@ export const useGameLogic = () => {
         if (action.type === 'adventure' && Math.random() < 0.15) { 
            const findableItems = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].filter(i => i.cost > 0);
            if (findableItems.length > 0) {
-             const foundItem = findableItems[Math.floor(Math.random() * findableItems.length)];
+             const foundItem = rollTieredItems(findableItems, 1)[0];
              if (inventory.includes(foundItem.id)) { addMessage(`Loot: Duplicate ${foundItem.name}`, 'info'); } else { setInventory(prev => [...prev, foundItem.id]); addMessage(`Loot: Found ${foundItem.name}!`, 'success'); lootText += ` Found: ${foundItem.name}`; changes.push(`+${foundItem.name}`); }
            }
         }
