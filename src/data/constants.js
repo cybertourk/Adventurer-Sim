@@ -6,7 +6,11 @@ export const ITEM_DB = {
     { id: 'none', name: 'Bare', type: 'head', category: 'None', stats: { ac: 0 }, cost: 0, description: 'Wind in your hair.' },
     { id: 'leather_cap', name: 'Bad Hair Day Hider', type: 'head', category: 'Light Helm', stats: { ac: 1 }, cost: 25, description: 'Basic leather cap.' },
     { id: 'iron_helm', name: 'Bucket with Eye Holes', type: 'head', category: 'Heavy Helm', stats: { ac: 3, dex: -1 }, cost: 60, description: 'Heavy protection.' },
-    { id: 'wizard_hat', name: 'Pointy Hat of Smartness', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
+    { id: 'hat_blue', name: 'Pointy Hat (Blue)', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
+    { id: 'hat_red', name: 'Pointy Hat (Red)', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
+    { id: 'hat_green', name: 'Pointy Hat (Green)', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
+    { id: 'hat_yellow', name: 'Pointy Hat (Yellow)', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
+    { id: 'hat_black', name: 'Pointy Hat (Black)', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
   ],
   body: [
     { id: 'tunic', name: 'Breezy Tunic', type: 'body', category: 'Clothing', stats: { ac: 0 }, cost: 0, description: 'Drafty.' },
