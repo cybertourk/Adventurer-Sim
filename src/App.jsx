@@ -70,7 +70,8 @@ const ResponsiveBackground = ({ locationId }) => {
                     backgroundImage: `url('${bgImage}')`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center bottom',
-                    backgroundRepeat: 'no-repeat'
+                    backgroundRepeat: 'no-repeat',
+                    imageRendering: 'pixelated'
                 }}
             />
             <div className="absolute inset-0 bg-zinc-950/20" />
@@ -153,8 +154,22 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       iron_helm_female: `${baseUrl}iron_helm_female.png`,
       leather_cap_male: `${baseUrl}leather_cap_male.png`,
       leather_cap_female: `${baseUrl}leather_cap_female.png`,
+      
+      // Belts
       belt_hip_base: `${baseUrl}belt_hip.png`,
       belt_back_base: `${baseUrl}belt_back.png`,
+      belt_hip_chain_mail: `${baseUrl}belt_hip_chain_mail.png`,
+      belt_back_chain_mail: `${baseUrl}belt_back_chain_mail.png`,
+      belt_hip_leather: `${baseUrl}belt_hip_leather.png`,
+      belt_back_leather: `${baseUrl}belt_back_leather.png`,
+      belt_hip_plate: `${baseUrl}belt_hip_plate.png`,
+      belt_back_plate: `${baseUrl}belt_back_plate.png`,
+      belt_hip_robe1: `${baseUrl}belt_hip_robe1.png`,
+      belt_back_robe1: `${baseUrl}belt_back_robe1.png`,
+      belt_hip_robe2: `${baseUrl}belt_hip_robe2.png`,
+      belt_back_robe2: `${baseUrl}belt_back_robe2.png`,
+
+      // Weapons & Shields
       weapon_dagger: `${baseUrl}weapon_dagger.png`,
       weapon_sword: `${baseUrl}weapon_sword.png`,
       weapon_hammer: `${baseUrl}weapon_hammer.png`,
@@ -204,6 +219,14 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       const hasHipItem = hipWeapons.includes(equipped.mainHand) || hipWeapons.includes(equipped.offHand);
       const hasBackItem = backWeapons.includes(equipped.mainHand) || backWeapons.includes(equipped.offHand);
 
+      // Determine belt suffix based strictly on armor type
+      let beltSuffix = 'base';
+      if (equipped.body === 'leather_armor') beltSuffix = 'leather';
+      else if (equipped.body === 'chainmail') beltSuffix = 'chain_mail';
+      else if (equipped.body === 'plate') beltSuffix = 'plate';
+      else if (equipped.body && equipped.body.startsWith('robe')) beltSuffix = 'robe1';
+
+      // Base armor string logic for actual armor files
       let armorBaseStr = 'base';
       if (equipped.body === 'leather_armor') armorBaseStr = 'armor_leather';
       else if (equipped.body === 'chainmail') armorBaseStr = 'armor_chain';
@@ -223,7 +246,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           }
       };
 
-      // 0. Draw Back Weapons (Behind the character body)
+      // 0. Draw Back Weapons (Behind body)
       if (backWeapons.includes(equipped.mainHand)) drawLayer(`weapon_${equipped.mainHand}`);
       if (backWeapons.includes(equipped.offHand)) drawLayer(`weapon_${equipped.offHand}`);
 
@@ -242,7 +265,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           drawLayer(armorKey);
       }
 
-      // 4. Draw Hair Layer (Now renders OVER armor, but UNDER helmet)
+      // 4. Draw Hair Layer (Renders OVER armor, but UNDER helmet)
       const wearingFullHelm = equipped.head === 'iron_helm';
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
           drawLayer(`hair_${appearance.hairStyle}_${appearance.gender}_${appearance.hairColor}`);
@@ -250,12 +273,10 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
 
       // 5. Draw Belts
       if (hasBackItem) {
-          if (armorBaseStr === 'base') drawLayer('belt_back_base');
-          else drawLayer(`belt_back_${armorBaseStr}_${appearance.gender}`);
+          drawLayer(`belt_back_${beltSuffix}`);
       }
       if (hasHipItem) {
-          if (armorBaseStr === 'base') drawLayer('belt_hip_base');
-          else drawLayer(`belt_hip_${armorBaseStr}_${appearance.gender}`);
+          drawLayer(`belt_hip_${beltSuffix}`);
       }
 
       // 6. Draw Hip Weapons (On the hip belt, skip the book here)
