@@ -148,12 +148,24 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       robe_yellow_female: `${baseUrl}robe_yellow_female.png`,
       robe_black_male: `${baseUrl}robe_black_male.png`,
       robe_black_female: `${baseUrl}robe_black_female.png`,
+      
+      // Hats & Helms
+      hat_male_blue: `${baseUrl}hat_male_blue.png`,
+      hat_female_blue: `${baseUrl}hat_female_blue.png`,
+      hat_male_red: `${baseUrl}hat_male_red.png`,
+      hat_female_red: `${baseUrl}hat_female_red.png`,
+      hat_male_green: `${baseUrl}hat_male_green.png`,
+      hat_female_green: `${baseUrl}hat_female_green.png`,
       hat_male_yellow: `${baseUrl}hat_male_yellow.png`,
       hat_female_yellow: `${baseUrl}hat_female_yellow.png`,
+      hat_male_black: `${baseUrl}hat_male_black.png`,
+      hat_female_black: `${baseUrl}hat_female_black.png`,
       iron_helm_male: `${baseUrl}iron_helm_male.png`,
       iron_helm_female: `${baseUrl}iron_helm_female.png`,
       leather_cap_male: `${baseUrl}leather_cap_male.png`,
       leather_cap_female: `${baseUrl}leather_cap_female.png`,
+      
+      // Belts
       belt_hip_base: `${baseUrl}belt_hip.png`,
       belt_back_base: `${baseUrl}belt_back.png`,
       belt_hip_chain_mail: `${baseUrl}belt_hip_chain_mail.png`,
@@ -294,8 +306,12 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
 
       // 8. Draw Headgear Layer
       if (equipped.head && equipped.head !== 'none') {
-          if (equipped.head === 'wizard_hat') drawLayer(`hat_${appearance.gender}_yellow`);
-          else drawLayer(`${equipped.head}_${appearance.gender}`);
+          if (equipped.head.startsWith('hat_')) {
+              const color = equipped.head.split('_')[1];
+              drawLayer(`hat_${appearance.gender}_${color}`);
+          } else {
+              drawLayer(`${equipped.head}_${appearance.gender}`);
+          }
       }
 
       animationFrameId = requestAnimationFrame(render);
