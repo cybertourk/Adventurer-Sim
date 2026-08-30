@@ -1,89 +1,82 @@
-export const SAVE_KEY = 'dnd_tamagotchi_v2'; 
+export const SAVE_KEY = 'dnd_tamagotchi_v3'; 
 export const MAX_STAT = 100;
 
 export const ITEM_DB = {
   head: [
-    { id: 'none', name: 'Bare', type: 'head', category: 'None', stats: { ac: 0 }, cost: 0, description: 'Wind in your hair.' },
-    { id: 'leather_cap', name: 'Bad Hair Day Hider', type: 'head', category: 'Light Helm', stats: { ac: 1 }, cost: 25, description: 'Basic leather cap.' },
-    { id: 'iron_helm', name: 'Bucket with Eye Holes', type: 'head', category: 'Heavy Helm', stats: { ac: 3, dex: -1 }, cost: 60, description: 'Heavy protection.' },
-    { id: 'hat_blue', name: 'Pointy Hat (Blue)', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
-    { id: 'hat_red', name: 'Pointy Hat (Red)', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
-    { id: 'hat_green', name: 'Pointy Hat (Green)', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
-    { id: 'hat_yellow', name: 'Pointy Hat (Yellow)', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
-    { id: 'hat_black', name: 'Pointy Hat (Black)', type: 'head', category: 'Arcane Focus', stats: { int: 2 }, cost: 80, description: 'Full of stars.' },
+    { id: 'none', name: 'Bare', type: 'head', category: 'None', baseType: 'none', stats: { ac: 0 }, cost: 0, description: 'Wind in your hair.' },
+    { id: 'leather_cap', name: 'Leather Cap', type: 'head', category: 'Light Helm', baseType: 'leather_cap', stats: { ac: 1 }, cost: 25, merchantNames: ["Assassin's Skullcap", "Helmet of the \"Silent Night\""] },
+    { id: 'iron_helm', name: 'Iron Helm', type: 'head', category: 'Heavy Helm', baseType: 'iron_helm', stats: { ac: 3, dex: -1 }, cost: 60, merchantNames: ["Visor of the Undefeated (Has a Dent)", "Crown of the Iron Vanguard"] },
+    { id: 'wizard_hat', name: 'Wizard Hat', type: 'head', category: 'Arcane Focus', baseType: 'hat_blue', stats: { int: 2 }, cost: 80, merchantNames: ["Crown of the Astral Plane", "The \"Mind-Expander\" Cone"] },
   ],
   body: [
-    { id: 'tunic', name: 'Breezy Tunic', type: 'body', category: 'Clothing', stats: { ac: 0 }, cost: 0, description: 'Drafty.' },
-    { id: 'leather_armor', name: 'Stiff Cow Skin', type: 'body', category: 'Light Armor', stats: { ac: 2 }, cost: 40, description: 'Smells like a tannery.' },
-    { id: 'chainmail', name: 'Jingly Shirt', type: 'body', category: 'Medium Armor', stats: { ac: 5, dex: -2 }, cost: 150, description: 'Loud but protective.' },
-    { id: 'plate', name: 'Shiny Can Suit', type: 'body', category: 'Heavy Armor', stats: { ac: 8, dex: -4 }, cost: 500, description: 'I am invincible! (Mostly).' },
-    { id: 'robe_blue', name: 'Mysterious Robe (Blue)', type: 'body', category: 'Clothing', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing blue fabric.' },
-    { id: 'robe_red', name: 'Mysterious Robe (Red)', type: 'body', category: 'Clothing', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing red fabric.' },
-    { id: 'robe_green', name: 'Mysterious Robe (Green)', type: 'body', category: 'Clothing', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing green fabric.' },
-    { id: 'robe_yellow', name: 'Mysterious Robe (Yellow)', type: 'body', category: 'Clothing', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing yellow fabric.' },
-    { id: 'robe_black', name: 'Mysterious Robe (Black)', type: 'body', category: 'Clothing', stats: { ac: 1, int: 1 }, cost: 30, description: 'Flowing black fabric.' },
+    { id: 'tunic', name: 'Breezy Tunic', type: 'body', category: 'Clothing', baseType: 'tunic', stats: { ac: 0 }, cost: 0, description: 'Drafty.' },
+    { id: 'cultist_robe', name: 'Cultist Robes', type: 'body', category: 'Clothing', baseType: 'robe_black', stats: { ac: 1, int: 1 }, cost: 0, description: 'Smells like squid and bad decisions. Cursed.' },
+    { id: 'robe', name: 'Mysterious Robe', type: 'body', category: 'Clothing', baseType: 'robe_blue', stats: { ac: 1, int: 1 }, cost: 30, merchantNames: ["Silk-Spun \"Arcane\" Bullshit", "Cultist's Bloodstained Shroud"] },
+    { id: 'leather_armor', name: 'Leather Armor', type: 'body', category: 'Light Armor', baseType: 'leather_armor', stats: { ac: 2 }, cost: 40, merchantNames: ["Faux Dragonhide Jerkin", "Shadow-Stalker's Harness (Squeaky)"] },
+    { id: 'chainmail', name: 'Chainmail', type: 'body', category: 'Medium Armor', baseType: 'chainmail', stats: { ac: 6, dex: -1 }, cost: 150, merchantNames: ["Faux Mithril-Plated Links", "Crusader's Hauberk (Pre-Ruined)"] },
+    { id: 'plate', name: 'Plate Armor', type: 'body', category: 'Heavy Armor', baseType: 'plate', stats: { ac: 10, dex: -2 }, cost: 500, merchantNames: ["Aegis of the Forgotten Emperor", "The \"I Swear to God It's Dragon-Proof\" Cuirass"] },
   ],
   mainHand: [
-    { id: 'fist', name: 'These Two Hands', type: 'mainHand', category: 'Unarmed', stats: { str: 0 }, cost: 0, description: 'Always loaded.' },
-    { id: 'dagger', name: 'Pointy Stick', type: 'mainHand', category: 'Dagger', stats: { dex: 2, str: 1 }, cost: 15, description: 'Good for cheese and goblins.' },
-    { id: 'sword', name: 'Sharp Metal Bar', type: 'mainHand', category: 'Longsword', stats: { str: 2 }, cost: 50, description: 'The classic choice.' },
-    { id: 'axe', name: 'The Chopper', type: 'mainHand', category: 'Battleaxe', stats: { str: 3 }, cost: 75, description: 'Solving problems, one swing at a time.' },
-    { id: 'staff', name: 'Wizard Twig', type: 'mainHand', category: 'Quarterstaff', stats: { int: 1, str: 1 }, cost: 60, description: 'It is just a stick, right?' },
-    { id: 'hammer', name: 'Bonk Stick', type: 'mainHand', category: 'Warhammer', stats: { str: 3 }, cost: 100, description: 'Unlocks smithing.' },
+    { id: 'fist', name: 'These Two Hands', type: 'mainHand', category: 'Unarmed', baseType: 'fist', stats: { str: 0 }, cost: 0, description: 'Always loaded.' },
+    { id: 'dagger', name: 'Dagger', type: 'mainHand', category: 'Dagger', baseType: 'weapon_dagger', stats: { dex: 2, str: 1 }, cost: 15, merchantNames: ["The \"Stab That Bastard\" Special", "The Back-Alley Gut-Opener"] },
+    { id: 'sword', name: 'Sword', type: 'mainHand', category: 'Longsword', baseType: 'weapon_sword', stats: { str: 2 }, cost: 50, merchantNames: ["Blade of the Fallen King (Replica)", "Destiny's Edge"] },
+    { id: 'staff', name: 'Staff', type: 'mainHand', category: 'Quarterstaff', baseType: 'weapon_staff', stats: { int: 1, str: 1 }, cost: 60, merchantNames: ["Stick I Found Outside", "The \"Point This End at the Bad Guy\" Rod"] },
+    { id: 'axe', name: 'Axe', type: 'mainHand', category: 'Battleaxe', baseType: 'weapon_axe', stats: { str: 3 }, cost: 75, merchantNames: ["Executioner's Right Hand", "Troll-Splitter"] },
+    { id: 'hammer', name: 'Hammer', type: 'mainHand', category: 'Warhammer', baseType: 'weapon_hammer', stats: { str: 3 }, cost: 100, merchantNames: ["Skull-Crusher of the Ancients", "Dwarven \"Negotiator\" Mallet"] },
   ],
   offHand: [
-    { id: 'none', name: 'Empty', type: 'offHand', category: 'None', stats: { ac: 0 }, cost: 0, description: 'Free hand.' },
-    { id: 'wooden_shield', name: 'Plank', type: 'offHand', category: 'Shield', stats: { ac: 1 }, cost: 15, description: 'Splinters included.' },
-    { id: 'tower_shield', name: 'Wall', type: 'offHand', category: 'Tower Shield', stats: { ac: 3, dex: -2 }, cost: 60, description: 'Portable cover.' },
-    { id: 'book', name: 'Heavy Tome', type: 'offHand', category: 'Arcane Focus', stats: { int: 3 }, cost: 200, description: 'Words of power.' },
+    { id: 'none', name: 'Empty', type: 'offHand', category: 'None', baseType: 'none', stats: { ac: 0 }, cost: 0, description: 'Free hand.' },
+    { id: 'wooden_shield', name: 'Wooden Shield', type: 'offHand', category: 'Shield', baseType: 'shield_wooden', stats: { ac: 1 }, cost: 15, merchantNames: ["Splintering Ward of the Ancients", "The \"Impenetrable\" Barn Door"] },
+    { id: 'tower_shield', name: 'Tower Shield', type: 'offHand', category: 'Tower Shield', baseType: 'shield_tower', stats: { ac: 3, dex: -2 }, cost: 60, merchantNames: ["The Immovable Object", "Phalanx Wall (Slightly Flammable)"] },
+    { id: 'book', name: 'Spellbook', type: 'offHand', category: 'Arcane Focus', baseType: 'offhand_book', stats: { int: 3 }, cost: 200, merchantNames: ["Tome of Infinite Cosmos (Missing Pages)", "The \"Soul-Trapper\" Grimoire (Just a Diary)"] },
   ],
   supplies: [
     { id: 'ration', name: 'Mystery Meat Jerky', type: 'food', category: 'Food', cost: 3, description: 'Don\'t ask what animal it was.', effects: { hunger: -30, health: 5 } },
-    { id: 'potion', name: 'Red Goop', type: 'potion', category: 'Potion', cost: 25, description: 'Tastes like cherries and pennies.', effects: { health: 50 } },
     { id: 'ale', name: 'Liquid Courage', type: 'drink', category: 'Drink', cost: 5, description: 'Makes everyone prettier.', effects: { thirst: -15, mood: 10, stress: -10 } },
     { id: 'wine', name: 'Fancy Grape Juice', type: 'drink', category: 'Drink', cost: 25, description: 'Pinkies out!', effects: { thirst: -20, mood: 20, stress: -15 } },
-    { id: 'water', name: 'Water Skin', type: 'drink', category: 'Drink', cost: 0, description: 'Basic hydration.', effects: { thirst: -40 } },
+    { id: 'water', name: 'Water', type: 'drink', category: 'Drink', cost: 0, description: 'Basic hydration. Only available at Inn or Estate.', effects: { thirst: -40 } },
   ]
 };
 
 export const MAINTENANCE_ACTIONS = [
-  { id: 'eat', label: 'Eat', icon: 'Utensils', cost: 5, days: 0, costType: 'gp', description: 'Noms.', message: 'Ate something crunchy.', effects: { hunger: -30, health: 5 } },
-  { id: 'drink', label: 'Drink', icon: 'Droplets', cost: 0, days: 0, costType: 'gp', description: 'Glug glug.', message: 'Refreshing!', effects: { thirst: -40 } },
-  { id: 'sleep', label: 'Sleep', icon: 'Tent', cost: 0, days: 1, costType: 'gp', description: 'Nap time. (+Health, -Stress).', message: 'Zzz...', effects: { health: 15, stress: -20, hunger: 10, thirst: 10 } },
-  { id: 'train', label: 'Train', icon: 'Activity', cost: 10, days: 1, costType: 'gp', description: 'Hitting things with other things.', message: 'I feel stronger!', effects: { xp: 10, hunger: 20, thirst: 20 } },
-  { id: 'repair', label: 'Repair', icon: 'Hammer', cost: 5, days: 0, costType: 'gp', description: 'Fixing the dents.', message: 'Hammering out the dents.', effects: { stress: -10 } },
-  { id: 'tavern', label: 'Tavern', icon: 'Beer', cost: 8, days: 0, costType: 'gp', description: 'Socializing... loudly.', message: 'Huzzah!', effects: { mood: 15, stress: -15, hunger: -5, thirst: -10 } },
+  { id: 'eat', label: 'Eat (Ration)', icon: 'Utensils', cost: 3, days: 0, costType: 'gp', type: 'maintenance', description: 'Noms. (-30 Hunger, +5 HP)', message: 'Ate something crunchy.', effects: { hunger: -30, health: 5 } },
+  { id: 'drink_ale', label: 'Drink (Ale)', icon: 'Beer', cost: 5, days: 0, costType: 'gp', type: 'maintenance', description: 'Glug glug. (-15 Thirst, +10 Mood)', message: 'Refreshing!', effects: { thirst: -15, mood: 10, stress: -10 } },
+  { id: 'drink_wine', label: 'Drink (Wine)', icon: 'Beer', cost: 25, days: 0, costType: 'gp', type: 'maintenance', description: 'Fancy glug. (-20 Thirst, +20 Mood)', message: 'Tastes expensive.', effects: { thirst: -20, mood: 20, stress: -15 } },
+  { id: 'drink_water', label: 'Drink (Water)', icon: 'Droplets', cost: 0, days: 0, costType: 'gp', type: 'maintenance', description: 'Hydration. (-40 Thirst)', message: 'Crisp.', effects: { thirst: -40 } },
+  { id: 'repair', label: 'Repair Gear', icon: 'Hammer', cost: 5, days: 0, costType: 'gp', type: 'maintenance', description: 'Fixing the dents. (-10 Stress)', message: 'Hammering out the dents.', effects: { stress: -10 } },
+  { id: 'shitfaced', label: 'Get Shitfaced', icon: 'Beer', cost: 8, days: 0, costType: 'gp', type: 'maintenance', description: 'Limit 1/day. (+15 Mood, -15 Stress)', message: 'Huzzah!', effects: { mood: 15, stress: -15, hunger: -5, thirst: -10 } },
+  { id: 'train', label: 'Train', icon: 'Activity', cost: 30, days: 1, costType: 'gp', type: 'maintenance', description: 'Hitting things. (+10 XP)', message: 'I feel stronger!', effects: { xp: 10, hunger: 20, thirst: 20 } },
+  { id: 'sleep', label: 'Sleep', icon: 'Tent', cost: 0, days: 1, costType: 'gp', type: 'maintenance', description: 'End the day.', message: 'Zzz...', effects: {} },
 ];
 
 export const JOB_DB = {
   tier1: [
     { id: 'job_field', label: 'Field Hand', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Pulling Weeds.', message: 'Farmer Maggot yells a lot.', effects: { gold: 8, xp: 5, hunger: 10, thirst: 10, stress: 5, mood: -5 } },
-    { id: 'job_muck', label: 'Stable Muck', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Shoveling Poop.', message: 'It smells like success. And manure.', effects: { gold: 10, xp: 5, hunger: 10, thirst: 10, stress: 10, mood: -10 } },
-    { id: 'job_wood', label: 'Wood Chop', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Hitting Trees.', message: 'Like fighting, but the enemy does not move.', effects: { gold: 9, xp: 5, hunger: 15, thirst: 10, stress: 5 } },
     { id: 'job_rats', label: 'Rat Catcher', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Poking Squeaky Things.', message: 'They bite back sometimes.', effects: { gold: 12, xp: 8, hunger: 10, thirst: 10, stress: 10, health: -2 } },
-    { id: 'job_run', label: 'Runner', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Running Errands.', message: 'Cardio is hard.', effects: { gold: 8, xp: 5, hunger: 15, thirst: 20, stress: 5 } },
   ],
   tier2: [
-    { id: 'job_guard', label: 'Guard Duty', icon: 'Shield', cost: 0, days: 1, type: 'labor', description: 'Standing Around Menacingly.', message: 'Trying not to fall asleep.', effects: { gold: 15, xp: 10, hunger: 10, thirst: 10, stress: 5 } },
     { id: 'job_dock', label: 'Dock Work', icon: 'Scroll', cost: 0, days: 1, type: 'labor', description: 'Lifting Heavy Boxes.', message: 'My back hurts.', effects: { gold: 25, xp: 15, hunger: 20, thirst: 20, stress: 15, health: -5 } },
-    { id: 'job_smith', label: 'Smithing', icon: 'Hammer', cost: 0, days: 1, type: 'labor', description: 'Hitting Hot Metal.', message: 'Sparks are pretty.', effects: { gold: 45, xp: 20, hunger: 20, thirst: 30, stress: 10 } },
+  ]
+};
+
+export const MAGIC_DB = {
+  tier1: [
+    { id: 'mag_scribe', label: 'Scribe Scroll', icon: 'Zap', cost: 0, days: 1, type: 'magic', description: 'Copying words of power.', message: 'My hand cramps.', effects: { gold: 15, xp: 10, hunger: 5, thirst: 5, stress: 15 } },
+  ],
+  tier2: [
+    { id: 'mag_alchemist', label: 'Alchemist Aid', icon: 'Zap', cost: 0, days: 1, type: 'magic', description: 'Mixing volatile liquids.', message: 'Lost an eyebrow.', effects: { gold: 30, xp: 25, hunger: 10, thirst: 10, stress: 20, health: -5 } }
   ]
 };
 
 export const ADVENTURE_DB = {
   tier1: [
     { id: 'adv_rats', label: 'Giant Rats', icon: 'Skull', cost: 0, days: 1, type: 'adventure', description: 'Rats of Unusual Size.', message: 'Why are they so big?!', effects: { gold: 15, xp: 20, hunger: 30, thirst: 30, stress: 20, health: -10 } },
-    { id: 'adv_spiders', label: 'Giant Spiders', icon: 'Skull', cost: 0, days: 1, type: 'adventure', description: 'Too Many Legs.', message: 'Nope. Nope. Nope.', effects: { gold: 20, xp: 25, hunger: 30, thirst: 30, stress: 30, health: -15, mood: -10 } },
   ],
   tier2: [
-    { id: 'adv_goblins', label: 'Goblins', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Green Ankle Biters.', message: 'They travel in packs.', effects: { gold: 40, xp: 50, hunger: 40, thirst: 40, stress: 30, health: -20 } },
     { id: 'adv_bandits', label: 'Bandits', icon: 'Skull', cost: 0, days: 3, type: 'adventure', description: 'Muggers in Masks.', message: 'Hey, that is MY gold!', effects: { gold: 50, xp: 60, hunger: 40, thirst: 40, stress: 30, health: -25 } },
   ],
   tier3: [
-    { id: 'adv_cult', label: 'Cultist Leader', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'Weird Robe Guy.', message: 'He keeps screaming about squids.', effects: { gold: 120, xp: 150, hunger: 60, thirst: 60, stress: 50, health: -30 } },
-    { id: 'adv_undead', label: 'Undead Knight', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'Spooky Scary Skeleton.', message: 'He refuses to stay down.', effects: { gold: 150, xp: 200, hunger: 60, thirst: 60, stress: 50, health: -40 } },
     { id: 'adv_lich', label: 'Lich Tomb', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'The Bone Zone.', message: 'Bad vibes in here.', effects: { gold: 200, xp: 250, hunger: 70, thirst: 70, stress: 60, health: -50 } },
-    { id: 'adv_dragon', label: 'Young Dragon', icon: 'Skull', cost: 0, days: 5, type: 'adventure', description: 'Spicy Lizard.', message: 'Everything is on fire.', effects: { gold: 300, xp: 350, hunger: 80, thirst: 80, stress: 70, health: -60 } },
   ]
 };
 
@@ -91,45 +84,72 @@ export const SOCIAL_DB = {
   tier1: [
     { id: 'soc_gossip', label: 'Gossip', icon: 'User', cost: 0, days: 1, type: 'social', description: 'Talking Smack.', message: 'Did you hear about the miller\'s wife?', effects: { xp: 10, mood: 10, hunger: 5, thirst: 5 } },
     { id: 'soc_beg', label: 'Begging', icon: 'Coins', cost: 0, days: 1, type: 'social', description: 'Spare a Copper?', message: 'Please? Pretty please?', effects: { gold: 5, mood: -5, hunger: 10, thirst: 10, stress: 10 } },
-    { id: 'soc_flirt', label: 'Flirt', icon: 'Heart', cost: 0, days: 1, type: 'social', description: 'Hey Good Lookin\'.', message: 'How you doin?', effects: { mood: 20, stress: -5, xp: 5, hunger: 5, thirst: 5 } },
-    { id: 'soc_brawl', label: 'Brawl', icon: 'Zap', cost: 0, days: 1, type: 'social', description: 'Punching Contest.', message: 'Face-to-fist style.', effects: { xp: 15, health: -5, stress: -10, hunger: 10, thirst: 10 } },
   ],
   tier2: [
-    { id: 'soc_gamble', label: 'Gamble', icon: 'DollarSign', cost: 10, days: 1, type: 'social', description: 'Rolling the Bones.', message: 'Daddy needs a new pair of boots!', effects: { xp: 10, mood: 10, stress: 10 } }, 
     { id: 'soc_bribe', label: 'Bribe Guard', icon: 'Coins', cost: 20, days: 1, type: 'social', description: 'Greasing Palms.', message: 'Look the other way, pal.', effects: { xp: 30, stress: -10 } },
   ]
 };
 
 export const AUTONOMY_EVENTS = {
   minor: [
-    { id: 'hungover', title: 'Hungover', text: '"My head is exploding... the light, it burns!"', effects: { health: -5, thirst: 20 } },
-    { id: 'overslept', title: 'Overslept', text: '"Just five more minutes... or hours. Who counts?"', effects: { hunger: 10, thirst: 10 } },
-    { id: 'impulse_buy', title: 'Impulse Buy', text: '"I bought a rock that looks like a duck! It was 10 gold. Worth it."', effects: { gold: -10, mood: 10 } },
-    { id: 'bad_romance', title: 'Bad Romance', text: '"I tried to wink at someone and got a drink thrown in my face."', effects: { mood: -10, stress: 10 } },
-    { id: 'stress_eating', title: 'Stress Eating', text: '"I ate everything. All of it. I have no regrets. Okay, some regrets."', effects: { hunger: -100 } },
+    { id: 'weird_shit', title: 'Ate Some Weird Dungeon Shit', text: '"Found unidentifiable jerky on the tavern floor and ate it."', effects: { health: -5, thirst: 20 } },
+    { id: 'slept_armor', title: 'Slept in Full Armor', text: '"Who has time to unbuckle all these straps?"', effects: { stress: 10, mood: -5 } },
+    { id: 'snake_oil', title: 'Snake Oil Sucker', text: '"Bought a premium health potion that is literally dyed tap water."', effects: { gold: -10, mood: 10 } },
+    { id: 'stress_eat', title: 'Feral Stress Eating', text: '"I ate everything. All of it. I have no regrets."', effects: { hunger: -100, destroyRations: true } },
+    { id: 'pissed_wizard', title: 'Pissed Off a Wizard', text: '"Insulted a spellcaster who turned my hair neon pink."', effects: { mood: -10, stress: 10, applyCurse: 'dungeon_dye_job' } },
+    { id: 'pet_rock', title: 'Adopted a Rock', text: '"He is my best friend and his name is Rocky."', effects: { applyCompanion: 'pet_rock' } },
+    { id: 'edgy_rebrand', title: 'Edgy Rebrand', text: '"Call me Bloodhawk from now on."', effects: { mood: -5, edgyRebrand: true } },
+    { id: 'slime', title: 'Covered in Slime', text: '"Why is everything so sticky?!"', effects: { applyCurse: 'butterfingers' } },
+    { id: 'magic_beans', title: 'The "Magic" Beans', text: '"Bought a handful of completely mundane beans from a shady merchant."', effects: { gold: -5 } },
+    { id: 'screaming', title: 'Practice Screaming', text: '"Decided 3 AM was the perfect time to practice my battle cry."', effects: { mood: -5, stress: 10 } },
   ],
   major: [
-    { id: 'gambling_debt', title: 'Gambling Debt', text: '"I bet my pants... and lost. I am not a smart man."', effects: { equipmentLoss: true } },
-    { id: 'bar_fight', title: 'Bar Fight', text: '"He looked at me funny! So I hit him with a chair."', effects: { health: -30, gold: -20 } },
-    { id: 'walk_shame', title: 'The Walk of Shame', text: '"I woke up in a haystack three towns over. Don\'t ask."', effects: { housing: 'homeless' } },
-    { id: 'paranoid', title: 'Paranoid Episode', text: '"The innkeeper is a mimic! I\'m sleeping in a tree!"', effects: { housing: 'homeless', stress: 20 } },
-    { id: 'charity', title: 'Charity Case', text: '"I gave it all away! I am a golden god of generosity!"', effects: { gold: -9999 } },
+    { id: 'arrested', title: 'Arrested for Unhinged Shit', text: '"Caught doing something psychotic. Guards took my stuff."', effects: { gold: -20, confiscateRandom: true } },
+    { id: 'pottery', title: 'Smashing Pottery', text: '"HYAAAH!"', effects: { housing: 'homeless', applyCurse: 'blacklist' } },
+    { id: 'table_brawl', title: 'Drunken Brawl With a Table', text: '"Picked a fight with a support beam and lost badly."', effects: { health: -30, gold: -20, housing: 'homeless', applyCurse: 'blacklist' } },
+    { id: 'paranoid_mimic', title: 'Paranoid Mimic Episode', text: '"Hallucinated the bedframe was a mimic and stabbed the shit out of it."', effects: { housing: 'homeless', stress: 20 } },
+    { id: 'spontaneous_marriage', title: 'Spontaneous Marriage', text: '"What happens in the tavern... ends in a legally binding contract."', effects: { applyCompanion: 'spouse' } },
+    { id: 'adopt_mimic', title: 'Adopted a Mimic', text: '"It followed me home. Can I keep it?"', effects: { applyCompanion: 'mimic' } },
+    { id: 'groupie', title: 'Annoying Groupie Encounter', text: '"They will not stop playing that damn lute."', effects: { applyCompanion: 'groupie' } },
+    { id: 'feral_goblin', title: 'Feral Goblin Encounter', text: '"Found a goblin. It lives in my backpack now."', effects: { applyCompanion: 'goblin' } },
+    { id: 'cult', title: 'Joined a Cult', text: '"They are free of the burden of thinking for themselves."', effects: { applyCurse: 'cult_member' } },
+    { id: 'shiny_belt', title: 'Found a Shiny Belt', text: '"I put it on and... oh. Oh my."', effects: { applyCurse: 'girdle' } },
+    { id: 'bumped_head', title: 'Bumped Their Head', text: '"Who am I? What am I doing with my life?"', effects: { applyCurse: 'identity_crisis' } },
+    { id: 'nightmare', title: 'Traumatizing Nightmare', text: '"The monsters... they have families too!"', effects: { applyCurse: 'pacifism' } },
   ]
 };
 
 export const QUIRKS = [
-  { id: 'sticky_fingers', name: 'Sticky Fingers', desc: '10% chance to find Gold on Social interactions. Banned from Guard jobs.', effects: { socialGoldChance: 0.1, bannedJobs: ['job_guard'] } },
-  { id: 'meathead', name: 'Meathead', desc: '+2 STR, -2 INT. Cannot perform Magic jobs.', effects: { stats: { str: 2, int: -2 }, bannedJobs: ['job_scribe'] } },
+  { id: 'compulsive_looter', name: 'Compulsive Looter', desc: '10% chance to find +5g on Social interactions. Banned from Guard jobs.', effects: { socialGoldChance: 0.1, bannedJobs: ['job_guard'] } },
+  { id: 'meathead', name: 'Meathead', desc: '+2 STR, -2 INT. Cannot perform Magic jobs.', effects: { stats: { str: 2, int: -2 }, bannedJobs: ['mag_scribe', 'mag_alchemist'] } },
   { id: 'drama_queen', name: 'Drama Queen', desc: 'Double Mood gain from Flirt/Tavern. Double Stress from failures.', effects: { moodMultiplier: 2, stressFailureMultiplier: 2 } },
-  { id: 'lightweight', name: 'Lightweight', desc: 'Ale/Wine cost 50% less. Higher hangover chance.', effects: { drinkCostMultiplier: 0.5, hangoverChance: 0.5 } },
-  { id: 'kleptomaniac', name: 'Kleptomaniac', desc: 'Randomly finds "Junk" items. Junk fills inventory.', effects: { junkChance: 0.2 } }
+  { id: 'iron_liver', name: 'Iron Liver', desc: 'Ale/Wine costs 50% less. Higher hangover/bad event chance when drinking.', effects: { drinkCostMultiplier: 0.5, badDrinkEventChance: 0.2 } },
+  { id: 'shiny_syndrome', name: 'Shiny Syndrome', desc: '20% chance each morning to find random "Junk". Junk clutters inventory but sells for 1d4 Gold.', effects: { junkChance: 0.2 } }
 ];
+
+export const COMPANIONS = {
+  spouse: { id: 'spouse', name: 'Spontaneous Spouse', desc: 'Constantly nags. +15 Stress each morning.', effects: { morningStress: 15 }, removal: { id: 'remove_spouse', label: 'File for Annulment', cost: 50, days: 0, costType: 'gp', type: 'social', message: 'Signed the papers. Finally free.', effects: {} } },
+  groupie: { id: 'groupie', name: 'Annoying Groupie', desc: 'Plays the lute badly. -15 Mood each morning.', effects: { morningMood: -15 }, removal: { id: 'remove_groupie', label: 'Crush Their Fucking Dreams', cost: 0, days: 0, costType: 'gp', type: 'social', message: 'Told them their music sucks.', effects: {} } },
+  goblin: { id: 'goblin', name: 'Feral Goblin', desc: 'Sneaks into the coin purse. Steals 1d4 Gold each morning.', effects: { morningTheft: true }, removal: { id: 'remove_goblin', label: 'Enroll in Trade School', cost: 25, days: 0, costType: 'gp', type: 'social', message: 'Sent the goblin to learn plumbing.', effects: {} } },
+  mimic: { id: 'mimic', name: 'Adopted Mimic', desc: 'Intercepts 50% of the Hunger recovery from any food consumed.', effects: { foodLeech: 0.5 }, removal: { id: 'remove_mimic', label: 'Pawn on Gullible Merchant', cost: 10, days: 0, costType: 'gp', type: 'social', message: 'No refunds!', effects: {} } },
+  pet_rock: { id: 'pet_rock', name: '"Lucky" Pet Rock', desc: 'Adds a permanent +5% Fail Chance to all Labor and Adventure rolls.', effects: { failPenalty: 0.05 }, removal: { id: 'remove_rock', label: 'Throw in River', cost: 0, days: 0, costType: 'gp', type: 'magic', message: 'Goodbye, Rocky.', effects: {} } }
+};
+
+export const CURSES = {
+  blacklist: { id: 'blacklist', name: 'The Blacklist', desc: 'Banned from the Inn. Inn Room option is locked.', effects: { lockInn: true }, removal: { id: 'remove_blacklist', label: 'Bribe the Barkeep', cost: 15, days: 0, costType: 'gp', type: 'social', message: 'Bribed my way back inside.', effects: {} } },
+  cult_member: { id: 'cult_member', name: 'Cult Member', desc: '+20 Mood, -20 Stress every morning. Forces Cultist Robes. Mandatory 10g daily donation.', effects: { morningMood: 20, morningStress: -20, forceEquip: 'cultist_robe', dailyDonation: 10 }, removal: { id: 'remove_cult', label: 'Deprogramming', cost: 30, days: 0, costType: 'gp', type: 'magic', message: 'I can think for myself again!', effects: {} } },
+  identity_crisis: { id: 'identity_crisis', name: 'Identity Crisis', desc: 'Unequips all gear. Refuses to equip anything outside their new delusion.', effects: { unequipAll: true, forceClass: true }, removal: { autoRemoveFails: 3 } },
+  pacifism: { id: 'pacifism', name: 'Sudden Pacifism', desc: 'Refuses to take Combat Adventures.', effects: { lockAdventures: true }, removal: { autoRemoveTasks: 2 } },
+  butterfingers: { id: 'butterfingers', name: 'Butterfingers', desc: '+10% Fail Chance on all Combat Adventures due to slime.', effects: { combatFailPenalty: 0.1 }, removal: { sleepEstate: true, getShitfaced: true } },
+  dungeon_dye_job: { id: 'dungeon_dye_job', name: 'Dungeon Dye Job', desc: 'Hair changes to a terrible neon color.', effects: { visualOverride: 'neon_hair' }, removal: { id: 'remove_dye', label: 'Visit the Barber', cost: 10, days: 0, costType: 'gp', type: 'social', message: 'Fixed my hair.', effects: {} } },
+  girdle: { id: 'girdle', name: 'Girdle of Opposite Gender', desc: 'The sprite dynamically swaps genders.', effects: { visualOverride: 'swap_gender' }, removal: { id: 'remove_girdle', label: 'Remove Curse (Temple)', cost: 50, days: 0, costType: 'gp', type: 'magic', message: 'The curse is broken.', effects: {} } }
+};
 
 export const LOCATIONS = {
   village_road: {
     id: 'village_road', name: 'Village Road', type: 'homeless', description: 'A Nice Patch of Dirt. (0g)',
     details: "Nature is my blanket. Living on the road is hard on the body and mind.", dailyCost: 0, hasFoodService: false, 
-    modifiers: { rest: { health: 5, stress: -5, mood: -10, hunger: 5, thirst: 5 } }
+    modifiers: { rest: { health: 5, stress: -5, mood: -10, hunger: 15, thirst: 15 } }
   },
   inn_room: {
     id: 'inn_room', name: 'Rusty Spoon Inn', type: 'renting', description: 'Lumpy Mattress. (5g/day)',
@@ -139,7 +159,7 @@ export const LOCATIONS = {
   estate: {
     id: 'estate', name: 'Estate', type: 'owned', description: 'Fancy House. (50g/day)',
     details: "I am basically a noble now. Luxury living.", dailyCost: 50, hasFoodService: true,
-    modifiers: { rest: { health: 30, stress: -40, mood: 20, hunger: 0, thirst: 0 } }
+    modifiers: { rest: { health: 30, stress: -40, mood: 20, hunger: -100, thirst: -100 } }
   }
 };
 
