@@ -448,7 +448,7 @@ const App = () => {
     stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, activeCurse,
-    performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
+    shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
   } = useGameLogic();
 
   const [openPanel, setOpenPanel] = useState(null);
@@ -808,7 +808,12 @@ const App = () => {
                               <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1">Maintenance</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                  {MAINTENANCE_ACTIONS.map(action => (
-                                    <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead || (action.cost > 0 && resources.gold < action.cost) || (action.id === 'drink_water' && housing === 'homeless')} />
+                                    <ActionButton 
+                                        key={action.id} 
+                                        {...action} 
+                                        onClick={() => performAction(action)} 
+                                        disabled={isDead || (action.cost > 0 && resources.gold < action.cost) || (action.id === 'drink_water' && housing === 'homeless') || (action.id === 'shitfaced' && shitfacedToday)} 
+                                    />
                                  ))}
                                  {housing === 'homeless' ? (
                                     <ActionButton id="rent_start" label="Rent Inn Room" icon="Tent" cost={5} description="Lumpy bed, but safe." onClick={() => performAction({ id: 'rent_start', label: 'Rent Inn Room', cost: 5, days: 0, costType: 'gp', type: 'housing' })} disabled={isDead || resources.gold < 5 || activeCurse === 'blacklist'} />
