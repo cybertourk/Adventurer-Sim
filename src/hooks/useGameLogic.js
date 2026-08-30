@@ -25,6 +25,7 @@ export const useGameLogic = () => {
   const [activeCompanion, setActiveCompanion] = useState(null);
   const [activeCurse, setActiveCurse] = useState(null);
   const [curseTracker, setCurseTracker] = useState({ fails: 0, jobs: 0, ales: 0 });
+  const [shitfacedToday, setShitfacedToday] = useState(false);
   const [stats, setStats] = useState({ hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 });
   const [resources, setResources] = useState({ gold: 50, xp: 0, level: 1 });
   const [inventory, setInventory] = useState([
@@ -146,6 +147,7 @@ export const useGameLogic = () => {
         setActiveCompanion(parsed.activeCompanion || null);
         setActiveCurse(parsed.activeCurse || null);
         setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0 });
+        setShitfacedToday(parsed.shitfacedToday || false);
 
         let loadedInv = parsed.inventory || [];
         if (loadedInv.length > 0 && typeof loadedInv[0] === 'string') {
@@ -177,9 +179,9 @@ export const useGameLogic = () => {
       if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, activeCurse, curseTracker, lastSave: Date.now()
+        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, activeCurse, curseTracker, shitfacedToday, lastSave: Date.now()
       }));
-  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, activeCurse, curseTracker]);
+  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, activeCurse, curseTracker, shitfacedToday]);
 
   const passTime = (daysPassed, skipDecay = false) => {
       let rentMsg = "No rent paid (Homeless).";
@@ -187,7 +189,8 @@ export const useGameLogic = () => {
       let newStats = { ...stats };
       let newGold = resources.gold;
       
-      // Multi-day loop to process daily rent and housing mechanics
+      setShitfacedToday(false);
+
       for (let i = 0; i < daysPassed; i++) {
           if (rentActive) {
               const locId = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : null;
@@ -200,7 +203,13 @@ export const useGameLogic = () => {
                       newStats.stress = Math.max(0, newStats.stress + (mod.stress || 0));
                       newStats.mood = Math.min(maxStats.mood, newStats.mood + (mod.mood || 0));
                       if (!skipDecay && locId === 'inn_room') { newStats.hunger += 5; newStats.thirst += 5; }
-                      if (locId === 'estate') { newStats.hunger = 0; newStats.thirst = 0; }
+                      if (locId === 'estate') { 
+                          newStats.hunger = 0; newStats.thirst = 0; 
+                          if (activeCurse === 'butterfingers') {
+                              setActiveCurse(null);
+                              changes.push("Washed off slime in the bath");
+                          }
+                      }
                  } else {
                       setHousing('homeless'); setRentActive(false);
                       newStats.mood = Math.max(0, newStats.mood - 20);
@@ -217,7 +226,6 @@ export const useGameLogic = () => {
               rentMsg = "Slept outside. It was cold.";
           }
 
-          // Companion & Curse Morning Processing
           if (activeCompanion === 'spouse') newStats.stress += 15;
           if (activeCompanion === 'groupie') newStats.mood -= 15;
           if (activeCompanion === 'goblin') newGold = Math.max(0, newGold - (Math.floor(Math.random() * 4) + 1));
@@ -302,9 +310,13 @@ export const useGameLogic = () => {
     if (activeCurse === 'pacifism' && action.type === 'adventure') { addMessage("I refuse to hurt them! (Pacifism)", "error"); return; }
     if (activeCurse === 'blacklist' && action.id === 'rent_start') { addMessage("You are permanently banned.", "error"); return; }
 
+    if (action.id === 'shitfaced') {
+        if (shitfacedToday) { addMessage("You can't drink anymore today!", "error"); return; }
+        setShitfacedToday(true);
+    }
+
     let changes = [];
 
-    // Housing & Standard Actions
     if (action.id === 'rent_start') {
         if (resources.gold >= 5) {
             setHousing('inn'); setRentActive(true); setResources(prev => ({ ...prev, gold: prev.gold - 5 })); addMessage("Rented room at Rusty Spoon.", 'success');
@@ -345,7 +357,6 @@ export const useGameLogic = () => {
                     return next;
                 });
             }
-            if (activeCurse === 'butterfingers' && action.id === 'shitfaced') { setActiveCurse(null); addMessage("Slime washed off!", "success"); }
 
             addMessage(`Consumed ${itemToConsumeDb.name}`, 'success');
             changes.push(`-${itemToConsumeDb.name}`); addToLog({ type: 'action', day: days, title: 'Consumable', text: `Consumed ${itemToConsumeDb.name}.`, status: 'Success', changes: `Changes: ${changes.join(", ")}` });
@@ -354,7 +365,6 @@ export const useGameLogic = () => {
         addMessage("Don't have any left. Check shop!", 'error'); return; 
     }
 
-    // Removal Logic Handler
     if (action.id.startsWith('remove_')) {
         if (action.cost > 0 && resources.gold < action.cost) { addMessage("Not enough gold!", "error"); return; }
         if (action.cost > 0) setResources(prev => ({ ...prev, gold: prev.gold - action.cost }));
@@ -403,6 +413,11 @@ export const useGameLogic = () => {
 
         setStats(prev => ({ health: Math.max(0, Math.min(maxStats.health, prev.health + healthGain)), mood: Math.max(0, Math.min(maxStats.mood, prev.mood + moodGain)), hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + hungerGain)), thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + thirstGain)), stress: Math.max(0, Math.min(maxStats.stress, prev.stress + stressGain)) }));
         if(healthGain !== 0) changes.push(`${healthGain > 0 ? '+' : ''}${healthGain} Health`); if(moodGain !== 0) changes.push(`${moodGain > 0 ? '+' : ''}${moodGain} Mood`); if(hungerGain !== 0) changes.push(`${hungerGain > 0 ? '+' : ''}${hungerGain} Hunger`); if(thirstGain !== 0) changes.push(`${thirstGain > 0 ? '+' : ''}${thirstGain} Thirst`); if(stressGain !== 0) changes.push(`${stressGain > 0 ? '+' : ''}${stressGain} Stress`);
+
+        if (action.id === 'shitfaced' && activeCurse === 'butterfingers') {
+            setActiveCurse(null);
+            changes.push("Slime washed off");
+        }
 
         let logText = action.message || "Completed action."; let lootText = "";
         if (action.effects.xp) {
@@ -517,6 +532,6 @@ export const useGameLogic = () => {
   return {
     gameStarted, setGameStarted, creationStep, setCreationStep, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages, isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk,
-    activeCompanion, activeCurse, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
+    activeCompanion, activeCurse, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
   };
 };
