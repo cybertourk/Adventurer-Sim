@@ -53,8 +53,6 @@ const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onCl
   );
 };
 
-const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
-
 const getItemCategoryTab = (item) => {
     if (!item) return 'All';
     const itemId = String(item.id || '');
@@ -576,11 +574,31 @@ const App = () => {
     </>
   );
 
+  // INVENTORY STACKING & FILTERING
   const visibleInventory = inventory.filter(id => id !== 'none' && id !== 'fist' && id !== 'tunic');
-  
   const filteredInventoryItems = visibleInventory.map(id => [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === id)).filter(Boolean);
   const displayedInventory = filteredInventoryItems.filter(item => inventoryTab === 'All' || getItemCategoryTab(item) === inventoryTab);
 
+  const groupedInventory = [];
+  const invMap = new Map();
+  displayedInventory.forEach(item => {
+      if (invMap.has(item.id)) {
+          invMap.get(item.id).count++;
+      } else {
+          const newItem = { ...item, count: 1 };
+          invMap.set(item.id, newItem);
+          groupedInventory.push(newItem);
+      }
+  });
+
+  const equippedCounts = {};
+  Object.values(equipped).forEach(id => {
+      if (id !== 'none' && id !== 'fist' && id !== 'tunic') {
+          equippedCounts[id] = (equippedCounts[id] || 0) + 1;
+      }
+  });
+
+  // SHOP FILTERING
   const filteredShopItems = shopStock.map(id => [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === id)).filter(Boolean);
   const displayedShop = filteredShopItems.filter(item => shopTab === 'All' || getItemCategoryTab(item) === shopTab);
 
@@ -878,34 +896,50 @@ const App = () => {
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {displayedInventory.map((item, idx) => {
-                                            const isEquipped = Object.values(equipped).includes(item.id);
+                                        {groupedInventory.map((itemGroup, idx) => {
+                                            const eqCount = equippedCounts[itemGroup.id] || 0;
+                                            const availableCount = itemGroup.count - eqCount;
+                                            const isEquipped = eqCount > 0;
+                                            const canEquip = ['head', 'body', 'mainHand', 'offHand'].includes(itemGroup.type);
+                                            const canConsume = ['food', 'drink', 'potion'].includes(itemGroup.type);
+
                                             return (
                                                 <div key={idx} className="bg-zinc-800/90 border border-zinc-700/80 rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
-                                                            <span className="font-bold text-sm text-zinc-200 block">{item.name}</span>
-                                                            <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{item.category}</span>
+                                                            <span className="font-bold text-sm text-zinc-200 block">
+                                                                {itemGroup.name} {itemGroup.count > 1 && <span className="text-indigo-400 ml-1">(x{itemGroup.count})</span>}
+                                                            </span>
+                                                            <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{itemGroup.category}</span>
                                                         </div>
-                                                        <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-700/50">{Math.floor((item.cost || 0)/2)}g Value</span>
+                                                        <div className="flex flex-col items-end gap-1">
+                                                            <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-700/50">
+                                                                {Math.floor((itemGroup.cost || 0)/2)}g Value
+                                                            </span>
+                                                            {eqCount > 0 && itemGroup.count > 1 && (
+                                                                <span className="text-[9px] text-emerald-400 font-bold uppercase">{eqCount} Equipped</span>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    {renderItemStats(item)}
+                                                    {renderItemStats(itemGroup)}
                                                     <div className="mt-4 flex gap-2">
-                                                        {['head', 'body', 'mainHand', 'offHand'].includes(item.type) && (
-                                                            <button onClick={() => equipItem(item)} disabled={isEquipped} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${isEquipped ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-zinc-700 text-zinc-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-zinc-600 hover:border-indigo-500'}`}>
+                                                        {canEquip && (
+                                                            <button onClick={() => equipItem(itemGroup)} disabled={isEquipped} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${isEquipped ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-zinc-700 text-zinc-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-zinc-600 hover:border-indigo-500'}`}>
                                                                 {isEquipped ? 'Equipped' : 'Equip'}
                                                             </button>
                                                         )}
-                                                        {(item.type === 'food' || item.type === 'drink' || item.type === 'potion') && (
-                                                            <button onClick={() => consumeItem(item)} className="flex-1 py-2.5 bg-emerald-950/60 border border-emerald-700/50 text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold tracking-wider uppercase transition-all hover:shadow-[0_0_15px_rgba(52,211,153,0.4)]">
+                                                        {canConsume && (
+                                                            <button onClick={() => consumeItem(itemGroup)} className="flex-1 py-2.5 bg-emerald-950/60 border border-emerald-700/50 text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold tracking-wider uppercase transition-all hover:shadow-[0_0_15px_rgba(52,211,153,0.4)]">
                                                                 Consume
                                                             </button>
                                                         )}
-                                                        {!isEquipped && (
-                                                            <button onClick={() => sellItem(item)} className="px-5 py-2.5 bg-zinc-900 border border-zinc-700 text-zinc-400 hover:bg-amber-600 hover:text-white hover:border-amber-500 rounded-lg text-xs font-bold tracking-wider uppercase transition-all hover:shadow-[0_0_15px_rgba(217,119,6,0.4)]">
-                                                                Sell
-                                                            </button>
-                                                        )}
+                                                        <button 
+                                                            onClick={() => sellItem(itemGroup)} 
+                                                            disabled={availableCount <= 0} 
+                                                            className={`px-5 py-2.5 border rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${availableCount > 0 ? 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:bg-amber-600 hover:text-white hover:border-amber-500 hover:shadow-[0_0_15px_rgba(217,119,6,0.4)]' : 'bg-zinc-900/40 border-zinc-800 text-zinc-600 cursor-not-allowed'}`}
+                                                        >
+                                                            Sell
+                                                        </button>
                                                     </div>
                                                 </div>
                                             );
