@@ -565,7 +565,7 @@ const App = () => {
          <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} onClick={() => setActiveDetailModal('mood')} />
          <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 70} inverted onClick={() => setActiveDetailModal('stress')} />
          
-         <div className="flex flex-col gap-1.5 ml-1">
+         <div className="flex flex-col gap-1 md:gap-1.5 ml-1 md:ml-0 md:mt-1">
              {quirk && (
                  <button onClick={() => setActiveDetailModal('quirk')} className="flex items-center justify-center w-full h-[18px] md:h-[20px] bg-indigo-950/80 rounded-md border border-indigo-500/40 hover:border-indigo-400 shadow-sm transition-all hover:scale-105 px-1.5 min-w-[50px]">
                      <span className="text-[8px] md:text-[9px] font-bold text-indigo-200 truncate">{quirk.name}</span>
@@ -586,9 +586,9 @@ const App = () => {
   );
 
   const attributesContent = (
-    <div className="relative flex justify-center gap-1.5">
+    <>
          {pointsAvailable > 0 && (
-             <div className="absolute -top-5 left-0 right-0 text-center text-[10px] font-bold text-emerald-400 animate-pulse tracking-widest uppercase drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]">
+             <div className="absolute -top-4 md:-top-5 left-0 right-0 text-center text-[10px] font-bold text-emerald-400 animate-pulse tracking-widest uppercase drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]">
                  Points: {pointsAvailable}
              </div>
          )}
@@ -599,7 +599,7 @@ const App = () => {
                  onPlus={attr !== 'ac' && pointsAvailable > 0 ? () => updateAttribute(attr, 1) : null}
              />
          ))}
-    </div>
+    </>
   );
 
   const displayedInventory = inventory
@@ -720,17 +720,17 @@ const App = () => {
             <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex items-center justify-center gap-1.5">
                 {metersContent}
             </div>
-            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)]">
+            <div className="relative bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex items-center justify-center gap-1.5 mt-2">
                 {attributesContent}
             </div>
         </div>
       </div>
 
       <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto items-start gap-4">
-          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex items-center gap-3">
+          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
               {metersContent}
           </div>
-          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] pt-6">
+          <div className="relative bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 pt-6 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
               {attributesContent}
           </div>
       </div>
