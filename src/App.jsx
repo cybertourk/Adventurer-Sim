@@ -70,6 +70,11 @@ const getItemCategoryTab = (item) => {
     return 'All';
 };
 
+const getSerial = (id) => {
+    if (!id) return '';
+    return id.split('_')[1]?.substring(0,4).toUpperCase() || id.slice(-4).toUpperCase();
+};
+
 const ResponsiveBackground = ({ locationId }) => {
     const baseUrl = import.meta.env.BASE_URL;
     let bgImage = `${baseUrl}bg_village.png`;
@@ -469,6 +474,23 @@ const App = () => {
     }
   }, [days, dailyLogs]);
 
+  // Resolves an instanceId to its core itemId for UI stats and Canvas
+  const resolveItemId = (instanceId) => {
+      if (!instanceId) return 'none';
+      if (instanceId.startsWith('inst_') && ['none', 'tunic', 'fist'].includes(instanceId.replace('inst_', ''))) {
+          return instanceId.replace('inst_', '');
+      }
+      const invItem = inventory.find(i => i.instanceId === instanceId);
+      return invItem ? invItem.itemId : 'none';
+  };
+
+  const resolvedEquipped = {
+      head: resolveItemId(equipped.head),
+      body: resolveItemId(equipped.body),
+      mainHand: resolveItemId(equipped.mainHand),
+      offHand: resolveItemId(equipped.offHand)
+  };
+
   const getStatInfo = (attr) => {
     const info = {
       str: { name: 'Strength', desc: 'Increases melee damage and success in labor jobs.' },
@@ -484,7 +506,7 @@ const App = () => {
   const getAttributeTotal = (attrKey) => {
       let total = attributes ? (attributes[attrKey] || 0) : 0;
       if (quirk && quirk.effects?.stats?.[attrKey]) total += quirk.effects.stats[attrKey];
-      Object.values(equipped).forEach(itemId => {
+      Object.values(resolvedEquipped).forEach(itemId => {
            const item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].find(i => i.id === itemId);
            if (item?.stats?.[attrKey]) total += item.stats[attrKey];
       });
@@ -509,7 +531,7 @@ const App = () => {
               details.total += val;
           }
 
-          Object.entries(equipped).forEach(([slot, itemId]) => {
+          Object.entries(resolvedEquipped).forEach(([slot, itemId]) => {
               if (itemId !== 'none' && itemId !== 'fist' && itemId !== 'tunic') {
                   let item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].find(i => i.id === itemId);
                   if (item && item.stats && item.stats[statKey]) {
@@ -544,7 +566,7 @@ const App = () => {
     return (
       <CreationScreen 
         creationStep={creationStep} setCreationStep={setCreationStep} appearance={appearance} updateAppearance={updateAppearance} 
-        equipped={equipped} attributes={attributes} updateAttribute={updateAttribute} pointsAvailable={pointsAvailable} 
+        equipped={resolvedEquipped} attributes={attributes} updateAttribute={updateAttribute} pointsAvailable={pointsAvailable} 
         getStatInfo={getStatInfo} startGame={startGame} 
       />
     );
@@ -576,33 +598,24 @@ const App = () => {
     </>
   );
 
-  // INVENTORY STACKING & FILTERING
-  const visibleInventory = inventory.filter(id => id !== 'none' && id !== 'fist' && id !== 'tunic');
-  const filteredInventoryItems = visibleInventory.map(id => [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === id)).filter(Boolean);
-  const displayedInventory = filteredInventoryItems.filter(item => inventoryTab === 'All' || getItemCategoryTab(item) === inventoryTab);
+  // INVENTORY MAPPING & FILTERING
+  const displayedInventory = inventory
+      .filter(invItem => !['inst_none', 'inst_tunic', 'inst_fist'].includes(invItem.instanceId))
+      .map(invItem => {
+          const dbItem = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === invItem.itemId);
+          return dbItem ? { ...dbItem, instanceId: invItem.instanceId } : null;
+      })
+      .filter(Boolean)
+      .filter(item => inventoryTab === 'All' || getItemCategoryTab(item) === inventoryTab);
 
-  const groupedInventory = [];
-  const invMap = new Map();
-  displayedInventory.forEach(item => {
-      if (invMap.has(item.id)) {
-          invMap.get(item.id).count++;
-      } else {
-          const newItem = { ...item, count: 1 };
-          invMap.set(item.id, newItem);
-          groupedInventory.push(newItem);
-      }
-  });
-
-  const equippedCounts = {};
-  Object.values(equipped).forEach(id => {
-      if (id !== 'none' && id !== 'fist' && id !== 'tunic') {
-          equippedCounts[id] = (equippedCounts[id] || 0) + 1;
-      }
-  });
-
-  // SHOP FILTERING
-  const filteredShopItems = shopStock.map(id => [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === id)).filter(Boolean);
-  const displayedShop = filteredShopItems.filter(item => shopTab === 'All' || getItemCategoryTab(item) === shopTab);
+  // SHOP MAPPING & FILTERING
+  const displayedShop = shopStock
+      .map(shopItem => {
+          const dbItem = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === shopItem.itemId);
+          return dbItem ? { ...dbItem, instanceId: shopItem.instanceId } : null;
+      })
+      .filter(Boolean)
+      .filter(item => shopTab === 'All' || getItemCategoryTab(item) === shopTab);
 
   const modalDetails = activeDetailModal ? getModalDetails(activeDetailModal) : null;
 
@@ -718,12 +731,9 @@ const App = () => {
 
       {/* Meters & Attributes (Desktop Only - Left Side) */}
       <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto items-start gap-4">
-          {/* Column 1: Core Meters & Trait */}
           <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
               {metersContent}
           </div>
-
-          {/* Column 2: Attributes & AC */}
           <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
               {attributesContent}
           </div>
@@ -742,12 +752,12 @@ const App = () => {
           
           <div className="w-full h-full flex items-end justify-center transition-all duration-500">
              <div className="w-auto h-full max-h-[600px] aspect-[2/3] max-w-[95vw]">
-                <CharacterCanvas equipped={equipped} appearance={appearance} isAlive={!isDead} />
+                <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} />
              </div>
           </div>
       </div>
 
-      {/* Navigation Layer (Mobile: Bottom, Desktop: Right) */}
+      {/* Navigation Layer */}
       <div className="absolute bottom-6 md:bottom-auto md:top-1/2 left-1/2 md:left-auto md:right-6 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2 z-20 pointer-events-auto">
           <div className="bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-row md:flex-col gap-2">
               {[
@@ -851,9 +861,10 @@ const App = () => {
                             <div>
                                 <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">Equipped</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                    {Object.entries(equipped).map(([slot, itemId]) => {
+                                    {Object.entries(equipped).map(([slot, instanceId]) => {
+                                        const itemId = resolveItemId(instanceId);
                                         const item = ITEM_DB[slot]?.find(i => i.id === itemId);
-                                        const isDefault = itemId === 'none' || itemId === 'fist' || itemId === 'tunic';
+                                        const isDefault = ['none', 'fist', 'tunic'].includes(itemId);
                                         return (
                                             <div key={slot} className="bg-zinc-900/80 border border-zinc-700/60 rounded-xl p-3 flex flex-col items-center justify-between text-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden h-full min-h-[90px]">
                                                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
@@ -864,7 +875,7 @@ const App = () => {
                                                 </div>
                                                 {!isDefault && (
                                                     <button 
-                                                        onClick={() => equipItem({ id: slot === 'mainHand' ? 'fist' : 'none', type: slot, category: 'Equipment' })} 
+                                                        onClick={() => equipItem({ type: slot, instanceId: slot === 'mainHand' ? 'inst_fist' : slot === 'body' ? 'inst_tunic' : 'inst_none' })} 
                                                         className="mt-3 z-10 w-full py-1.5 text-[9px] font-bold uppercase tracking-widest bg-zinc-950/60 text-zinc-400 border border-zinc-700/50 rounded-lg hover:bg-red-950/80 hover:text-red-400 hover:border-red-900/50 transition-all shadow-sm"
                                                     >
                                                         Unequip
@@ -898,47 +909,48 @@ const App = () => {
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {groupedInventory.map((itemGroup, idx) => {
-                                            const eqCount = equippedCounts[itemGroup.id] || 0;
-                                            const availableCount = itemGroup.count - eqCount;
-                                            const isEquipped = eqCount > 0;
-                                            const canEquip = ['head', 'body', 'mainHand', 'offHand'].includes(itemGroup.type);
-                                            const canConsume = ['food', 'drink', 'potion'].includes(itemGroup.type);
+                                        {displayedInventory.map(item => {
+                                            const isEquipped = Object.values(equipped).includes(item.instanceId);
+                                            const canEquip = ['head', 'body', 'mainHand', 'offHand'].includes(item.type);
+                                            const canConsume = ['food', 'drink', 'potion'].includes(item.type);
 
                                             return (
-                                                <div key={idx} className="bg-zinc-800/90 border border-zinc-700/80 rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
+                                                <div key={item.instanceId} className="bg-zinc-800/90 border border-zinc-700/80 rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
-                                                            <span className="font-bold text-sm text-zinc-200 block">
-                                                                {itemGroup.name} {itemGroup.count > 1 && <span className="text-indigo-400 ml-1">(x{itemGroup.count})</span>}
+                                                            <span className="font-bold text-sm text-zinc-200 block flex items-center gap-2">
+                                                                {item.name} 
+                                                                <span className="text-[9px] font-mono font-normal text-zinc-500 bg-zinc-900/50 px-1.5 py-0.5 rounded border border-zinc-700/50">
+                                                                    #{getSerial(item.instanceId)}
+                                                                </span>
                                                             </span>
-                                                            <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{itemGroup.category}</span>
+                                                            <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{item.category}</span>
                                                         </div>
                                                         <div className="flex flex-col items-end gap-1">
                                                             <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-700/50">
-                                                                {Math.floor((itemGroup.cost || 0)/2)}g Value
+                                                                {Math.floor((item.cost || 0)/2)}g Value
                                                             </span>
-                                                            {eqCount > 0 && itemGroup.count > 1 && (
-                                                                <span className="text-[9px] text-emerald-400 font-bold uppercase">{eqCount} Equipped</span>
+                                                            {isEquipped && (
+                                                                <span className="text-[9px] text-emerald-400 font-bold uppercase mt-1">Equipped</span>
                                                             )}
                                                         </div>
                                                     </div>
-                                                    {renderItemStats(itemGroup)}
+                                                    {renderItemStats(item)}
                                                     <div className="mt-4 flex gap-2">
                                                         {canEquip && (
-                                                            <button onClick={() => equipItem(itemGroup)} disabled={isEquipped} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${isEquipped ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-zinc-700 text-zinc-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-zinc-600 hover:border-indigo-500'}`}>
+                                                            <button onClick={() => equipItem(item)} disabled={isEquipped} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${isEquipped ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-zinc-700 text-zinc-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-zinc-600 hover:border-indigo-500'}`}>
                                                                 {isEquipped ? 'Equipped' : 'Equip'}
                                                             </button>
                                                         )}
                                                         {canConsume && (
-                                                            <button onClick={() => consumeItem(itemGroup)} className="flex-1 py-2.5 bg-emerald-950/60 border border-emerald-700/50 text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold tracking-wider uppercase transition-all hover:shadow-[0_0_15px_rgba(52,211,153,0.4)]">
+                                                            <button onClick={() => consumeItem(item)} className="flex-1 py-2.5 bg-emerald-950/60 border border-emerald-700/50 text-emerald-400 hover:bg-emerald-600 hover:text-white rounded-lg text-xs font-bold tracking-wider uppercase transition-all hover:shadow-[0_0_15px_rgba(52,211,153,0.4)]">
                                                                 Consume
                                                             </button>
                                                         )}
                                                         <button 
-                                                            onClick={() => sellItem(itemGroup)} 
-                                                            disabled={availableCount <= 0} 
-                                                            className={`px-5 py-2.5 border rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${availableCount > 0 ? 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:bg-amber-600 hover:text-white hover:border-amber-500 hover:shadow-[0_0_15px_rgba(217,119,6,0.4)]' : 'bg-zinc-900/40 border-zinc-800 text-zinc-600 cursor-not-allowed'}`}
+                                                            onClick={() => sellItem(item)} 
+                                                            disabled={isEquipped} 
+                                                            className={`px-5 py-2.5 border rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${!isEquipped ? 'bg-zinc-900 border-zinc-700 text-zinc-400 hover:bg-amber-600 hover:text-white hover:border-amber-500 hover:shadow-[0_0_15px_rgba(217,119,6,0.4)]' : 'bg-zinc-900/40 border-zinc-800 text-zinc-600 cursor-not-allowed'}`}
                                                         >
                                                             Sell
                                                         </button>
@@ -984,17 +996,22 @@ const App = () => {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {displayedShop.map((item, idx) => {
+                                    {displayedShop.map((item) => {
                                         let cost = item.cost || 0;
                                         if (quirk && quirk.id === 'lightweight' && (item.type === 'drink' || item.id === 'ale' || item.id === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
                                         const canAfford = resources.gold >= cost;
 
                                         return (
-                                            <div key={`${item.id}-${idx}`} className={`bg-zinc-800/80 border rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-all ${canAfford ? 'border-zinc-600 hover:border-indigo-500/70 hover:bg-zinc-800' : 'border-zinc-800 opacity-60 grayscale-[0.5]'}`}>
+                                            <div key={item.instanceId} className={`bg-zinc-800/80 border rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-all ${canAfford ? 'border-zinc-600 hover:border-indigo-500/70 hover:bg-zinc-800' : 'border-zinc-800 opacity-60 grayscale-[0.5]'}`}>
                                                 <div>
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
-                                                            <span className="font-bold text-sm text-zinc-200 block">{item.name}</span>
+                                                            <span className="font-bold text-sm text-zinc-200 block flex items-center gap-2">
+                                                                {item.name}
+                                                                <span className="text-[9px] font-mono font-normal text-zinc-500 bg-zinc-900/50 px-1.5 py-0.5 rounded border border-zinc-700/50">
+                                                                    #{getSerial(item.instanceId)}
+                                                                </span>
+                                                            </span>
                                                             <span className="text-[9px] text-indigo-400/80 uppercase tracking-widest">{item.category}</span>
                                                         </div>
                                                         <span className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded-md border ${canAfford ? 'text-amber-400 bg-amber-950/60 border-amber-500/40' : 'text-red-400 bg-red-950/60 border-red-500/40'}`}>
