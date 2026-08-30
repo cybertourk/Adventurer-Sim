@@ -70,11 +70,6 @@ const getItemCategoryTab = (item) => {
     return 'All';
 };
 
-const getSerial = (id) => {
-    if (!id) return '';
-    return id.split('_')[1]?.substring(0,4).toUpperCase() || id.slice(-4).toUpperCase();
-};
-
 const ResponsiveBackground = ({ locationId }) => {
     const baseUrl = import.meta.env.BASE_URL;
     let bgImage = `${baseUrl}bg_village.png`;
@@ -918,12 +913,7 @@ const App = () => {
                                                 <div key={item.instanceId} className="bg-zinc-800/90 border border-zinc-700/80 rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
-                                                            <span className="font-bold text-sm text-zinc-200 block flex items-center gap-2">
-                                                                {item.name} 
-                                                                <span className="text-[9px] font-mono font-normal text-zinc-500 bg-zinc-900/50 px-1.5 py-0.5 rounded border border-zinc-700/50">
-                                                                    #{getSerial(item.instanceId)}
-                                                                </span>
-                                                            </span>
+                                                            <span className="font-bold text-sm text-zinc-200 block">{item.name}</span>
                                                             <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{item.category}</span>
                                                         </div>
                                                         <div className="flex flex-col items-end gap-1">
@@ -1006,12 +996,7 @@ const App = () => {
                                                 <div>
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
-                                                            <span className="font-bold text-sm text-zinc-200 block flex items-center gap-2">
-                                                                {item.name}
-                                                                <span className="text-[9px] font-mono font-normal text-zinc-500 bg-zinc-900/50 px-1.5 py-0.5 rounded border border-zinc-700/50">
-                                                                    #{getSerial(item.instanceId)}
-                                                                </span>
-                                                            </span>
+                                                            <span className="font-bold text-sm text-zinc-200 block">{item.name}</span>
                                                             <span className="text-[9px] text-indigo-400/80 uppercase tracking-widest">{item.category}</span>
                                                         </div>
                                                         <span className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded-md border ${canAfford ? 'text-amber-400 bg-amber-950/60 border-amber-500/40' : 'text-red-400 bg-red-950/60 border-red-500/40'}`}>
