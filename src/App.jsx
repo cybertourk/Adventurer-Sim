@@ -53,7 +53,15 @@ const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onCl
   );
 };
 
-const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
+const getItemCategoryTab = (item) => {
+    if (!item) return 'All';
+    if (item.id.includes('robe') || item.category === 'Arcane Focus' || item.id === 'staff') return 'Magic';
+    if (['head', 'body'].includes(item.type)) return 'Armor';
+    if (item.type === 'mainHand') return 'Weapons';
+    if (item.type === 'offHand') return 'Shields';
+    if (['food', 'drink', 'potion'].includes(item.type)) return 'Supplies';
+    return 'All';
+};
 
 const ResponsiveBackground = ({ locationId }) => {
     const baseUrl = import.meta.env.BASE_URL;
@@ -445,6 +453,8 @@ const App = () => {
   const [openPanel, setOpenPanel] = useState(null);
   const [showMorningReport, setShowMorningReport] = useState(false);
   const [activeDetailModal, setActiveDetailModal] = useState(null);
+  const [inventoryTab, setInventoryTab] = useState('All');
+  const [shopTab, setShopTab] = useState('All');
 
   useEffect(() => {
     if (dailyLogs.length > 0 && dailyLogs[0].type === 'morning' && dailyLogs[0].day === days) {
@@ -560,6 +570,13 @@ const App = () => {
   );
 
   const visibleInventory = inventory.filter(id => id !== 'none' && id !== 'fist' && id !== 'tunic');
+  
+  const filteredInventoryItems = visibleInventory.map(id => [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === id)).filter(Boolean);
+  const displayedInventory = filteredInventoryItems.filter(item => inventoryTab === 'All' || getItemCategoryTab(item) === inventoryTab);
+
+  const filteredShopItems = shopStock.map(id => [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === id)).filter(Boolean);
+  const displayedShop = filteredShopItems.filter(item => shopTab === 'All' || getItemCategoryTab(item) === shopTab);
+
   const modalDetails = activeDetailModal ? getModalDetails(activeDetailModal) : null;
 
   return (
@@ -834,16 +851,28 @@ const App = () => {
 
                             <div>
                                 <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">Backpack</h3>
-                                {visibleInventory.length === 0 ? (
+                                
+                                {/* Inventory Filter Tabs */}
+                                <div className="flex flex-wrap gap-2 mb-4 border-b border-zinc-800 pb-3">
+                                    {['All', 'Armor', 'Weapons', 'Shields', 'Magic', 'Supplies'].map(tab => (
+                                        <button 
+                                            key={tab} 
+                                            onClick={() => setInventoryTab(tab)}
+                                            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all whitespace-nowrap ${inventoryTab === tab ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:bg-zinc-700'}`}
+                                        >
+                                            {tab}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {displayedInventory.length === 0 ? (
                                     <div className="p-8 text-center bg-zinc-900/50 rounded-xl border border-zinc-700/50 border-dashed">
-                                        <p className="text-sm text-zinc-500 font-medium">Your backpack is empty.</p>
+                                        <p className="text-sm text-zinc-500 font-medium">Nothing found in this category.</p>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {visibleInventory.map((itemId, idx) => {
-                                            const item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === itemId);
-                                            if(!item) return null;
-                                            const isEquipped = Object.values(equipped).includes(itemId);
+                                        {displayedInventory.map((item, idx) => {
+                                            const isEquipped = Object.values(equipped).includes(item.id);
                                             return (
                                                 <div key={idx} className="bg-zinc-800/90 border border-zinc-700/80 rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
                                                     <div className="flex justify-between items-start mb-2">
@@ -892,36 +921,54 @@ const App = () => {
                                     <Clock size={12}/> Skip Day
                                 </button>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {shopStock.map(itemId => {
-                                    const item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === itemId);
-                                    if(!item) return null;
-                                    let cost = item.cost;
-                                    if (quirk && quirk.id === 'lightweight' && (item.type === 'drink' || item.id === 'ale' || item.id === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
-                                    const canAfford = resources.gold >= cost;
 
-                                    return (
-                                        <div key={itemId} className={`bg-zinc-800/80 border rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-all ${canAfford ? 'border-zinc-600 hover:border-indigo-500/70 hover:bg-zinc-800' : 'border-zinc-800 opacity-60 grayscale-[0.5]'}`}>
-                                            <div>
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <div>
-                                                        <span className="font-bold text-sm text-zinc-200 block">{item.name}</span>
-                                                        <span className="text-[9px] text-indigo-400/80 uppercase tracking-widest">{item.category}</span>
-                                                    </div>
-                                                    <span className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded-md border ${canAfford ? 'text-amber-400 bg-amber-950/60 border-amber-500/40' : 'text-red-400 bg-red-950/60 border-red-500/40'}`}>
-                                                        {cost}g
-                                                    </span>
-                                                </div>
-                                                <p className="text-[10px] text-zinc-400 mb-3 leading-relaxed">{item.description}</p>
-                                                {renderItemStats(item)}
-                                            </div>
-                                            <button onClick={() => buyItem(item)} disabled={!canAfford || isDead} className={`mt-4 w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${canAfford && !isDead ? 'bg-indigo-900/40 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] hover:border-indigo-500' : 'bg-zinc-900 text-zinc-700 cursor-not-allowed border border-zinc-800'}`}>
-                                                Purchase
-                                            </button>
-                                        </div>
-                                    );
-                                })}
+                            {/* Shop Filter Tabs */}
+                            <div className="flex flex-wrap gap-2 mb-4 border-b border-zinc-800 pb-3">
+                                {['All', 'Armor', 'Weapons', 'Shields', 'Magic', 'Supplies'].map(tab => (
+                                    <button 
+                                        key={tab} 
+                                        onClick={() => setShopTab(tab)}
+                                        className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all whitespace-nowrap ${shopTab === tab ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:bg-zinc-700'}`}
+                                    >
+                                        {tab}
+                                    </button>
+                                ))}
                             </div>
+
+                            {displayedShop.length === 0 ? (
+                                <div className="p-8 text-center bg-zinc-900/50 rounded-xl border border-zinc-700/50 border-dashed">
+                                    <p className="text-sm text-zinc-500 font-medium">Nothing found in this category.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {displayedShop.map(item => {
+                                        let cost = item.cost;
+                                        if (quirk && quirk.id === 'lightweight' && (item.type === 'drink' || item.id === 'ale' || item.id === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
+                                        const canAfford = resources.gold >= cost;
+
+                                        return (
+                                            <div key={item.id} className={`bg-zinc-800/80 border rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-all ${canAfford ? 'border-zinc-600 hover:border-indigo-500/70 hover:bg-zinc-800' : 'border-zinc-800 opacity-60 grayscale-[0.5]'}`}>
+                                                <div>
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <div>
+                                                            <span className="font-bold text-sm text-zinc-200 block">{item.name}</span>
+                                                            <span className="text-[9px] text-indigo-400/80 uppercase tracking-widest">{item.category}</span>
+                                                        </div>
+                                                        <span className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded-md border ${canAfford ? 'text-amber-400 bg-amber-950/60 border-amber-500/40' : 'text-red-400 bg-red-950/60 border-red-500/40'}`}>
+                                                            {cost}g
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-[10px] text-zinc-400 mb-3 leading-relaxed">{item.description}</p>
+                                                    {renderItemStats(item)}
+                                                </div>
+                                                <button onClick={() => buyItem(item)} disabled={!canAfford || isDead} className={`mt-4 w-full py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${canAfford && !isDead ? 'bg-indigo-900/40 text-indigo-300 border border-indigo-500/40 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.5)] hover:border-indigo-500' : 'bg-zinc-900 text-zinc-700 cursor-not-allowed border border-zinc-800'}`}>
+                                                    Purchase
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                      )}
 
