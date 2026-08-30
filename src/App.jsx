@@ -53,6 +53,8 @@ const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onCl
   );
 };
 
+const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
+
 const getItemCategoryTab = (item) => {
     if (!item) return 'All';
     const itemId = String(item.id || '');
