@@ -4,6 +4,8 @@ import {
   AUTONOMY_EVENTS, QUIRKS, LOCATIONS
 } from '../data/constants';
 
+const generateId = () => Math.random().toString(36).substr(2, 9) + Date.now();
+
 const rollTieredItems = (pool, count) => {
     const groups = {};
     pool.forEach(item => {
@@ -22,9 +24,13 @@ export const useGameLogic = () => {
   const [quirk, setQuirk] = useState(null); 
   const [stats, setStats] = useState({ hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 });
   const [resources, setResources] = useState({ gold: 50, xp: 0, level: 1 });
-  const [inventory, setInventory] = useState(['none', 'tunic', 'fist']); 
+  const [inventory, setInventory] = useState([
+    { instanceId: 'inst_none', itemId: 'none' },
+    { instanceId: 'inst_tunic', itemId: 'tunic' },
+    { instanceId: 'inst_fist', itemId: 'fist' }
+  ]); 
   const [shopStock, setShopStock] = useState([]); 
-  const [equipped, setEquipped] = useState({ head: 'none', body: 'tunic', mainHand: 'fist', offHand: 'none' });
+  const [equipped, setEquipped] = useState({ head: 'inst_none', body: 'inst_tunic', mainHand: 'inst_fist', offHand: 'inst_none' });
   const [appearance, setAppearance] = useState({ gender: 'male', skinTone: 'fair', hairColor: 'brown', eyeColor: 'brown', hairStyle: 'short' });
   const [days, setDays] = useState(1);
   const [location, setLocation] = useState('village_road'); 
@@ -41,19 +47,24 @@ export const useGameLogic = () => {
   const currentStats = useMemo(() => {
     let total = { ...attributes, ac: 10 }; 
     Object.keys(equipped).forEach(slot => {
-      const itemId = equipped[slot];
-      const item = ITEM_DB[slot].find(i => i.id === itemId);
-      if (item && item.stats) {
-        Object.entries(item.stats).forEach(([stat, val]) => {
-          if (total[stat] !== undefined) total[stat] += val; else total[stat] = val;
-        });
+      const instanceId = equipped[slot];
+      if (!instanceId) return;
+      const invItem = inventory.find(i => i.instanceId === instanceId);
+      const itemId = invItem ? invItem.itemId : null;
+      if (itemId) {
+        const item = ITEM_DB[slot].find(i => i.id === itemId);
+        if (item && item.stats) {
+          Object.entries(item.stats).forEach(([stat, val]) => {
+            if (total[stat] !== undefined) total[stat] += val; else total[stat] = val;
+          });
+        }
       }
     });
     if (quirk && quirk.effects && quirk.effects.stats) {
         Object.entries(quirk.effects.stats).forEach(([stat, val]) => { if (total[stat] !== undefined) total[stat] += val; });
     }
     return total;
-  }, [equipped, attributes, quirk]);
+  }, [equipped, attributes, quirk, inventory]);
 
   const maxStats = useMemo(() => calculateMaxStats(resources.level, attributes.con), [resources.level, attributes.con]);
 
@@ -68,7 +79,7 @@ export const useGameLogic = () => {
   const refreshShop = () => {
     const purchasable = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].filter(i => i.cost > 0);
     const selected = rollTieredItems(purchasable, 6);
-    setShopStock(selected.map(i => i.id));
+    setShopStock(selected.map(i => ({ instanceId: `shop_${generateId()}`, itemId: i.id })));
   };
 
   const generateDailyQuests = (currentTier) => {
@@ -104,17 +115,54 @@ export const useGameLogic = () => {
         setAttributes(parsed.attributes || { str: 10, dex: 10, con: 10, int: 10, cha: 10 });
         setStats(parsed.stats || { hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 });
         setResources(parsed.resources || { gold: 50, xp: 0, level: 1 });
-        setEquipped(parsed.equipped || { head: 'none', body: 'tunic', mainHand: 'fist', offHand: 'none' });
         setAppearance(parsed.appearance || { gender: 'male', skinTone: 'fair', hairColor: 'brown', eyeColor: 'brown', hairStyle: 'short' });
         setLocation(parsed.location || 'village_road');
         setHousing(parsed.housing || 'homeless');
         setRentActive(parsed.rentActive || false);
         setDays(parsed.days || 1);
-        setInventory(parsed.inventory || ['none', 'tunic', 'fist']);
         setMaxTier(parsed.maxTier || 1);
         setDailyLogs(parsed.dailyLogs || []);
         setQuirk(parsed.quirk || null); 
-        if (parsed.shopStock && parsed.shopStock.length > 0) setShopStock(parsed.shopStock); else refreshShop();
+
+        // Data Migration for Inventory Instances
+        let loadedInv = parsed.inventory || [];
+        if (loadedInv.length > 0 && typeof loadedInv[0] === 'string') {
+            loadedInv = loadedInv.map(id => ({
+                instanceId: ['none', 'tunic', 'fist'].includes(id) ? `inst_${id}` : `inst_${generateId()}`,
+                itemId: id
+            }));
+        }
+        if (loadedInv.length === 0) {
+            loadedInv = [
+                { instanceId: 'inst_none', itemId: 'none' },
+                { instanceId: 'inst_tunic', itemId: 'tunic' },
+                { instanceId: 'inst_fist', itemId: 'fist' }
+            ];
+        }
+        setInventory(loadedInv);
+
+        let loadedEq = parsed.equipped || { head: 'inst_none', body: 'inst_tunic', mainHand: 'inst_fist', offHand: 'inst_none' };
+        if (loadedEq.head && !loadedEq.head.startsWith('inst_') && !loadedEq.head.startsWith('shop_') && !loadedEq.head.startsWith('inv_') && !loadedEq.head.startsWith('loot_')) {
+            const newEq = {};
+            Object.entries(loadedEq).forEach(([slot, itemId]) => {
+                if (['none', 'tunic', 'fist'].includes(itemId)) {
+                    newEq[slot] = `inst_${itemId}`;
+                } else {
+                    const invItem = loadedInv.find(i => i.itemId === itemId);
+                    newEq[slot] = invItem ? invItem.instanceId : 'inst_none';
+                }
+            });
+            loadedEq = newEq;
+        }
+        setEquipped(loadedEq);
+
+        let loadedShop = parsed.shopStock || [];
+        if (loadedShop.length > 0 && typeof loadedShop[0] === 'string') {
+            loadedShop = loadedShop.map(id => ({ instanceId: `shop_${generateId()}`, itemId: id }));
+        }
+        setShopStock(loadedShop);
+
+        if (!parsed.shopStock || parsed.shopStock.length === 0) refreshShop();
         if (parsed.dailyQuests) setDailyQuests(parsed.dailyQuests); else setDailyQuests(generateDailyQuests(parsed.maxTier || 1));
         setGameStarted(true);
       } catch (e) { console.error("Failed to load save", e); refreshShop(); setDailyQuests(generateDailyQuests(1)); }
@@ -188,9 +236,14 @@ export const useGameLogic = () => {
               if (fx.equipmentLoss) {
                   const slots = ['head', 'body', 'mainHand', 'offHand'];
                   const randomSlot = slots[Math.floor(Math.random() * slots.length)];
-                  const itemId = equipped[randomSlot];
-                  if (itemId !== 'none' && itemId !== 'fist' && itemId !== 'tunic') {
-                      setEquipped(prev => ({ ...prev, [randomSlot]: 'none' })); incidentMsg += ` (Lost ${itemId})`; changes.push(`-${itemId}`);
+                  const instanceId = equipped[randomSlot];
+                  if (instanceId && !['inst_none', 'inst_fist', 'inst_tunic'].includes(instanceId)) {
+                      const invItem = inventory.find(i => i.instanceId === instanceId);
+                      if (invItem) {
+                          setEquipped(prev => ({ ...prev, [randomSlot]: randomSlot === 'mainHand' ? 'inst_fist' : randomSlot === 'body' ? 'inst_tunic' : 'inst_none' }));
+                          setInventory(prev => prev.filter(i => i.instanceId !== instanceId));
+                          incidentMsg += ` (Lost ${invItem.itemId})`; changes.push(`-${invItem.itemId}`);
+                      }
                   }
               }
           }
@@ -227,18 +280,20 @@ export const useGameLogic = () => {
 
     if (action.id === 'eat' || action.id === 'drink') {
         const itemType = action.id === 'eat' ? 'food' : 'drink';
-        const ownedSupplies = ITEM_DB.supplies.filter(i => i.type === itemType && inventory.includes(i.id));
+        const ownedSupplies = inventory.filter(invItem => {
+            const dbItem = ITEM_DB.supplies.find(i => i.id === invItem.itemId);
+            return dbItem && dbItem.type === itemType;
+        });
         if (ownedSupplies.length > 0) {
-            const itemToConsume = ownedSupplies[0];
-            const idx = inventory.indexOf(itemToConsume.id);
-            if (idx > -1) {
-                const newInv = [...inventory]; newInv.splice(idx, 1); setInventory(newInv); const effects = itemToConsume.effects || {};
-                setStats(prev => ({ health: Math.max(0, Math.min(maxStats.health, prev.health + (effects.health || 0))), mood: Math.max(0, Math.min(maxStats.mood, prev.mood + (effects.mood || 0))), hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + (effects.hunger || 0))), thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + (effects.thirst || 0))), stress: Math.max(0, Math.min(maxStats.stress, prev.stress + (effects.stress || 0))) }));
-                addMessage(`Consumed ${itemToConsume.name}`, 'success');
-                if(effects.health) changes.push(`${effects.health > 0 ? '+' : ''}${effects.health} Health`); if(effects.hunger) changes.push(`${effects.hunger > 0 ? '+' : ''}${effects.hunger} Hunger`); if(effects.thirst) changes.push(`${effects.thirst > 0 ? '+' : ''}${effects.thirst} Thirst`); if(effects.mood) changes.push(`${effects.mood > 0 ? '+' : ''}${effects.mood} Mood`); if(effects.stress) changes.push(`${effects.stress > 0 ? '+' : ''}${effects.stress} Stress`);
-                changes.push(`-${itemToConsume.name}`); addToLog({ type: 'action', day: days, title: 'Consumable', text: `Consumed ${itemToConsume.name}.`, status: 'Success', changes: `Changes: ${changes.join(", ")}` });
-                return; 
-            }
+            const itemToConsumeInv = ownedSupplies[0];
+            const itemToConsumeDb = ITEM_DB.supplies.find(i => i.id === itemToConsumeInv.itemId);
+            setInventory(prev => prev.filter(i => i.instanceId !== itemToConsumeInv.instanceId));
+            const effects = itemToConsumeDb.effects || {};
+            setStats(prev => ({ health: Math.max(0, Math.min(maxStats.health, prev.health + (effects.health || 0))), mood: Math.max(0, Math.min(maxStats.mood, prev.mood + (effects.mood || 0))), hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + (effects.hunger || 0))), thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + (effects.thirst || 0))), stress: Math.max(0, Math.min(maxStats.stress, prev.stress + (effects.stress || 0))) }));
+            addMessage(`Consumed ${itemToConsumeDb.name}`, 'success');
+            if(effects.health) changes.push(`${effects.health > 0 ? '+' : ''}${effects.health} Health`); if(effects.hunger) changes.push(`${effects.hunger > 0 ? '+' : ''}${effects.hunger} Hunger`); if(effects.thirst) changes.push(`${effects.thirst > 0 ? '+' : ''}${effects.thirst} Thirst`); if(effects.mood) changes.push(`${effects.mood > 0 ? '+' : ''}${effects.mood} Mood`); if(effects.stress) changes.push(`${effects.stress > 0 ? '+' : ''}${effects.stress} Stress`);
+            changes.push(`-${itemToConsumeDb.name}`); addToLog({ type: 'action', day: days, title: 'Consumable', text: `Consumed ${itemToConsumeDb.name}.`, status: 'Success', changes: `Changes: ${changes.join(", ")}` });
+            return; 
         }
         if (!LOCATIONS[location].hasFoodService) { addMessage("No food/drink here. Check shop!", 'error'); return; }
     }
@@ -287,7 +342,8 @@ export const useGameLogic = () => {
            const findableItems = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].filter(i => i.cost > 0);
            if (findableItems.length > 0) {
              const foundItem = rollTieredItems(findableItems, 1)[0];
-             if (inventory.includes(foundItem.id)) { addMessage(`Loot: Duplicate ${foundItem.name}`, 'info'); } else { setInventory(prev => [...prev, foundItem.id]); addMessage(`Loot: Found ${foundItem.name}!`, 'success'); lootText += ` Found: ${foundItem.name}`; changes.push(`+${foundItem.name}`); }
+             setInventory(prev => [...prev, { instanceId: `loot_${generateId()}`, itemId: foundItem.id }]);
+             addMessage(`Loot: Found ${foundItem.name}!`, 'success'); lootText += ` Found: ${foundItem.name}`; changes.push(`+${foundItem.name}`); 
            }
         }
         addToLog({ type: 'action', day: days, title: action.label, text: logText + lootText, status: 'Success', changes: changes.length > 0 ? `Changes: ${changes.join(", ")}` : "" });
@@ -310,26 +366,35 @@ export const useGameLogic = () => {
   };
 
   const buyItem = (item) => {
-    let cost = item.cost; if (quirk && quirk.id === 'lightweight' && (item.type === 'drink' || item.id === 'ale' || item.id === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
-    if (resources.gold >= cost) { setResources(prev => ({ ...prev, gold: prev.gold - cost })); setInventory(prev => [...prev, item.id]); addMessage(`Purchased ${item.name}`, 'success'); addToLog({ type: 'action', day: days, title: 'Shop', text: `Bought ${item.name}.`, status: 'Success', changes: `Changes: -${cost} Gold, +${item.name}` }); } else { addMessage("Not enough gold!", 'error'); }
+    let cost = item.cost; 
+    if (quirk && quirk.id === 'lightweight' && (item.type === 'drink' || item.itemId === 'ale' || item.itemId === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
+    if (resources.gold >= cost) { 
+        setResources(prev => ({ ...prev, gold: prev.gold - cost })); 
+        setInventory(prev => [...prev, { instanceId: `inv_${generateId()}`, itemId: item.itemId }]); 
+        addMessage(`Purchased ${item.name}`, 'success'); 
+        addToLog({ type: 'action', day: days, title: 'Shop', text: `Bought ${item.name}.`, status: 'Success', changes: `Changes: -${cost} Gold, +${item.name}` }); 
+    } else { 
+        addMessage("Not enough gold!", 'error'); 
+    }
   };
 
   const sellItem = (item) => {
-    const sellValue = Math.floor(item.cost / 2); setResources(prev => ({ ...prev, gold: prev.gold + sellValue })); const idx = inventory.indexOf(item.id); if (idx > -1) { const newInv = [...inventory]; newInv.splice(idx, 1); setInventory(newInv); }
-    addMessage(`Sold ${item.name} for ${sellValue}g`, 'success'); addToLog({ type: 'action', day: days, title: 'Shop', text: `Sold ${item.name}.`, status: 'Success', changes: `Changes: +${sellValue} Gold, -${item.name}` });
+    const sellValue = Math.floor(item.cost / 2); 
+    setResources(prev => ({ ...prev, gold: prev.gold + sellValue })); 
+    setInventory(prev => prev.filter(i => i.instanceId !== item.instanceId)); 
+    addMessage(`Sold ${item.name} for ${sellValue}g`, 'success'); 
+    addToLog({ type: 'action', day: days, title: 'Shop', text: `Sold ${item.name}.`, status: 'Success', changes: `Changes: +${sellValue} Gold, -${item.name}` });
   };
 
-  const equipItem = (item) => setEquipped(prev => ({ ...prev, [item.type]: item.id }));
+  const equipItem = (item) => setEquipped(prev => ({ ...prev, [item.type]: item.instanceId }));
 
   const consumeItem = (item) => {
-      const idx = inventory.indexOf(item.id);
-      if (idx > -1) {
-          const newInv = [...inventory]; newInv.splice(idx, 1); setInventory(newInv); const effects = item.effects || {};
-          setStats(prev => ({ health: Math.max(0, Math.min(maxStats.health, prev.health + (effects.health || 0))), mood: Math.max(0, Math.min(maxStats.mood, prev.mood + (effects.mood || 0))), hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + (effects.hunger || 0))), thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + (effects.thirst || 0))), stress: Math.max(0, Math.min(maxStats.stress, prev.stress + (effects.stress || 0))) }));
-          addMessage(`Consumed ${item.name}`, 'success'); let changes = [];
-          if(effects.health) changes.push(`${effects.health > 0 ? '+' : ''}${effects.health} Health`); if(effects.hunger) changes.push(`${effects.hunger > 0 ? '+' : ''}${effects.hunger} Hunger`); if(effects.thirst) changes.push(`${effects.thirst > 0 ? '+' : ''}${effects.thirst} Thirst`); if(effects.mood) changes.push(`${effects.mood > 0 ? '+' : ''}${effects.mood} Mood`); if(effects.stress) changes.push(`${effects.stress > 0 ? '+' : ''}${effects.stress} Stress`);
-          changes.push(`-${item.name}`); addToLog({ type: 'action', day: days, title: 'Inventory', text: `Ate/Drank ${item.name}.`, status: 'Success', changes: `Changes: ${changes.join(", ")}` });
-      }
+      setInventory(prev => prev.filter(i => i.instanceId !== item.instanceId)); 
+      const effects = item.effects || {};
+      setStats(prev => ({ health: Math.max(0, Math.min(maxStats.health, prev.health + (effects.health || 0))), mood: Math.max(0, Math.min(maxStats.mood, prev.mood + (effects.mood || 0))), hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + (effects.hunger || 0))), thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + (effects.thirst || 0))), stress: Math.max(0, Math.min(maxStats.stress, prev.stress + (effects.stress || 0))) }));
+      addMessage(`Consumed ${item.name}`, 'success'); let changes = [];
+      if(effects.health) changes.push(`${effects.health > 0 ? '+' : ''}${effects.health} Health`); if(effects.hunger) changes.push(`${effects.hunger > 0 ? '+' : ''}${effects.hunger} Hunger`); if(effects.thirst) changes.push(`${effects.thirst > 0 ? '+' : ''}${effects.thirst} Thirst`); if(effects.mood) changes.push(`${effects.mood > 0 ? '+' : ''}${effects.mood} Mood`); if(effects.stress) changes.push(`${effects.stress > 0 ? '+' : ''}${effects.stress} Stress`);
+      changes.push(`-${item.name}`); addToLog({ type: 'action', day: days, title: 'Inventory', text: `Ate/Drank ${item.name}.`, status: 'Success', changes: `Changes: ${changes.join(", ")}` });
   };
 
   const updateAppearance = (key, value) => {
