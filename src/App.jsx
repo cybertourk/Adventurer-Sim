@@ -53,13 +53,19 @@ const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onCl
   );
 };
 
+// Bulletproofed Item Categorization function
 const getItemCategoryTab = (item) => {
     if (!item) return 'All';
-    if (item.id.includes('robe') || item.category === 'Arcane Focus' || item.id === 'staff') return 'Magic';
-    if (['head', 'body'].includes(item.type)) return 'Armor';
-    if (item.type === 'mainHand') return 'Weapons';
-    if (item.type === 'offHand') return 'Shields';
-    if (['food', 'drink', 'potion'].includes(item.type)) return 'Supplies';
+    const itemId = String(item.id || '');
+    const itemCat = String(item.category || '');
+    const itemType = String(item.type || '');
+    
+    if (itemId.includes('robe') || itemCat === 'Arcane Focus' || itemId === 'staff' || itemId.includes('hat')) return 'Magic';
+    if (itemType === 'head' || itemType === 'body') return 'Armor';
+    if (itemType === 'mainHand') return 'Weapons';
+    if (itemType === 'offHand') return 'Shields';
+    if (itemType === 'food' || itemType === 'drink' || itemType === 'potion') return 'Supplies';
+    
     return 'All';
 };
 
@@ -880,7 +886,7 @@ const App = () => {
                                                             <span className="font-bold text-sm text-zinc-200 block">{item.name}</span>
                                                             <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{item.category}</span>
                                                         </div>
-                                                        <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-700/50">{Math.floor(item.cost/2)}g Value</span>
+                                                        <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-700/50">{Math.floor((item.cost || 0)/2)}g Value</span>
                                                     </div>
                                                     {renderItemStats(item)}
                                                     <div className="mt-4 flex gap-2">
@@ -941,13 +947,13 @@ const App = () => {
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {displayedShop.map(item => {
-                                        let cost = item.cost;
+                                    {displayedShop.map((item, idx) => {
+                                        let cost = item.cost || 0;
                                         if (quirk && quirk.id === 'lightweight' && (item.type === 'drink' || item.id === 'ale' || item.id === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
                                         const canAfford = resources.gold >= cost;
 
                                         return (
-                                            <div key={item.id} className={`bg-zinc-800/80 border rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-all ${canAfford ? 'border-zinc-600 hover:border-indigo-500/70 hover:bg-zinc-800' : 'border-zinc-800 opacity-60 grayscale-[0.5]'}`}>
+                                            <div key={`${item.id}-${idx}`} className={`bg-zinc-800/80 border rounded-xl p-4 flex flex-col justify-between shadow-[0_4px_10px_rgba(0,0,0,0.2)] transition-all ${canAfford ? 'border-zinc-600 hover:border-indigo-500/70 hover:bg-zinc-800' : 'border-zinc-800 opacity-60 grayscale-[0.5]'}`}>
                                                 <div>
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
