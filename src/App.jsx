@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List } from 'lucide-react';
-import { ITEM_DB, MAINTENANCE_ACTIONS, LOCATIONS, APPEARANCE_OPTIONS } from './data/constants';
+import { ITEM_DB, MAINTENANCE_ACTIONS, LOCATIONS, APPEARANCE_OPTIONS, COMPANIONS, CURSES } from './data/constants';
 import { useGameLogic } from './hooks/useGameLogic';
 
-const IconMap = { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List };
+const IconMap = { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List, Zap };
 
 const renderEffectsList = (effects) => {
     if (!effects) return null;
     return (
         <div className="flex flex-wrap gap-1 mt-1">
             {Object.entries(effects).map(([key, val]) => {
-                if (val === 0) return null;
+                if (val === 0 || typeof val === 'boolean' || typeof val === 'string') return null;
                 let isGood = ['health', 'mood', 'xp', 'gold', 'ac', 'str', 'dex', 'con', 'int', 'cha'].includes(key) ? val > 0 : val < 0;
                 let label = key.charAt(0).toUpperCase() + key.slice(1);
                 if (key === 'xp') label = 'XP'; if (key === 'ac') label = 'AC'; if (['str', 'dex', 'con', 'int', 'cha'].includes(key)) label = key.toUpperCase();
@@ -32,11 +32,18 @@ const StatBlock = ({ label, value, max, alert, inverted, onClick, subValue }) =>
     </button>
 );
 
-const AttributeBlock = ({ label, value, onClick }) => (
-    <button onClick={onClick} className="flex flex-col items-center justify-center w-[42px] h-[42px] md:w-[60px] md:h-[60px] bg-zinc-900/90 rounded-xl md:rounded-2xl border border-indigo-900/50 hover:border-indigo-500 shadow-sm transition-all hover:scale-105 active:scale-95">
-        <span className="text-[8px] md:text-[9px] font-bold text-indigo-400 uppercase tracking-widest">{label}</span>
-        <span className="text-xs md:text-base font-bold font-mono text-indigo-100">{value}</span>
-    </button>
+const AttributeBlock = ({ label, value, onClick, onPlus }) => (
+    <div className="relative group">
+        <button onClick={onClick} className="flex flex-col items-center justify-center w-[42px] h-[42px] md:w-[60px] md:h-[60px] bg-zinc-900/90 rounded-xl md:rounded-2xl border border-indigo-900/50 hover:border-indigo-500 shadow-sm transition-all hover:scale-105 active:scale-95">
+            <span className="text-[8px] md:text-[9px] font-bold text-indigo-400 uppercase tracking-widest">{label}</span>
+            <span className="text-xs md:text-base font-bold font-mono text-indigo-100">{value}</span>
+        </button>
+        {onPlus && (
+            <button onClick={(e) => { e.stopPropagation(); onPlus(); }} className="absolute -top-1.5 -right-1.5 bg-emerald-600 text-white rounded-full p-0.5 shadow-[0_0_10px_rgba(52,211,153,0.5)] hover:bg-emerald-400 hover:scale-110 transition-all z-10 animate-bounce">
+                <Plus size={12} strokeWidth={3} />
+            </button>
+        )}
+    </div>
 );
 
 const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onClick, disabled, description, effects }) => {
@@ -99,7 +106,7 @@ const ResponsiveBackground = ({ locationId }) => {
     );
 };
 
-const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
+const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse }) => {
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -169,7 +176,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       robe_black_male: `${baseUrl}robe_black_male.png`,
       robe_black_female: `${baseUrl}robe_black_female.png`,
       
-      // Hats & Helms
       hat_male_blue: `${baseUrl}hat_male_blue.png`,
       hat_female_blue: `${baseUrl}hat_female_blue.png`,
       hat_male_red: `${baseUrl}hat_male_red.png`,
@@ -185,7 +191,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       leather_cap_male: `${baseUrl}leather_cap_male.png`,
       leather_cap_female: `${baseUrl}leather_cap_female.png`,
       
-      // Belts
       belt_hip_base: `${baseUrl}belt_hip.png`,
       belt_back_base: `${baseUrl}belt_back.png`,
       belt_hip_chain_mail: `${baseUrl}belt_hip_chain_mail.png`,
@@ -199,7 +204,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       belt_hip_robe2: `${baseUrl}belt_hip_robe2.png`,
       belt_back_robe2: `${baseUrl}belt_back_robe2.png`,
 
-      // Weapons & Shields
       weapon_dagger: `${baseUrl}weapon_dagger.png`,
       weapon_sword: `${baseUrl}weapon_sword.png`,
       weapon_hammer: `${baseUrl}weapon_warhammer.png`,
@@ -243,6 +247,9 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
       if (!isAlive) ctx.filter = 'grayscale(100%) opacity(50%)';
       else ctx.filter = 'none';
 
+      // Visual Overrides from Curses
+      const renderGender = activeCurse === 'girdle' ? (appearance.gender === 'male' ? 'female' : 'male') : appearance.gender;
+
       const hipWeapons = ['dagger', 'book'];
       const backWeapons = ['sword', 'hammer', 'axe', 'staff'];
       
@@ -274,63 +281,45 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
           }
       };
 
-      // 0. Draw Back Weapons (Behind body)
       if (backWeapons.includes(equipped.mainHand)) drawLayer(`weapon_${equipped.mainHand}`);
       if (backWeapons.includes(equipped.offHand)) drawLayer(`weapon_${equipped.offHand}`);
 
-      // 1. Draw Base Body Layer
-      const baseKey = `base_${appearance.gender}_${appearance.skinTone}`;
+      const baseKey = `base_${renderGender}_${appearance.skinTone}`;
       if (imagesRef.current[baseKey]) drawLayer(baseKey);
-      else drawLayer(appearance.gender === 'female' ? 'base_female_pale' : 'base_male_pale');
+      else drawLayer(renderGender === 'female' ? 'base_female_pale' : 'base_male_pale');
 
-      // 2. Draw Eye Layer
-      drawLayer(`eyes_${appearance.gender}_${appearance.eyeColor}`);
+      drawLayer(`eyes_${renderGender}_${appearance.eyeColor}`);
 
-      // 3. Draw Equipment Layers (Armor/Robes)
       if (equipped.body && equipped.body !== 'tunic' && equipped.body !== 'none') {
-          let armorKey = `armor_${equipped.body}_${appearance.gender}`;
-          if (equipped.body.startsWith('robe')) armorKey = `${armorBaseStr}_${appearance.gender}`;
+          let armorKey = `armor_${equipped.body}_${renderGender}`;
+          if (equipped.body.startsWith('robe')) armorKey = `${armorBaseStr}_${renderGender}`;
           drawLayer(armorKey);
       }
 
-      // 4. Draw Hair Layer
       const wearingFullHelm = equipped.head === 'iron_helm';
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
-          drawLayer(`hair_${appearance.hairStyle}_${appearance.gender}_${appearance.hairColor}`);
+          if (activeCurse === 'dungeon_dye_job') ctx.filter = 'hue-rotate(270deg) saturate(300%) brightness(1.5)';
+          drawLayer(`hair_${appearance.hairStyle}_${renderGender}_${appearance.hairColor}`);
+          ctx.filter = !isAlive ? 'grayscale(100%) opacity(50%)' : 'none'; // reset filter
       }
 
-      // 5. Draw Belts
-      if (hasBackItem) {
-          drawLayer(`belt_back_${beltSuffix}`);
-      }
-      if (hasHipItem) {
-          drawLayer(`belt_hip_${beltSuffix}`);
-      }
+      if (hasBackItem) drawLayer(`belt_back_${beltSuffix}`);
+      if (hasHipItem) drawLayer(`belt_hip_${beltSuffix}`);
 
-      // 6. Draw Hip Weapons
-      if (hipWeapons.includes(equipped.mainHand) && equipped.mainHand !== 'book') {
-          drawLayer(`weapon_${equipped.mainHand}`);
-      }
-      if (hipWeapons.includes(equipped.offHand) && equipped.offHand !== 'book') {
-          drawLayer(`weapon_${equipped.offHand}`);
-      }
+      if (hipWeapons.includes(equipped.mainHand) && equipped.mainHand !== 'book') drawLayer(`weapon_${equipped.mainHand}`);
+      if (hipWeapons.includes(equipped.offHand) && equipped.offHand !== 'book') drawLayer(`weapon_${equipped.offHand}`);
 
-      // 7. Draw Left Arm Shield/Book Layer
       if (equipped.offHand && equipped.offHand !== 'none') {
-          if (equipped.offHand.includes('shield')) {
-              drawLayer(`shield_${equipped.offHand.split('_')[0]}`);
-          } else if (equipped.offHand === 'book') {
-              drawLayer('offhand_book');
-          }
+          if (equipped.offHand.includes('shield')) drawLayer(`shield_${equipped.offHand.split('_')[0]}`);
+          else if (equipped.offHand === 'book') drawLayer('offhand_book');
       }
 
-      // 8. Draw Headgear Layer
       if (equipped.head && equipped.head !== 'none') {
           if (equipped.head.startsWith('hat_')) {
               const color = equipped.head.split('_')[1];
-              drawLayer(`hat_${appearance.gender}_${color}`);
+              drawLayer(`hat_${renderGender}_${color}`);
           } else {
-              drawLayer(`${equipped.head}_${appearance.gender}`);
+              drawLayer(`${equipped.head}_${renderGender}`);
           }
       }
 
@@ -340,7 +329,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive }) => {
     render();
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [equipped, appearance, isAlive, imagesLoaded]);
+  }, [equipped, appearance, isAlive, imagesLoaded, activeCurse]);
 
   return (
     <canvas 
@@ -398,7 +387,7 @@ const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppea
         <div className="w-full max-w-4xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
             <div className="w-full md:w-1/3 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-zinc-800 relative">
                 <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
-                <div className="w-48 h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} /></div>
+                <div className="w-48 h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} /></div>
             </div>
             <div className="flex-1 p-6 flex flex-col bg-zinc-900/50">
                 <div className="flex gap-4 mb-6 border-b border-zinc-800">
@@ -458,8 +447,8 @@ const App = () => {
     gameStarted, setGameStarted, creationStep, setCreationStep, attributes, updateAttribute,
     stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
-    isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, performAction, revive,
-    buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
+    isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, activeCurse,
+    performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
   } = useGameLogic();
 
   const [openPanel, setOpenPanel] = useState(null);
@@ -474,10 +463,9 @@ const App = () => {
     }
   }, [days, dailyLogs]);
 
-  // Resolves an instanceId to its core itemId for UI stats and Canvas
   const resolveItemId = (instanceId) => {
       if (!instanceId) return 'none';
-      if (instanceId.startsWith('inst_') && ['none', 'tunic', 'fist'].includes(instanceId.replace('inst_', ''))) {
+      if (instanceId.startsWith('inst_') && ['none', 'tunic', 'fist', 'cultist_robe'].includes(instanceId.replace('inst_', ''))) {
           return instanceId.replace('inst_', '');
       }
       const invItem = inventory.find(i => i.instanceId === instanceId);
@@ -503,15 +491,7 @@ const App = () => {
     return info[attr] || { name: attr, desc: '' };
   };
 
-  const getAttributeTotal = (attrKey) => {
-      let total = attributes ? (attributes[attrKey] || 0) : 0;
-      if (quirk && quirk.effects?.stats?.[attrKey]) total += quirk.effects.stats[attrKey];
-      Object.values(resolvedEquipped).forEach(itemId => {
-           const item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].find(i => i.id === itemId);
-           if (item?.stats?.[attrKey]) total += item.stats[attrKey];
-      });
-      return total;
-  };
+  const getAttributeTotal = (attrKey) => currentStats[attrKey] || 0;
 
   const getModalDetails = (statKey) => {
       let isAttribute = ['str', 'dex', 'con', 'int', 'cha', 'ac'].includes(statKey);
@@ -522,13 +502,11 @@ const App = () => {
       if (isAttribute) {
           details.title = getStatInfo(statKey).name;
           details.description = getStatInfo(statKey).desc;
-          details.base = attributes[statKey] || 0;
-          details.total = attributes[statKey] || 0;
+          details.base = statKey === 'ac' ? 10 + Math.floor(((attributes.dex || 10) - 10)/2) : (attributes[statKey] || 0);
+          details.total = currentStats[statKey] || 0;
           
           if (quirk && quirk.effects?.stats && quirk.effects.stats[statKey]) {
-              const val = quirk.effects.stats[statKey];
-              details.modifiers.push({ source: `Trait: ${quirk.name}`, value: val });
-              details.total += val;
+              details.modifiers.push({ source: `Trait: ${quirk.name}`, value: quirk.effects.stats[statKey] });
           }
 
           Object.entries(resolvedEquipped).forEach(([slot, itemId]) => {
@@ -536,7 +514,6 @@ const App = () => {
                   let item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].find(i => i.id === itemId);
                   if (item && item.stats && item.stats[statKey]) {
                       details.modifiers.push({ source: item.name, value: item.stats[statKey] });
-                      details.total += item.stats[statKey];
                   }
               }
           });
@@ -556,6 +533,14 @@ const App = () => {
       } else if (statKey === 'quirk') {
            details.title = quirk.name;
            details.description = quirk.desc;
+           details.isQuirk = true;
+      } else if (statKey === 'companion') {
+           details.title = COMPANIONS[activeCompanion].name;
+           details.description = COMPANIONS[activeCompanion].desc;
+           details.isQuirk = true;
+      } else if (statKey === 'curse') {
+           details.title = CURSES[activeCurse].name;
+           details.description = CURSES[activeCurse].desc;
            details.isQuirk = true;
       }
 
@@ -579,40 +564,57 @@ const App = () => {
          <StatBlock label="Thirst" value={stats.thirst} max={maxStats.thirst} alert={stats.thirst > 70} inverted onClick={() => setActiveDetailModal('thirst')} />
          <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} onClick={() => setActiveDetailModal('mood')} />
          <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 70} inverted onClick={() => setActiveDetailModal('stress')} />
-         {quirk ? (
-             <button onClick={() => setActiveDetailModal('quirk')} className="flex flex-col items-center justify-center w-[42px] h-[42px] md:w-[60px] md:h-[60px] bg-indigo-950/80 rounded-xl md:rounded-2xl border border-indigo-500/40 hover:border-indigo-400 shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all hover:scale-105 active:scale-95 px-1">
-                 <span className="text-[7px] md:text-[9px] font-bold text-indigo-400 uppercase tracking-widest mb-0.5">Trait</span>
-                 <span className="text-[8px] md:text-[10px] font-bold text-indigo-100 leading-tight text-center w-full truncate">{quirk.name}</span>
-             </button>
-         ) : (
-             <div className="w-[42px] h-[42px] md:w-[60px] md:h-[60px] opacity-0" />
-         )}
+         
+         <div className="flex flex-col gap-1.5 ml-1">
+             {quirk && (
+                 <button onClick={() => setActiveDetailModal('quirk')} className="flex items-center justify-center w-full h-[18px] md:h-[20px] bg-indigo-950/80 rounded-md border border-indigo-500/40 hover:border-indigo-400 shadow-sm transition-all hover:scale-105 px-1.5 min-w-[50px]">
+                     <span className="text-[8px] md:text-[9px] font-bold text-indigo-200 truncate">{quirk.name}</span>
+                 </button>
+             )}
+             {activeCompanion && (
+                 <button onClick={() => setActiveDetailModal('companion')} className="flex items-center justify-center w-full h-[18px] md:h-[20px] bg-emerald-950/80 rounded-md border border-emerald-500/40 hover:border-emerald-400 shadow-sm transition-all hover:scale-105 px-1.5 min-w-[50px]">
+                     <span className="text-[8px] md:text-[9px] font-bold text-emerald-300 truncate text-center leading-tight max-w-[80px]">Comp: {COMPANIONS[activeCompanion].name}</span>
+                 </button>
+             )}
+             {activeCurse && (
+                 <button onClick={() => setActiveDetailModal('curse')} className="flex items-center justify-center w-full h-[18px] md:h-[20px] bg-red-950/80 rounded-md border border-red-500/40 hover:border-red-400 shadow-sm transition-all hover:scale-105 px-1.5 min-w-[50px]">
+                     <span className="text-[8px] md:text-[9px] font-bold text-red-300 truncate">Curse!</span>
+                 </button>
+             )}
+         </div>
     </>
   );
 
   const attributesContent = (
-    <>
+    <div className="relative flex justify-center gap-1.5">
+         {pointsAvailable > 0 && (
+             <div className="absolute -top-5 left-0 right-0 text-center text-[10px] font-bold text-emerald-400 animate-pulse tracking-widest uppercase drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]">
+                 Points: {pointsAvailable}
+             </div>
+         )}
          {['str', 'dex', 'con', 'int', 'cha', 'ac'].map(attr => (
-             <AttributeBlock key={attr} label={attr} value={getAttributeTotal(attr)} onClick={() => setActiveDetailModal(attr)} />
+             <AttributeBlock 
+                 key={attr} label={attr} value={getAttributeTotal(attr)} 
+                 onClick={() => setActiveDetailModal(attr)} 
+                 onPlus={attr !== 'ac' && pointsAvailable > 0 ? () => updateAttribute(attr, 1) : null}
+             />
          ))}
-    </>
+    </div>
   );
 
-  // INVENTORY MAPPING & FILTERING
   const displayedInventory = inventory
-      .filter(invItem => !['inst_none', 'inst_tunic', 'inst_fist'].includes(invItem.instanceId))
+      .filter(invItem => !['inst_none', 'inst_tunic', 'inst_fist', 'inst_cultist_robe'].includes(invItem.instanceId))
       .map(invItem => {
           const dbItem = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === invItem.itemId);
-          return dbItem ? { ...dbItem, instanceId: invItem.instanceId } : null;
+          return dbItem ? { ...dbItem, instanceId: invItem.instanceId, displayName: invItem.displayName } : null;
       })
       .filter(Boolean)
       .filter(item => inventoryTab === 'All' || getItemCategoryTab(item) === inventoryTab);
 
-  // SHOP MAPPING & FILTERING
   const displayedShop = shopStock
       .map(shopItem => {
           const dbItem = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === shopItem.itemId);
-          return dbItem ? { ...dbItem, instanceId: shopItem.instanceId } : null;
+          return dbItem ? { ...dbItem, instanceId: shopItem.instanceId, displayName: shopItem.displayName } : null;
       })
       .filter(Boolean)
       .filter(item => shopTab === 'All' || getItemCategoryTab(item) === shopTab);
@@ -622,10 +624,8 @@ const App = () => {
   return (
     <div className="relative w-full h-screen overflow-hidden text-zinc-200 font-sans select-none selection:bg-indigo-500/30">
       
-      {/* Dynamic Background Layer */}
       <ResponsiveBackground locationId={location} />
       
-      {/* Modals & Overlays */}
       {showMorningReport && dailyLogs[0] && ( <MorningReport log={dailyLogs[0]} onClose={() => setShowMorningReport(false)} /> )}
 
       {activeDetailModal && modalDetails && (
@@ -667,7 +667,6 @@ const App = () => {
           </div>
       )}
 
-      {/* Messages Toast */}
       <div className="absolute top-[140px] md:top-[120px] left-1/2 -translate-x-1/2 flex flex-col gap-2 z-50 pointer-events-auto w-full max-w-sm px-4">
         {messages.map(m => (
           <div key={m.id} className={`p-3 rounded-xl shadow-[0_5px_15px_rgba(0,0,0,0.5)] text-sm font-bold text-center animate-in slide-in-from-top-4 fade-in backdrop-blur-md border ${
@@ -681,7 +680,6 @@ const App = () => {
         ))}
       </div>
 
-      {/* Top HUD Layer */}
       <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 pointer-events-none flex flex-col gap-2">
         <header className="pointer-events-auto bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/60 rounded-2xl p-3 md:p-4 flex flex-wrap items-center justify-between gap-2 md:gap-4 shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
             <div className="flex items-center gap-3 md:gap-5">
@@ -718,28 +716,25 @@ const App = () => {
             </div>
         </header>
 
-        {/* Meters & Attributes (Mobile Only) */}
-        <div className="md:hidden pointer-events-auto flex flex-col items-center gap-2 max-w-fit mx-auto mt-1">
-            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex justify-center gap-1.5">
+        <div className="md:hidden pointer-events-auto flex flex-col items-center gap-3 max-w-fit mx-auto mt-1">
+            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex items-center justify-center gap-1.5">
                 {metersContent}
             </div>
-            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex justify-center gap-1.5">
+            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)]">
                 {attributesContent}
             </div>
         </div>
       </div>
 
-      {/* Meters & Attributes (Desktop Only - Left Side) */}
       <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto items-start gap-4">
-          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
+          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex items-center gap-3">
               {metersContent}
           </div>
-          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
+          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] pt-6">
               {attributesContent}
           </div>
       </div>
 
-      {/* Main Character Layer */}
       <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[160px] pb-[100px] md:pt-[100px] md:pb-[40px] pointer-events-none">
           {isDead && (
              <div className="absolute inset-0 bg-red-950/90 z-40 flex flex-col items-center justify-center backdrop-blur-md pointer-events-auto">
@@ -752,12 +747,11 @@ const App = () => {
           
           <div className="w-full h-full flex items-end justify-center transition-all duration-500">
              <div className="w-auto h-full max-h-[600px] aspect-[2/3] max-w-[95vw]">
-                <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} />
+                <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} />
              </div>
           </div>
       </div>
 
-      {/* Navigation Layer */}
       <div className="absolute bottom-6 md:bottom-auto md:top-1/2 left-1/2 md:left-auto md:right-6 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2 z-20 pointer-events-auto">
           <div className="bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-row md:flex-col gap-2">
               {[
@@ -786,7 +780,6 @@ const App = () => {
           </div>
       </div>
 
-      {/* Full Screen Overlay Modals */}
       {openPanel && (
           <div className="absolute inset-0 z-30 pointer-events-none flex justify-center items-end sm:items-center p-2 sm:p-6 pb-28 sm:pb-6">
               
@@ -809,24 +802,23 @@ const App = () => {
 
                  <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth bg-gradient-to-b from-transparent to-zinc-950/30">
                      
-                     {/* --- ACTIONS PANEL --- */}
                      {openPanel === 'actions' && (
                         <>
                            <div>
                               <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1">Maintenance</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                  {MAINTENANCE_ACTIONS.map(action => (
-                                    <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead || (action.cost > 0 && resources.gold < action.cost)} />
+                                    <ActionButton key={action.id} {...action} onClick={() => performAction(action)} disabled={isDead || (action.cost > 0 && resources.gold < action.cost) || (action.id === 'drink_water' && housing === 'homeless')} />
                                  ))}
                                  {housing === 'homeless' ? (
-                                    <ActionButton id="rent_start" label="Rent Inn Room" icon="Tent" cost={5} description="Lumpy bed, but safe." onClick={() => performAction({ id: 'rent_start', label: 'Rent Inn Room', cost: 5, days: 0, costType: 'gp', type: 'housing' })} disabled={isDead || resources.gold < 5} />
+                                    <ActionButton id="rent_start" label="Rent Inn Room" icon="Tent" cost={5} description="Lumpy bed, but safe." onClick={() => performAction({ id: 'rent_start', label: 'Rent Inn Room', cost: 5, days: 0, costType: 'gp', type: 'housing' })} disabled={isDead || resources.gold < 5 || activeCurse === 'blacklist'} />
                                  ) : (
                                     <ActionButton id="rent_stop" label="Checkout of Inn" icon="X" cost={0} description="Back to the dirt." onClick={() => performAction({ id: 'rent_stop', label: 'Checkout of Inn', cost: 0, days: 0, costType: 'gp', type: 'housing' })} disabled={isDead} />
                                  )}
                               </div>
                            </div>
                            
-                           {dailyQuests.labor.length > 0 && (
+                           {dailyQuests?.labor?.length > 0 && (
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Hammer size={14} className="text-amber-500"/> Labor (STR/CON)</h3>
                                   <div className="grid grid-cols-1 gap-3">
@@ -835,16 +827,16 @@ const App = () => {
                               </div>
                            )}
 
-                           {dailyQuests.adventure.length > 0 && (
+                           {dailyQuests?.adventure?.length > 0 && (
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Shield size={14} className="text-indigo-400"/> Adventure (STR/DEX/AC)</h3>
                                   <div className="grid grid-cols-1 gap-3">
-                                      {dailyQuests.adventure.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
+                                      {dailyQuests.adventure.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead || activeCurse === 'pacifism'} />)}
                                   </div>
                               </div>
                            )}
 
-                           {dailyQuests.social.length > 0 && (
+                           {dailyQuests?.social?.length > 0 && (
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><User size={14} className="text-emerald-400"/> Social (CHA)</h3>
                                   <div className="grid grid-cols-1 gap-3">
@@ -852,10 +844,18 @@ const App = () => {
                                   </div>
                               </div>
                            )}
+
+                           {dailyQuests?.magic?.length > 0 && (
+                              <div>
+                                  <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Zap size={14} className="text-cyan-400"/> Magic (INT)</h3>
+                                  <div className="grid grid-cols-1 gap-3">
+                                      {dailyQuests.magic.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
+                                  </div>
+                              </div>
+                           )}
                         </>
                      )}
 
-                     {/* --- INVENTORY PANEL --- */}
                      {openPanel === 'inventory' && (
                         <div className="space-y-6">
                             <div>
@@ -864,16 +864,23 @@ const App = () => {
                                     {Object.entries(equipped).map(([slot, instanceId]) => {
                                         const itemId = resolveItemId(instanceId);
                                         const item = ITEM_DB[slot]?.find(i => i.id === itemId);
-                                        const isDefault = ['none', 'fist', 'tunic'].includes(itemId);
+                                        const isDefault = ['none', 'fist', 'tunic', 'cultist_robe'].includes(itemId);
+                                        
+                                        let displayName = item ? item.name : 'None';
+                                        if (instanceId.startsWith('inv_') || instanceId.startsWith('loot_')) {
+                                            const invItem = inventory.find(i => i.instanceId === instanceId);
+                                            if (invItem && invItem.displayName) displayName = invItem.displayName;
+                                        }
+
                                         return (
                                             <div key={slot} className="bg-zinc-900/80 border border-zinc-700/60 rounded-xl p-3 flex flex-col items-center justify-between text-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] relative overflow-hidden h-full min-h-[90px]">
                                                 <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/20 pointer-events-none" />
                                                 <div className="flex flex-col items-center z-10 w-full">
                                                     <span className="text-[9px] text-indigo-400 uppercase font-bold tracking-widest mb-1">{slot}</span>
-                                                    <span className="text-sm font-bold text-zinc-200">{item ? item.name : 'None'}</span>
+                                                    <span className="text-sm font-bold text-zinc-200 block truncate w-full">{displayName}</span>
                                                     <div className="mt-1">{item && renderItemStats(item)}</div>
                                                 </div>
-                                                {!isDefault && (
+                                                {!isDefault && !(activeCurse === 'cult_member' && slot === 'body') && (
                                                     <button 
                                                         onClick={() => equipItem({ type: slot, instanceId: slot === 'mainHand' ? 'inst_fist' : slot === 'body' ? 'inst_tunic' : 'inst_none' })} 
                                                         className="mt-3 z-10 w-full py-1.5 text-[9px] font-bold uppercase tracking-widest bg-zinc-950/60 text-zinc-400 border border-zinc-700/50 rounded-lg hover:bg-red-950/80 hover:text-red-400 hover:border-red-900/50 transition-all shadow-sm"
@@ -890,7 +897,6 @@ const App = () => {
                             <div>
                                 <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">Backpack</h3>
                                 
-                                {/* Inventory Filter Tabs */}
                                 <div className="flex flex-wrap gap-2 mb-4 border-b border-zinc-800 pb-3">
                                     {['All', 'Armor', 'Weapons', 'Shields', 'Magic', 'Supplies'].map(tab => (
                                         <button 
@@ -919,9 +925,9 @@ const App = () => {
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
                                                             <span className="font-bold text-sm text-zinc-200 block flex items-center gap-2">
-                                                                {item.name} 
+                                                                {item.displayName || item.name} 
                                                             </span>
-                                                            <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{item.category}</span>
+                                                            <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{item.name} • {item.category}</span>
                                                         </div>
                                                         <div className="flex flex-col items-end gap-1">
                                                             <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-700/50">
@@ -935,7 +941,7 @@ const App = () => {
                                                     {renderItemStats(item)}
                                                     <div className="mt-4 flex gap-2">
                                                         {canEquip && (
-                                                            <button onClick={() => equipItem(item)} disabled={isEquipped} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${isEquipped ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-zinc-700 text-zinc-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-zinc-600 hover:border-indigo-500'}`}>
+                                                            <button onClick={() => equipItem(item)} disabled={isEquipped || (activeCurse === 'cult_member' && item.type === 'body')} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${(isEquipped || (activeCurse === 'cult_member' && item.type === 'body')) ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-zinc-700 text-zinc-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-zinc-600 hover:border-indigo-500'}`}>
                                                                 {isEquipped ? 'Equipped' : 'Equip'}
                                                             </button>
                                                         )}
@@ -961,7 +967,6 @@ const App = () => {
                         </div>
                      )}
 
-                     {/* --- SHOP PANEL --- */}
                      {openPanel === 'shop' && (
                         <div>
                             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-4 gap-3 border-b border-zinc-800 pb-3">
@@ -974,7 +979,6 @@ const App = () => {
                                 </button>
                             </div>
 
-                            {/* Shop Filter Tabs */}
                             <div className="flex flex-wrap gap-2 mb-4 border-b border-zinc-800 pb-3">
                                 {['All', 'Armor', 'Weapons', 'Shields', 'Magic', 'Supplies'].map(tab => (
                                     <button 
@@ -995,7 +999,7 @@ const App = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {displayedShop.map((item) => {
                                         let cost = item.cost || 0;
-                                        if (quirk && quirk.id === 'lightweight' && (item.type === 'drink' || item.id === 'ale' || item.id === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
+                                        if (quirk && quirk.id === 'iron_liver' && (item.type === 'drink' || item.id === 'ale' || item.id === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
                                         const canAfford = resources.gold >= cost;
 
                                         return (
@@ -1004,9 +1008,9 @@ const App = () => {
                                                     <div className="flex justify-between items-start mb-2">
                                                         <div>
                                                             <span className="font-bold text-sm text-zinc-200 block flex items-center gap-2">
-                                                                {item.name}
+                                                                {item.displayName || item.name}
                                                             </span>
-                                                            <span className="text-[9px] text-indigo-400/80 uppercase tracking-widest">{item.category}</span>
+                                                            <span className="text-[9px] text-indigo-400/80 uppercase tracking-widest">{item.name} • {item.category}</span>
                                                         </div>
                                                         <span className={`text-[11px] font-mono font-bold px-2.5 py-1 rounded-md border ${canAfford ? 'text-amber-400 bg-amber-950/60 border-amber-500/40' : 'text-red-400 bg-red-950/60 border-red-500/40'}`}>
                                                             {cost}g
@@ -1026,7 +1030,6 @@ const App = () => {
                         </div>
                      )}
 
-                     {/* --- LOG PANEL --- */}
                      {openPanel === 'log' && (
                         <div className="space-y-3 pb-4">
                             {dailyLogs.length === 0 ? (
