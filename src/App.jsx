@@ -106,7 +106,7 @@ const ResponsiveBackground = ({ locationId }) => {
     );
 };
 
-const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCompanion, companionVariant }) => {
+const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCompanion, companionVariant, curseVariant }) => {
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -223,7 +223,12 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       companion_spouse_female2: `${baseUrl}companion_spouse_female2.png`,
       companion_spouse_female3: `${baseUrl}companion_spouse_female3.png`,
       companion_pet_rock: `${baseUrl}companion_pet_rock.png`,
-      curse_butterfingers: `${baseUrl}curse_butterfingers.png`
+      curse_butterfingers: `${baseUrl}curse_butterfingers.png`,
+
+      curse_cult1_male: `${baseUrl}Curse_cult1_male.png`,
+      curse_cult1_female: `${baseUrl}Curse_cult1_female.png`,
+      curse_cult2_male: `${baseUrl}Curse_cult2_male.png`,
+      curse_cult2_female: `${baseUrl}Curse_cult2_female.png`
     };
 
     let loadedCount = 0;
@@ -271,7 +276,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       if (equipped.body === 'leather_armor') beltSuffix = 'leather';
       else if (equipped.body === 'chainmail') beltSuffix = 'chain_mail';
       else if (equipped.body === 'plate') beltSuffix = 'plate';
-      else if (equipped.body && equipped.body.startsWith('robe')) beltSuffix = 'robe1';
+      else if (equipped.body && (equipped.body.startsWith('robe') || equipped.body === 'cultist_robe')) beltSuffix = 'robe1';
 
       let armorBaseStr = 'base';
       if (equipped.body === 'leather_armor') armorBaseStr = 'armor_leather';
@@ -300,7 +305,12 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
 
       if (equipped.body && equipped.body !== 'tunic' && equipped.body !== 'none') {
           let armorKey = `armor_${equipped.body}_${renderGender}`;
-          if (equipped.body.startsWith('robe')) armorKey = `${armorBaseStr}_${renderGender}`;
+          
+          if (equipped.body === 'cultist_robe') {
+              armorKey = `curse_cult${curseVariant || 1}_${renderGender}`;
+          } else if (equipped.body.startsWith('robe')) {
+              armorKey = `${armorBaseStr}_${renderGender}`;
+          }
           drawLayer(armorKey);
       }
 
@@ -350,7 +360,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
     render();
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [equipped, appearance, isAlive, imagesLoaded, activeCurse, activeCompanion, companionVariant]);
+  }, [equipped, appearance, isAlive, imagesLoaded, activeCurse, activeCompanion, companionVariant, curseVariant]);
 
   return (
     <canvas 
@@ -408,7 +418,7 @@ const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppea
         <div className="w-full max-w-4xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
             <div className="w-full md:w-1/3 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-zinc-800 relative">
                 <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
-                <div className="w-64 h-64 md:w-72 md:h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} activeCompanion={null} companionVariant={null} /></div>
+                <div className="w-64 h-64 md:w-72 md:h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} activeCompanion={null} companionVariant={null} curseVariant={null} /></div>
             </div>
             <div className="flex-1 p-6 flex flex-col bg-zinc-900/50">
                 <div className="flex gap-4 mb-6 border-b border-zinc-800">
@@ -469,7 +479,7 @@ const App = () => {
     stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
-    shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
+    curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
   } = useGameLogic();
 
   const [openPanel, setOpenPanel] = useState(null);
@@ -768,7 +778,7 @@ const App = () => {
           
           <div className="w-full h-full flex items-end justify-center transition-all duration-500">
              <div className="w-auto h-full max-h-[600px] aspect-square max-w-[95vw]">
-                <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} companionVariant={companionVariant} />
+                <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} companionVariant={companionVariant} curseVariant={curseVariant} />
              </div>
           </div>
       </div>
