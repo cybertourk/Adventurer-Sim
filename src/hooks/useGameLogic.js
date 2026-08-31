@@ -25,6 +25,7 @@ export const useGameLogic = () => {
   const [activeCompanion, setActiveCompanion] = useState(null);
   const [companionVariant, setCompanionVariant] = useState(null);
   const [activeCurse, setActiveCurse] = useState(null);
+  const [curseVariant, setCurseVariant] = useState(null);
   const [curseTracker, setCurseTracker] = useState({ fails: 0, jobs: 0, ales: 0 });
   const [shitfacedToday, setShitfacedToday] = useState(false);
   const [stats, setStats] = useState({ hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 });
@@ -147,6 +148,7 @@ export const useGameLogic = () => {
         setQuirk(parsed.quirk || null); 
         setActiveCompanion(parsed.activeCompanion || null);
         setActiveCurse(parsed.activeCurse || null);
+        setCurseVariant(parsed.curseVariant || null);
         setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0 });
         setShitfacedToday(parsed.shitfacedToday || false);
         
@@ -184,9 +186,9 @@ export const useGameLogic = () => {
       if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseTracker, shitfacedToday, lastSave: Date.now()
+        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, lastSave: Date.now()
       }));
-  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseTracker, shitfacedToday]);
+  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday]);
 
   const passTime = (daysPassed, skipDecay = false) => {
       let rentMsg = "No rent paid (Homeless).";
@@ -238,7 +240,9 @@ export const useGameLogic = () => {
               newStats.mood += 20; newStats.stress -= 20;
               if (newGold >= 10) newGold -= 10;
               else {
-                  setActiveCurse(null); newStats.stress += 30; changes.push("Kicked from Cult");
+                  setActiveCurse(null);
+                  setCurseVariant(null);
+                  newStats.stress += 30; changes.push("Kicked from Cult");
                   setEquipped(prev => ({ ...prev, body: 'inst_tunic' }));
               }
           }
@@ -296,6 +300,7 @@ export const useGameLogic = () => {
                       incidentMsg = "The barkeep threw me out and permanently banned me. Apparently, tables aren't meant to be body-slammed.";
                   } else if (fx.applyCurse === 'cult_member') {
                       incidentMsg = "Some nice people in robes told me all my problems are my own fault, but they can fix them for 10g a day. I feel so enlightened!";
+                      setCurseVariant(Math.floor(Math.random() * 2) + 1);
                   } else if (fx.applyCurse === 'identity_crisis') {
                       incidentMsg = "Hit my head really hard. Everything makes sense now. I've been using the wrong gear this whole time!";
                   } else if (fx.applyCurse === 'pacifism') {
@@ -413,8 +418,12 @@ export const useGameLogic = () => {
         let removed = false;
         if (activeCompanion && COMPANIONS[activeCompanion].removal?.id === action.id) { setActiveCompanion(null); setCompanionVariant(null); removed = true; }
         if (activeCurse && CURSES[activeCurse].removal?.id === action.id) {
-             if (activeCurse === 'cult_member') setEquipped(prev => ({ ...prev, body: 'inst_tunic' }));
-             setActiveCurse(null); removed = true;
+             if (activeCurse === 'cult_member') {
+                 setEquipped(prev => ({ ...prev, body: 'inst_tunic' }));
+             }
+             setActiveCurse(null);
+             setCurseVariant(null);
+             removed = true;
         }
         if (removed) {
              addMessage(action.message, "success");
@@ -573,6 +582,6 @@ export const useGameLogic = () => {
   return {
     gameStarted, setGameStarted, creationStep, setCreationStep, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages, isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk,
-    activeCompanion, companionVariant, activeCurse, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
+    activeCompanion, companionVariant, activeCurse, curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
   };
 };
