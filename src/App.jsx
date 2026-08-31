@@ -305,14 +305,10 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
 
       drawLayer(`eyes_${renderGender}_${appearance.eyeColor}`);
 
-      if (equipped.body && equipped.body !== 'tunic' && equipped.body !== 'none') {
+      // Draw Normal Armor BEFORE hair
+      if (equipped.body && equipped.body !== 'tunic' && equipped.body !== 'none' && equipped.body !== 'cultist_robe') {
           let armorKey = `armor_${equipped.body}_${renderGender}`;
-          
-          if (equipped.body === 'cultist_robe') {
-              armorKey = `curse_cult${curseVariant || 1}_${renderGender}`;
-          } else if (equipped.body.startsWith('robe')) {
-              armorKey = `${armorBaseStr}_${renderGender}`;
-          }
+          if (equipped.body.startsWith('robe')) armorKey = `${armorBaseStr}_${renderGender}`;
           drawLayer(armorKey);
       }
 
@@ -321,6 +317,11 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
           if (activeCurse === 'dungeon_dye_job') ctx.filter = 'hue-rotate(270deg) saturate(300%) brightness(1.5)';
           drawLayer(`hair_${appearance.hairStyle}_${renderGender}_${appearance.hairColor}`);
           ctx.filter = !isAlive ? 'grayscale(100%) opacity(50%)' : 'none'; 
+      }
+
+      // Draw Cultist Robe AFTER hair so the hood covers the head
+      if (equipped.body === 'cultist_robe') {
+          drawLayer(`curse_cult${curseVariant || 1}_${renderGender}`);
       }
 
       if (hasBackItem) drawLayer(`belt_back_${beltSuffix}`);
