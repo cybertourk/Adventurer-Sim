@@ -110,7 +110,7 @@ export const AUTONOMY_EVENTS = {
     { id: 'paranoid_mimic', title: 'Paranoid Mimic Episode', text: '"Hallucinated the bedframe was a mimic and stabbed the shit out of it."', effects: { housing: 'homeless', stress: 20 } },
     { id: 'spontaneous_marriage', title: 'Spontaneous Marriage', text: '"What happens in the tavern... ends in a legally binding contract."', effects: { applyCompanion: 'spouse' } },
     { id: 'adopt_mimic', title: 'Adopted a Mimic', text: '"It followed me home. Can I keep it?"', effects: { applyCompanion: 'mimic' } },
-    { id: 'groupie', title: 'Annoying Groupie Encounter', text: '"They will not stop playing that damn lute."', effects: { applyCompanion: 'groupie' } },
+    { id: 'groupie', title: 'Annoying Groupie Encounter', text: '"They will not stop talking about how great I am."', effects: { applyCompanion: 'groupie' } },
     { id: 'feral_goblin', title: 'Feral Goblin Encounter', text: '"Found a goblin. It lives in my backpack now."', effects: { applyCompanion: 'goblin' } },
     { id: 'cult', title: 'Joined a Cult', text: '"They are free of the burden of thinking for themselves."', effects: { applyCurse: 'cult_member' } },
     { id: 'shiny_belt', title: 'Found a Shiny Belt', text: '"I put it on and... oh. Oh my."', effects: { applyCurse: 'girdle' } },
@@ -129,7 +129,7 @@ export const QUIRKS = [
 
 export const COMPANIONS = {
   spouse: { id: 'spouse', name: 'Spontaneous Spouse', desc: 'Constantly nags. +15 Stress each morning.', effects: { morningStress: 15 }, removal: { id: 'remove_spouse', label: 'File for Annulment', cost: 50, days: 0, costType: 'gp', type: 'social', message: 'Signed the papers. Finally free.', effects: {} } },
-  groupie: { id: 'groupie', name: 'Annoying Groupie', desc: 'Plays the lute badly. -15 Mood each morning.', effects: { morningMood: -15 }, removal: { id: 'remove_groupie', label: 'Crush Their Fucking Dreams', cost: 0, days: 0, costType: 'gp', type: 'social', message: 'Told them their music sucks.', effects: {} } },
+  groupie: { id: 'groupie', name: 'Annoying Groupie', desc: 'Follows them everywhere and won\'t shut up about them. -15 Mood each morning.', effects: { morningMood: -15 }, removal: { id: 'remove_groupie', label: 'Crush Their Fucking Dreams', cost: 0, days: 0, costType: 'gp', type: 'social', message: 'Told them to shut up.', effects: {} } },
   goblin: { id: 'goblin', name: 'Feral Goblin', desc: 'Sneaks into the coin purse. Steals 1d4 Gold each morning.', effects: { morningTheft: true }, removal: { id: 'remove_goblin', label: 'Enroll in Trade School', cost: 25, days: 0, costType: 'gp', type: 'social', message: 'Sent the goblin to learn plumbing.', effects: {} } },
   mimic: { id: 'mimic', name: 'Adopted Mimic', desc: 'Intercepts 50% of the Hunger recovery from any food consumed.', effects: { foodLeech: 0.5 }, removal: { id: 'remove_mimic', label: 'Pawn on Gullible Merchant', cost: 10, days: 0, costType: 'gp', type: 'social', message: 'No refunds!', effects: {} } },
   pet_rock: { id: 'pet_rock', name: '"Lucky" Pet Rock', desc: 'Adds a permanent +5% Fail Chance to all Labor and Adventure rolls.', effects: { failPenalty: 0.05 }, removal: { id: 'remove_rock', label: 'Throw in River', cost: 0, days: 0, costType: 'gp', type: 'magic', message: 'Goodbye, Rocky.', effects: {} } }
