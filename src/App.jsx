@@ -223,7 +223,9 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       companion_spouse_female2: `${baseUrl}companion_spouse_female2.png`,
       companion_spouse_female3: `${baseUrl}companion_spouse_female3.png`,
       companion_pet_rock: `${baseUrl}companion_pet_rock.png`,
-      curse_butterfingers: `${baseUrl}curse_butterfingers.png`,
+      
+      curse_butterfingers_male: `${baseUrl}Curse_Butterfingers_male.png`,
+      curse_butterfingers_female: `${baseUrl}Curse_Butterfingers_female.png`,
 
       curse_cult1_male: `${baseUrl}Curse_cult1_male.png`,
       curse_cult1_female: `${baseUrl}Curse_cult1_female.png`,
@@ -351,7 +353,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       }
 
       if (activeCurse === 'butterfingers') {
-          drawLayer('curse_butterfingers');
+          drawLayer(`curse_butterfingers_${renderGender}`);
       }
 
       animationFrameId = requestAnimationFrame(render);
