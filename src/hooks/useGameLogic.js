@@ -148,13 +148,16 @@ export const useGameLogic = () => {
         setQuirk(parsed.quirk || null); 
         setActiveCompanion(parsed.activeCompanion || null);
         setActiveCurse(parsed.activeCurse || null);
-        setCurseVariant(parsed.curseVariant || null);
         setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0 });
         setShitfacedToday(parsed.shitfacedToday || false);
         
         let loadedVariant = parsed.companionVariant || null;
-        if (parsed.activeCompanion === 'spouse' && !loadedVariant) loadedVariant = 'female_1';
+        if (parsed.activeCompanion === 'spouse' && !loadedVariant) loadedVariant = `${Math.random() < 0.5 ? 'male' : 'female'}_${Math.floor(Math.random() * 3) + 1}`;
         setCompanionVariant(loadedVariant);
+
+        let loadedCurseVar = parsed.curseVariant || null;
+        if (parsed.activeCurse === 'cult_member' && !loadedCurseVar) loadedCurseVar = Math.floor(Math.random() * 2) + 1;
+        setCurseVariant(loadedCurseVar);
 
         let loadedInv = parsed.inventory || [];
         if (loadedInv.length > 0 && typeof loadedInv[0] === 'string') {
@@ -201,6 +204,15 @@ export const useGameLogic = () => {
       for (let i = 0; i < daysPassed; i++) {
           if (rentActive) {
               const locId = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : null;
+              
+              if (locId === 'inn_room' && activeCurse === 'blacklist') {
+                  setHousing('homeless'); setRentActive(false);
+                  newStats.mood = Math.max(0, newStats.mood - 20);
+                  rentMsg = "Barkeep spotted you and threw you into the dirt.";
+                  if (i === 0) changes.push("Evicted (Banned)", "-20 Mood"); 
+                  continue; 
+              }
+
               if (locId && LOCATIONS[locId]) {
                  if (newGold >= LOCATIONS[locId].dailyCost) {
                       newGold -= LOCATIONS[locId].dailyCost;
@@ -298,6 +310,11 @@ export const useGameLogic = () => {
                   
                   if (fx.applyCurse === 'blacklist') {
                       incidentMsg = "The barkeep threw me out and permanently banned me. Apparently, tables aren't meant to be body-slammed.";
+                      if (housing === 'inn') {
+                          setHousing('homeless');
+                          setRentActive(false);
+                          changes.push("Evicted from Inn");
+                      }
                   } else if (fx.applyCurse === 'cult_member') {
                       incidentMsg = "Some nice people in robes told me all my problems are my own fault, but they can fix them for 10g a day. I feel so enlightened!";
                       setCurseVariant(Math.floor(Math.random() * 2) + 1);
@@ -322,7 +339,7 @@ export const useGameLogic = () => {
               if (fx.destroyRations) setInventory(prev => prev.filter(i => ITEM_DB.supplies.find(s => s.id === i.itemId)?.type !== 'food'));
               if (fx.health) changes.push(`${fx.health > 0 ? '+' : ''}${fx.health} Health`); 
               if (fx.gold) { setResources(prev => ({ ...prev, gold: Math.max(0, prev.gold + fx.gold) })); changes.push(`${fx.gold > 0 ? '+' : ''}${fx.gold} Gold`); }
-              if (fx.housing === 'homeless') { setHousing('homeless'); setRentActive(false); changes.push("Lost Housing"); }
+              if (fx.housing === 'homeless' && fx.applyCurse !== 'blacklist') { setHousing('homeless'); setRentActive(false); changes.push("Lost Housing"); }
               if (fx.confiscateRandom) {
                   const slots = ['head', 'body', 'mainHand', 'offHand'];
                   const randomSlot = slots[Math.floor(Math.random() * slots.length)];
