@@ -260,9 +260,6 @@ export const useGameLogic = () => {
           }
       }
 
-      setStats({ health: Math.max(0, Math.min(maxStats.health, newStats.health)), mood: Math.max(0, Math.min(maxStats.mood, newStats.mood)), hunger: Math.min(maxStats.hunger, newStats.hunger), thirst: Math.min(maxStats.thirst, newStats.thirst), stress: Math.max(0, Math.min(maxStats.stress, newStats.stress)) });
-      setResources(prev => ({ ...prev, gold: newGold }));
-
       let zone = 'risk';
       if (newStats.mood > 40 && newStats.stress < 60) zone = 'safe';
       if (newStats.mood < 10 || newStats.stress > 90) zone = 'crisis';
@@ -332,13 +329,19 @@ export const useGameLogic = () => {
                   
                   if (fx.applyCurse === 'cult_member') {
                       setInventory(prev => [...prev, { instanceId: 'inst_cultist_robe', itemId: 'cultist_robe', displayName: 'Cultist Robes' }]);
-                      setEquipped(prev => ({ ...prev, body: 'inst_cultist_robe' }));
+                      setEquipped(prev => ({ ...prev, body: 'inst_cultist_robe', head: 'inst_none' }));
                   }
                   if (fx.applyCurse === 'identity_crisis' || fx.applyCurse === 'pacifism') setCurseTracker({ fails: 0, jobs: 0, ales: 0 });
               }
+              
               if (fx.destroyRations) setInventory(prev => prev.filter(i => ITEM_DB.supplies.find(s => s.id === i.itemId)?.type !== 'food'));
-              if (fx.health) changes.push(`${fx.health > 0 ? '+' : ''}${fx.health} Health`); 
-              if (fx.gold) { setResources(prev => ({ ...prev, gold: Math.max(0, prev.gold + fx.gold) })); changes.push(`${fx.gold > 0 ? '+' : ''}${fx.gold} Gold`); }
+              if (fx.health) { newStats.health += fx.health; changes.push(`${fx.health > 0 ? '+' : ''}${Math.abs(fx.health)} Health`); }
+              if (fx.mood) { newStats.mood += fx.mood; changes.push(`${fx.mood > 0 ? '+' : ''}${Math.abs(fx.mood)} Mood`); }
+              if (fx.stress) { newStats.stress += fx.stress; changes.push(`${fx.stress > 0 ? '+' : ''}${Math.abs(fx.stress)} Stress`); }
+              if (fx.hunger) { newStats.hunger += fx.hunger; changes.push(`${fx.hunger > 0 ? '+' : ''}${Math.abs(fx.hunger)} Hunger`); }
+              if (fx.thirst) { newStats.thirst += fx.thirst; changes.push(`${fx.thirst > 0 ? '+' : ''}${Math.abs(fx.thirst)} Thirst`); }
+              if (fx.gold) { newGold = Math.max(0, newGold + fx.gold); changes.push(`${fx.gold > 0 ? '+' : ''}${Math.abs(fx.gold)} Gold`); }
+              
               if (fx.housing === 'homeless' && fx.applyCurse !== 'blacklist') { setHousing('homeless'); setRentActive(false); changes.push("Lost Housing"); }
               if (fx.confiscateRandom) {
                   const slots = ['head', 'body', 'mainHand', 'offHand'];
@@ -358,6 +361,9 @@ export const useGameLogic = () => {
       }
 
       if (quirk && quirk.id === 'shiny_syndrome' && Math.random() < (quirk.effects.junkChance || 0)) { incidentMsg += " Also... found some shiny trash."; changes.push("+Shiny Trash"); }
+
+      setStats({ health: Math.max(0, Math.min(maxStats.health, newStats.health)), mood: Math.max(0, Math.min(maxStats.mood, newStats.mood)), hunger: Math.min(maxStats.hunger, Math.max(0, newStats.hunger)), thirst: Math.min(maxStats.thirst, Math.max(0, newStats.thirst)), stress: Math.max(0, Math.min(maxStats.stress, newStats.stress)) });
+      setResources(prev => ({ ...prev, gold: newGold }));
 
       addToLog({ type: 'morning', day: days, sleepLoc: housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Outside', rent: rentMsg, incidentTitle: incident ? incident.title : "Uneventful Night", incidentText: incidentMsg, status: changes.length > 0 ? `Changes: ${changes.join(", ")}` : "No significant changes." });
       setDays(prev => prev + daysPassed); refreshShop();
@@ -428,27 +434,6 @@ export const useGameLogic = () => {
         addMessage("Don't have any left. Check shop!", 'error'); return; 
     }
 
-    if (action.id.startsWith('remove_')) {
-        if (action.cost > 0 && resources.gold < action.cost) { addMessage("Not enough gold!", "error"); return; }
-        if (action.cost > 0) setResources(prev => ({ ...prev, gold: prev.gold - action.cost }));
-        
-        let removed = false;
-        if (activeCompanion && COMPANIONS[activeCompanion].removal?.id === action.id) { setActiveCompanion(null); setCompanionVariant(null); removed = true; }
-        if (activeCurse && CURSES[activeCurse].removal?.id === action.id) {
-             if (activeCurse === 'cult_member') {
-                 setEquipped(prev => ({ ...prev, body: 'inst_tunic' }));
-             }
-             setActiveCurse(null);
-             setCurseVariant(null);
-             removed = true;
-        }
-        if (removed) {
-             addMessage(action.message, "success");
-             setDailyQuests(generateDailyQuests(maxTier, activeCompanion && COMPANIONS[activeCompanion].removal?.id === action.id ? null : activeCompanion, activeCurse && CURSES[activeCurse].removal?.id === action.id ? null : activeCurse));
-        }
-        return;
-    }
-
     let cost = action.cost;
     if (quirk && quirk.id === 'iron_liver' && action.id === 'shitfaced') cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
     if (action.costType === 'gp' && resources.gold < cost) { addMessage("Not enough gold!", "error"); return; }
@@ -472,7 +457,7 @@ export const useGameLogic = () => {
     if (['labor', 'adventure', 'social', 'magic'].includes(action.type)) { if (Math.random() < failChance) isSuccess = false; }
 
     const locMod = LOCATIONS[housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : 'village_road']?.modifiers?.[action.id] || {};
-    const getEffect = (stat) => (action.effects[stat] || 0) + (locMod[stat] || 0);
+    const getEffect = (stat) => ((action.effects && action.effects[stat]) || 0) + (locMod[stat] || 0);
 
     if (isSuccess) {
         let moodGain = getEffect('mood'); if (quirk && quirk.id === 'drama_queen' && moodGain > 0) moodGain *= (quirk.effects.moodMultiplier || 1);
@@ -487,7 +472,22 @@ export const useGameLogic = () => {
         }
 
         let logText = action.message || "Completed action."; let lootText = "";
-        if (action.effects.xp) {
+
+        if (action.id.startsWith('remove_')) {
+            let nextComp = activeCompanion;
+            let nextCur = activeCurse;
+            if (activeCompanion && COMPANIONS[activeCompanion].removal?.id === action.id) {
+                setActiveCompanion(null); setCompanionVariant(null); nextComp = null;
+            }
+            if (activeCurse && CURSES[activeCurse].removal?.id === action.id) {
+                 if (activeCurse === 'cult_member') setEquipped(prev => ({ ...prev, body: 'inst_tunic' }));
+                 setActiveCurse(null); setCurseVariant(null); nextCur = null;
+            }
+            logText = action.message;
+            setDailyQuests(generateDailyQuests(maxTier, nextComp, nextCur));
+        }
+
+        if (action.effects && action.effects.xp) {
           const newXp = resources.xp + action.effects.xp; let goldGain = action.effects.gold || 0;
           if (action.type === 'social' && quirk && quirk.id === 'compulsive_looter' && Math.random() < (quirk.effects.socialGoldChance || 0)) { goldGain += 5; addMessage("Swiped some extra coin!", "success"); lootText += " (Bonus 5g)"; changes.push("+5 Gold (Bonus)"); }
           if(goldGain > 0) changes.push(`+${goldGain} Gold`); changes.push(`+${action.effects.xp} XP`);
@@ -515,6 +515,7 @@ export const useGameLogic = () => {
         }
 
         addToLog({ type: 'action', day: days, title: action.label, text: logText + lootText, status: 'Success', changes: changes.length > 0 ? `Changes: ${changes.join(", ")}` : "" });
+        addMessage(action.message, "success");
     } else {
         let failMsg = "Failed!"; let stressGain = 0;
         if (action.type === 'labor') { failMsg = "Screwed up the job. No pay."; stressGain = 10; } 
@@ -528,9 +529,10 @@ export const useGameLogic = () => {
              setCurseTracker(prev => { const next = { ...prev, fails: prev.fails + 1 }; if (next.fails >= 3) { setActiveCurse(null); addMessage("Snapped out of identity crisis!", "success"); } return next; });
         }
 
-        addMessage(failMsg, "error"); addToLog({ type: 'action', day: days, title: action.label, text: failMsg, status: 'Failed', changes: changes.length > 0 ? `Changes: ${changes.join(", ")}` : "" });
+        addMessage(failMsg, "error"); 
+        addToLog({ type: 'action', day: days, title: action.label, text: failMsg, status: 'Failed', changes: changes.length > 0 ? `Changes: ${changes.join(", ")}` : "" });
     }
-    if (action.days > 0) refreshShop(); addMessage(action.message, "success");
+    if (action.days > 0) refreshShop(); 
   };
 
   const revive = () => {
@@ -560,7 +562,7 @@ export const useGameLogic = () => {
   };
 
   const equipItem = (item) => {
-      if (activeCurse === 'cult_member' && item.type === 'body') return;
+      if (activeCurse === 'cult_member' && (item.type === 'body' || item.type === 'head')) return;
       setEquipped(prev => ({ ...prev, [item.type]: item.instanceId }));
   };
 
