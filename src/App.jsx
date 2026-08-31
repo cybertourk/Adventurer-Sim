@@ -106,7 +106,7 @@ const ResponsiveBackground = ({ locationId }) => {
     );
 };
 
-const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCompanion }) => {
+const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCompanion, companionVariant }) => {
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -216,7 +216,12 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       companion_goblin: `${baseUrl}companion_goblin.png`,
       companion_groupie: `${baseUrl}companion_groupie.png`,
       companion_mimic: `${baseUrl}companion_mimic.png`,
-      companion_spouse: `${baseUrl}companion_spouse.png`,
+      companion_spouse_male1: `${baseUrl}companion_spouse_male1.png`,
+      companion_spouse_male2: `${baseUrl}companion_spouse_male2.png`,
+      companion_spouse_male3: `${baseUrl}companion_spouse_male3.png`,
+      companion_spouse_female1: `${baseUrl}companion_spouse_female1.png`,
+      companion_spouse_female2: `${baseUrl}companion_spouse_female2.png`,
+      companion_spouse_female3: `${baseUrl}companion_spouse_female3.png`,
       companion_pet_rock: `${baseUrl}companion_pet_rock.png`,
       curse_butterfingers: `${baseUrl}curse_butterfingers.png`
     };
@@ -327,7 +332,12 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       }
 
       if (activeCompanion) {
-          drawLayer(`companion_${activeCompanion}`);
+          if (activeCompanion === 'spouse' && companionVariant) {
+              const variantKey = companionVariant.replace('_', '');
+              drawLayer(`companion_spouse_${variantKey}`);
+          } else {
+              drawLayer(`companion_${activeCompanion}`);
+          }
       }
 
       if (activeCurse === 'butterfingers') {
@@ -340,7 +350,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
     render();
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [equipped, appearance, isAlive, imagesLoaded, activeCurse, activeCompanion]);
+  }, [equipped, appearance, isAlive, imagesLoaded, activeCurse, activeCompanion, companionVariant]);
 
   return (
     <canvas 
@@ -398,7 +408,7 @@ const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppea
         <div className="w-full max-w-4xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
             <div className="w-full md:w-1/3 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-zinc-800 relative">
                 <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
-                <div className="w-64 h-64 md:w-72 md:h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} /></div>
+                <div className="w-64 h-64 md:w-72 md:h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} activeCompanion={null} companionVariant={null} /></div>
             </div>
             <div className="flex-1 p-6 flex flex-col bg-zinc-900/50">
                 <div className="flex gap-4 mb-6 border-b border-zinc-800">
@@ -458,7 +468,7 @@ const App = () => {
     gameStarted, setGameStarted, creationStep, setCreationStep, attributes, updateAttribute,
     stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
-    isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, activeCurse,
+    isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
     shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
   } = useGameLogic();
 
@@ -758,7 +768,7 @@ const App = () => {
           
           <div className="w-full h-full flex items-end justify-center transition-all duration-500">
              <div className="w-auto h-full max-h-[600px] aspect-square max-w-[95vw]">
-                <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} />
+                <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} companionVariant={companionVariant} />
              </div>
           </div>
       </div>
