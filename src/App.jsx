@@ -106,7 +106,7 @@ const ResponsiveBackground = ({ locationId }) => {
     );
 };
 
-const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse }) => {
+const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCompanion }) => {
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -211,7 +211,14 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse }) => {
       weapon_staff: `${baseUrl}weapon_staff.png`,
       shield_wooden: `${baseUrl}offhand_shield.png`,
       shield_tower: `${baseUrl}offhand_tower_shield.png`,
-      offhand_book: `${baseUrl}offhand_book.png`
+      offhand_book: `${baseUrl}offhand_book.png`,
+
+      companion_goblin: `${baseUrl}companion_goblin.png`,
+      companion_groupie: `${baseUrl}companion_groupie.png`,
+      companion_mimic: `${baseUrl}companion_mimic.png`,
+      companion_spouse: `${baseUrl}companion_spouse.png`,
+      companion_pet_rock: `${baseUrl}companion_pet_rock.png`,
+      curse_butterfingers: `${baseUrl}curse_butterfingers.png`
     };
 
     let loadedCount = 0;
@@ -247,7 +254,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse }) => {
       if (!isAlive) ctx.filter = 'grayscale(100%) opacity(50%)';
       else ctx.filter = 'none';
 
-      // Visual Overrides from Curses
       const renderGender = activeCurse === 'girdle' ? (appearance.gender === 'male' ? 'female' : 'male') : appearance.gender;
 
       const hipWeapons = ['dagger', 'book'];
@@ -274,10 +280,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse }) => {
       const drawLayer = (key) => {
           const img = imagesRef.current[key];
           if (img) {
-              const scale = canvas.height / img.height;
-              const drawWidth = img.width * scale;
-              const drawX = (canvas.width - drawWidth) / 2;
-              ctx.drawImage(img, drawX, 0, drawWidth, canvas.height);
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           }
       };
 
@@ -300,7 +303,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse }) => {
       if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
           if (activeCurse === 'dungeon_dye_job') ctx.filter = 'hue-rotate(270deg) saturate(300%) brightness(1.5)';
           drawLayer(`hair_${appearance.hairStyle}_${renderGender}_${appearance.hairColor}`);
-          ctx.filter = !isAlive ? 'grayscale(100%) opacity(50%)' : 'none'; // reset filter
+          ctx.filter = !isAlive ? 'grayscale(100%) opacity(50%)' : 'none'; 
       }
 
       if (hasBackItem) drawLayer(`belt_back_${beltSuffix}`);
@@ -323,19 +326,27 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse }) => {
           }
       }
 
+      if (activeCompanion) {
+          drawLayer(`companion_${activeCompanion}`);
+      }
+
+      if (activeCurse === 'butterfingers') {
+          drawLayer('curse_butterfingers');
+      }
+
       animationFrameId = requestAnimationFrame(render);
     };
 
     render();
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [equipped, appearance, isAlive, imagesLoaded, activeCurse]);
+  }, [equipped, appearance, isAlive, imagesLoaded, activeCurse, activeCompanion]);
 
   return (
     <canvas 
         ref={canvasRef} 
-        width={400} 
-        height={600} 
+        width={768} 
+        height={768} 
         className="w-full h-full object-contain" 
         style={{ filter: 'drop-shadow(0px 15px 25px rgba(0,0,0,0.8))' }} 
     />
@@ -387,7 +398,7 @@ const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppea
         <div className="w-full max-w-4xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
             <div className="w-full md:w-1/3 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-zinc-800 relative">
                 <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
-                <div className="w-48 h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} /></div>
+                <div className="w-64 h-64 md:w-72 md:h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} /></div>
             </div>
             <div className="flex-1 p-6 flex flex-col bg-zinc-900/50">
                 <div className="flex gap-4 mb-6 border-b border-zinc-800">
@@ -746,8 +757,8 @@ const App = () => {
           )}
           
           <div className="w-full h-full flex items-end justify-center transition-all duration-500">
-             <div className="w-auto h-full max-h-[600px] aspect-[2/3] max-w-[95vw]">
-                <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} />
+             <div className="w-auto h-full max-h-[600px] aspect-square max-w-[95vw]">
+                <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} />
              </div>
           </div>
       </div>
