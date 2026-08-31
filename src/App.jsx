@@ -335,8 +335,11 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
           else if (equipped.offHand === 'book') drawLayer('offhand_book');
       }
 
-      if (equipped.head && equipped.head !== 'none') {
-          if (equipped.head.startsWith('hat_')) {
+      // Draw Headgear (hidden if cultist hood is covering the head)
+      if (equipped.head && equipped.head !== 'none' && equipped.body !== 'cultist_robe') {
+          if (equipped.head === 'wizard_hat') {
+              drawLayer(`hat_${renderGender}_blue`);
+          } else if (equipped.head.startsWith('hat_')) {
               const color = equipped.head.split('_')[1];
               drawLayer(`hat_${renderGender}_${color}`);
           } else {
