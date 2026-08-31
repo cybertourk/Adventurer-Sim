@@ -473,10 +473,10 @@ export const useGameLogic = () => {
 
   const buyItem = (item) => {
     let cost = item.cost; 
-    if (quirk && quirk.id === 'iron_liver' && (item.type === 'drink' || item.itemId === 'ale' || item.itemId === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
+    if (quirk && quirk.id === 'iron_liver' && (item.type === 'drink' || item.id === 'ale' || item.id === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
     if (resources.gold >= cost) { 
         setResources(prev => ({ ...prev, gold: prev.gold - cost })); 
-        setInventory(prev => [...prev, { instanceId: `inv_${generateId()}`, itemId: item.itemId, displayName: item.displayName }]); 
+        setInventory(prev => [...prev, { instanceId: `inv_${generateId()}`, itemId: item.id, displayName: item.displayName }]); 
         addMessage(`Purchased ${item.displayName}`, 'success'); 
         addToLog({ type: 'action', day: days, title: 'Shop', text: `Bought ${item.displayName}.`, status: 'Success', changes: `Changes: -${cost} Gold, +${item.displayName}` }); 
     } else { 
