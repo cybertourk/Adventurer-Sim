@@ -94,7 +94,7 @@ export const AUTONOMY_EVENTS = {
   minor: [
     { id: 'weird_shit', title: 'Ate Some Weird Dungeon Shit', text: '"Found unidentifiable jerky on the tavern floor and ate it."', effects: { health: -5, thirst: 20 } },
     { id: 'slept_armor', title: 'Slept in Full Armor', text: '"Who has time to unbuckle all these straps?"', effects: { stress: 10, mood: -5 } },
-    { id: 'snake_oil', title: 'Snake Oil Sucker', text: '"Bought a premium health potion that is literally dyed tap water."', effects: { gold: -10, mood: 10 } },
+    { id: 'snake_oil', title: 'Snake Oil Sucker', text: '"Bought a premium health potion that is literally dyed tap water."', effects: { gold: -10, mood: -10 } },
     { id: 'stress_eat', title: 'Feral Stress Eating', text: '"I ate everything. All of it. I have no regrets."', effects: { hunger: -100, destroyRations: true } },
     { id: 'pissed_wizard', title: 'Pissed Off a Wizard', text: '"Insulted a spellcaster who turned my hair neon pink."', effects: { mood: -10, stress: 10, applyCurse: 'dungeon_dye_job' } },
     { id: 'pet_rock', title: 'Adopted a Rock', text: '"He is my best friend and his name is Rocky."', effects: { applyCompanion: 'pet_rock' } },
@@ -154,7 +154,7 @@ export const LOCATIONS = {
   inn_room: {
     id: 'inn_room', name: 'Rusty Spoon Inn', type: 'renting', description: 'Lumpy Mattress. (5g/day)',
     details: "Beats the dirt. A warm bed and a roof.", dailyCost: 5, hasFoodService: true, 
-    modifiers: { rest: { health: 15, stress: -20, mood: 5, hunger: 5, thirst: 5 } }
+    modifiers: { rest: { health: 15, stress: -10, mood: 0, hunger: 5, thirst: 5 } }
   },
   estate: {
     id: 'estate', name: 'Estate', type: 'owned', description: 'Fancy House. (50g/day)',
