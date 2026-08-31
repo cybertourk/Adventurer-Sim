@@ -305,7 +305,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
 
       drawLayer(`eyes_${renderGender}_${appearance.eyeColor}`);
 
-      // Draw Normal Armor BEFORE hair
       if (equipped.body && equipped.body !== 'tunic' && equipped.body !== 'none' && equipped.body !== 'cultist_robe') {
           let armorKey = `armor_${equipped.body}_${renderGender}`;
           if (equipped.body.startsWith('robe')) armorKey = `${armorBaseStr}_${renderGender}`;
@@ -319,7 +318,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
           ctx.filter = !isAlive ? 'grayscale(100%) opacity(50%)' : 'none'; 
       }
 
-      // Draw Cultist Robe AFTER hair so the hood covers the head
       if (equipped.body === 'cultist_robe') {
           drawLayer(`curse_cult${curseVariant || 1}_${renderGender}`);
       }
@@ -335,7 +333,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
           else if (equipped.offHand === 'book') drawLayer('offhand_book');
       }
 
-      // Draw Headgear (hidden if cultist hood is covering the head)
       if (equipped.head && equipped.head !== 'none' && equipped.body !== 'cultist_robe') {
           if (equipped.head === 'wizard_hat') {
               drawLayer(`hat_${renderGender}_blue`);
@@ -922,7 +919,7 @@ const App = () => {
                                                     <span className="text-sm font-bold text-zinc-200 block truncate w-full">{displayName}</span>
                                                     <div className="mt-1">{item && renderItemStats(item)}</div>
                                                 </div>
-                                                {!isDefault && !(activeCurse === 'cult_member' && slot === 'body') && (
+                                                {!isDefault && !(activeCurse === 'cult_member' && (slot === 'body' || slot === 'head')) && (
                                                     <button 
                                                         onClick={() => equipItem({ type: slot, instanceId: slot === 'mainHand' ? 'inst_fist' : slot === 'body' ? 'inst_tunic' : 'inst_none' })} 
                                                         className="mt-3 z-10 w-full py-1.5 text-[9px] font-bold uppercase tracking-widest bg-zinc-950/60 text-zinc-400 border border-zinc-700/50 rounded-lg hover:bg-red-950/80 hover:text-red-400 hover:border-red-900/50 transition-all shadow-sm"
@@ -961,6 +958,7 @@ const App = () => {
                                             const isEquipped = Object.values(equipped).includes(item.instanceId);
                                             const canEquip = ['head', 'body', 'mainHand', 'offHand'].includes(item.type);
                                             const canConsume = ['food', 'drink', 'potion'].includes(item.type);
+                                            const isCultistLock = activeCurse === 'cult_member' && (item.type === 'body' || item.type === 'head');
 
                                             return (
                                                 <div key={item.instanceId} className="bg-zinc-800/90 border border-zinc-700/80 rounded-xl p-4 flex flex-col shadow-[0_4px_10px_rgba(0,0,0,0.3)]">
@@ -983,7 +981,7 @@ const App = () => {
                                                     {renderItemStats(item)}
                                                     <div className="mt-4 flex gap-2">
                                                         {canEquip && (
-                                                            <button onClick={() => equipItem(item)} disabled={isEquipped || (activeCurse === 'cult_member' && item.type === 'body')} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${(isEquipped || (activeCurse === 'cult_member' && item.type === 'body')) ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-zinc-700 text-zinc-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-zinc-600 hover:border-indigo-500'}`}>
+                                                            <button onClick={() => equipItem(item)} disabled={isEquipped || isCultistLock} className={`flex-1 py-2.5 rounded-lg text-xs font-bold tracking-wider uppercase transition-all ${(isEquipped || isCultistLock) ? 'bg-indigo-950/50 text-indigo-500/50 border border-indigo-500/20 cursor-not-allowed' : 'bg-zinc-700 text-zinc-200 hover:bg-indigo-600 hover:text-white hover:shadow-[0_0_15px_rgba(99,102,241,0.4)] border border-zinc-600 hover:border-indigo-500'}`}>
                                                                 {isEquipped ? 'Equipped' : 'Equip'}
                                                             </button>
                                                         )}
