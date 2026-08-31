@@ -23,6 +23,7 @@ export const useGameLogic = () => {
   const [attributes, setAttributes] = useState({ str: 10, dex: 10, con: 10, int: 10, cha: 10 });
   const [quirk, setQuirk] = useState(null); 
   const [activeCompanion, setActiveCompanion] = useState(null);
+  const [companionVariant, setCompanionVariant] = useState(null);
   const [activeCurse, setActiveCurse] = useState(null);
   const [curseTracker, setCurseTracker] = useState({ fails: 0, jobs: 0, ales: 0 });
   const [shitfacedToday, setShitfacedToday] = useState(false);
@@ -148,6 +149,10 @@ export const useGameLogic = () => {
         setActiveCurse(parsed.activeCurse || null);
         setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0 });
         setShitfacedToday(parsed.shitfacedToday || false);
+        
+        let loadedVariant = parsed.companionVariant || null;
+        if (parsed.activeCompanion === 'spouse' && !loadedVariant) loadedVariant = 'female_1';
+        setCompanionVariant(loadedVariant);
 
         let loadedInv = parsed.inventory || [];
         if (loadedInv.length > 0 && typeof loadedInv[0] === 'string') {
@@ -179,9 +184,9 @@ export const useGameLogic = () => {
       if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, activeCurse, curseTracker, shitfacedToday, lastSave: Date.now()
+        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseTracker, shitfacedToday, lastSave: Date.now()
       }));
-  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, activeCurse, curseTracker, shitfacedToday]);
+  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseTracker, shitfacedToday]);
 
   const passTime = (daysPassed, skipDecay = false) => {
       let rentMsg = "No rent paid (Homeless).";
@@ -264,9 +269,45 @@ export const useGameLogic = () => {
           incidentMsg = incident.text; 
           const fx = incident.effects;
           if (fx) {
-              if (fx.applyCompanion) setActiveCompanion(fx.applyCompanion);
+              if (fx.applyCompanion) {
+                  setActiveCompanion(fx.applyCompanion);
+                  
+                  if (fx.applyCompanion === 'spouse') {
+                      const isMale = Math.random() < 0.5;
+                      const variantNum = Math.floor(Math.random() * 3) + 1;
+                      const nameString = isMale ? "Jared? Jerald? Jimmy? He" : "Janet? Jenet? Jenny? She";
+                      const pron = isMale ? "his" : "her";
+                      incidentMsg = `Went to bed drunk and single, woke up hungover and married to......${nameString} hasn't stopped nagging me to get a job so I can ask ${pron} name again.`;
+                      setCompanionVariant(`${isMale ? 'male' : 'female'}_${variantNum}`);
+                  } else if (fx.applyCompanion === 'groupie') {
+                      incidentMsg = "Woke up to the sound of a horribly out-of-tune lute. A 'fan' is following me everywhere and won't shut up about how great I am.";
+                  } else if (fx.applyCompanion === 'goblin') {
+                      incidentMsg = "There is a feral goblin living in my backpack. It hissed at me when I tried to touch my own gold purse.";
+                  } else if (fx.applyCompanion === 'mimic') {
+                      incidentMsg = "I brought home a stray treasure chest because I thought it was cute. It just ate half my breakfast.";
+                  } else if (fx.applyCompanion === 'pet_rock') {
+                      incidentMsg = "Found a rock. It has a face. It is my best friend now and I will literally die for Rocky.";
+                  }
+              }
               if (fx.applyCurse) {
                   setActiveCurse(fx.applyCurse);
+                  
+                  if (fx.applyCurse === 'blacklist') {
+                      incidentMsg = "The barkeep threw me out and permanently banned me. Apparently, tables aren't meant to be body-slammed.";
+                  } else if (fx.applyCurse === 'cult_member') {
+                      incidentMsg = "Some nice people in robes told me all my problems are my own fault, but they can fix them for 10g a day. I feel so enlightened!";
+                  } else if (fx.applyCurse === 'identity_crisis') {
+                      incidentMsg = "Hit my head really hard. Everything makes sense now. I've been using the wrong gear this whole time!";
+                  } else if (fx.applyCurse === 'pacifism') {
+                      incidentMsg = "I had a horrible nightmare where a monster asked me why I killed its father. Violence is never the answer.";
+                  } else if (fx.applyCurse === 'butterfingers') {
+                      incidentMsg = "Woke up covered in unidentifiable dungeon slime. I can't hold my weapon straight and everything smells like rotting kelp.";
+                  } else if (fx.applyCurse === 'dungeon_dye_job') {
+                      incidentMsg = "Insulted a passing wizard and he turned my hair neon. I look like a clown.";
+                  } else if (fx.applyCurse === 'girdle') {
+                      incidentMsg = "Put on a shiny belt I found. Suddenly my center of gravity is completely different and I can't take the belt off.";
+                  }
+                  
                   if (fx.applyCurse === 'cult_member') {
                       setInventory(prev => [...prev, { instanceId: 'inst_cultist_robe', itemId: 'cultist_robe', displayName: 'Cultist Robes' }]);
                       setEquipped(prev => ({ ...prev, body: 'inst_cultist_robe' }));
@@ -370,7 +411,7 @@ export const useGameLogic = () => {
         if (action.cost > 0) setResources(prev => ({ ...prev, gold: prev.gold - action.cost }));
         
         let removed = false;
-        if (activeCompanion && COMPANIONS[activeCompanion].removal?.id === action.id) { setActiveCompanion(null); removed = true; }
+        if (activeCompanion && COMPANIONS[activeCompanion].removal?.id === action.id) { setActiveCompanion(null); setCompanionVariant(null); removed = true; }
         if (activeCurse && CURSES[activeCurse].removal?.id === action.id) {
              if (activeCurse === 'cult_member') setEquipped(prev => ({ ...prev, body: 'inst_tunic' }));
              setActiveCurse(null); removed = true;
@@ -532,6 +573,6 @@ export const useGameLogic = () => {
   return {
     gameStarted, setGameStarted, creationStep, setCreationStep, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages, isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk,
-    activeCompanion, activeCurse, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
+    activeCompanion, companionVariant, activeCurse, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
   };
 };
