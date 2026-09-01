@@ -206,6 +206,7 @@ export const useGameLogic = () => {
       let currentEdgy = edgyName ? { ...edgyName } : null;
       let currentCurse = activeCurse;
       
+      const drankToday = shitfacedToday;
       setShitfacedToday(false);
 
       if (currentCurse === 'dungeon_dye_job') {
@@ -294,8 +295,12 @@ export const useGameLogic = () => {
       if (newStats.mood > 40 && newStats.stress < 60) zone = 'safe';
       if (newStats.mood < 10 || newStats.stress > 90) zone = 'crisis';
       
-      let incident = null; let chance = zone === 'safe' ? 0.05 : zone === 'risk' ? 0.30 : 0.70;
-      
+      let chance = zone === 'safe' ? 0.05 : zone === 'risk' ? 0.30 : 0.70;
+      if (quirk && quirk.id === 'iron_liver' && drankToday) {
+          chance += (quirk.effects.badDrinkEventChance || 0.20);
+      }
+
+      let incident = null;
       if (Math.random() <= chance) {
           const pool = zone === 'crisis' ? AUTONOMY_EVENTS.major : AUTONOMY_EVENTS.minor;
           let validEvent = false; let attempts = 0;
@@ -401,7 +406,11 @@ export const useGameLogic = () => {
           addMessage("Something happened last night...", "warning");
       }
 
-      if (quirk && quirk.id === 'shiny_syndrome' && Math.random() < (quirk.effects.junkChance || 0)) { incidentMsg += " Also... found some shiny trash."; changes.push("+Shiny Trash"); }
+      if (quirk && quirk.id === 'shiny_syndrome' && Math.random() < (quirk.effects.junkChance || 0)) { 
+          setInventory(prev => [...prev, { instanceId: `loot_${generateId()}`, itemId: 'shiny_trash', displayName: 'Shiny Trash' }]);
+          incidentMsg += " Also... found some shiny trash."; 
+          changes.push("+Shiny Trash"); 
+      }
 
       setEdgyName(currentEdgy);
       setStats({ health: Math.max(0, Math.min(maxStats.health, newStats.health)), mood: Math.max(0, Math.min(maxStats.mood, newStats.mood)), hunger: Math.min(maxStats.hunger, Math.max(0, newStats.hunger)), thirst: Math.min(maxStats.thirst, Math.max(0, newStats.thirst)), stress: Math.max(0, Math.min(maxStats.stress, newStats.stress)) });
@@ -596,7 +605,11 @@ export const useGameLogic = () => {
   };
 
   const sellItem = (item) => {
-    const sellValue = Math.floor(item.cost / 2); 
+    let sellValue = Math.floor(item.cost / 2);
+    if (item.id === 'shiny_trash') {
+        sellValue = Math.floor(Math.random() * 4) + 1;
+    }
+    
     setResources(prev => ({ ...prev, gold: prev.gold + sellValue })); 
     setInventory(prev => prev.filter(i => i.instanceId !== item.instanceId)); 
     addMessage(`Sold ${item.displayName} for ${sellValue}g`, 'success'); 
