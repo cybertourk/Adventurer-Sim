@@ -143,7 +143,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       hair_long_male_white: `${baseUrl}hair_long_white.png`,
       hair_short_male_black: `${baseUrl}hair_short_black.png`,
       hair_short_male_blonde: `${baseUrl}hair_short_blonde.png`,
-      hair_short_male_brown: `${baseUrl}hair_short_brown.png`,
+      hair_short_male_brown: `${baseUrl}hair_short_male_brown.png`,
       hair_short_male_grey: `${baseUrl}hair_short_grey.png`,
       hair_short_male_red: `${baseUrl}hair_short_red.png`,
       hair_short_male_white: `${baseUrl}hair_short_white.png`,
@@ -484,7 +484,7 @@ const CreationScreen = ({ creationStep, setCreationStep, characterName, setChara
 
 const App = () => {
   const {
-    gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, attributes, updateAttribute,
+    gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute,
     stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
@@ -688,6 +688,10 @@ const App = () => {
       <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 pointer-events-none flex flex-col gap-2">
         <header className="pointer-events-auto bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/60 rounded-2xl p-3 md:p-4 flex flex-wrap items-center justify-between gap-2 md:gap-4 shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
             <div className="flex items-center gap-3 md:gap-5">
+                <div className="flex flex-col pr-3 md:pr-4 border-r border-zinc-700/60 mr-1 md:mr-2">
+                    <span className="text-[10px] md:text-xs font-bold text-zinc-200 leading-tight truncate max-w-[80px] md:max-w-[100px]">{edgyName ? edgyName.first : (characterName.first || 'Unknown')}</span>
+                    <span className="text-[10px] md:text-xs font-bold text-zinc-400 leading-tight truncate max-w-[80px] md:max-w-[100px]">{edgyName ? edgyName.last : (characterName.last || 'Adventurer')}</span>
+                </div>
                 <div className="flex flex-col">
                     <span className="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Time</span>
                     <span className="text-lg md:text-xl font-bold text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">Day {days}</span>
@@ -789,12 +793,12 @@ const App = () => {
                  
                  <div className="flex justify-between items-center p-4 sm:p-5 border-b border-zinc-700/80 bg-zinc-950/60 shadow-sm">
                      <h2 className="font-bold uppercase tracking-widest text-indigo-400 flex items-center gap-3 text-lg drop-shadow-[0_0_5px_rgba(99,102,241,0.4)]">
-                        {openPanel === 'character' && <User size={20}/>}
-                        {openPanel === 'actions' && <Tent size={20}/>}
-                        {openPanel === 'inventory' && <Backpack size={20}/>}
-                        {openPanel === 'shop' && <Store size={20}/>}
-                        {openPanel === 'log' && <List size={20}/>}
-                        {openPanel === 'character' ? 'Character Sheet' : openPanel}
+                         {openPanel === 'character' && <User size={20}/>}
+                         {openPanel === 'actions' && <Tent size={20}/>}
+                         {openPanel === 'inventory' && <Backpack size={20}/>}
+                         {openPanel === 'shop' && <Store size={20}/>}
+                         {openPanel === 'log' && <List size={20}/>}
+                         {openPanel === 'character' ? 'Character Sheet' : openPanel}
                      </h2>
                      <button onClick={() => setOpenPanel(null)} className="p-2 bg-zinc-800 rounded-full hover:bg-red-900/80 hover:text-red-400 transition-colors border border-zinc-700 shadow-sm">
                          <X size={16} strokeWidth={3} />
@@ -806,8 +810,11 @@ const App = () => {
                      {openPanel === 'character' && (
                         <div className="space-y-6">
                             <div className="bg-zinc-800/80 p-5 rounded-xl border border-zinc-700 shadow-inner flex flex-col gap-1">
-                                <h3 className="text-2xl font-bold text-indigo-400 drop-shadow-md">{characterName.first || 'Unknown'} {characterName.last || 'Adventurer'}</h3>
-                                <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Level {resources.level} • {resources.xp} XP</p>
+                                <h3 className="text-2xl font-bold text-indigo-400 drop-shadow-md">
+                                    {edgyName ? `${edgyName.first} ${edgyName.last}` : `${characterName.first || 'Unknown'} ${characterName.last || 'Adventurer'}`}
+                                </h3>
+                                {edgyName && <p className="text-[10px] font-bold text-zinc-500 italic mb-1">(Formerly known as {characterName.first} {characterName.last})</p>}
+                                <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest mt-1">Level {resources.level} • {resources.xp} XP</p>
                             </div>
 
                             <div>
