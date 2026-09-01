@@ -1,8 +1,19 @@
 export const SAVE_KEY = 'dnd_tamagotchi_v3'; 
 export const MAX_STAT = 100;
 
-export const EDGY_FIRST_NAMES = ['Blood', 'Dark', 'Raven', 'Shadow', 'Grim', 'Void', 'Chaos', 'Night', 'Frost', 'Bane'];
-export const EDGY_LAST_NAMES = ['Hawk', 'Reaper', 'Stalker', 'Fang', 'Blade', 'Death', 'Whisper', 'Scythe', 'Grave', 'Thorn'];
+export const EDGY_FIRST_NAMES = [
+  'Bitter', 'Grim', 'Bleak', 'Sullen', 'Morbid', 'Vile', 
+  'Jagged', 'Sharp', 'Brutal', 'Fierce', 'Blunt', 'Savage', 
+  'Erratic', 'Frenetic', 'Wild', 'Rogue', 'Frantic', 'Volatile', 
+  'Vague', 'Clandestine', 'Stealthy', 'Murky', 'Veiled', 'Obscure'
+];
+
+export const EDGY_LAST_NAMES = [
+  'Thorn', 'Shroud', 'Frost', 'Grave', 'Crypt', 'Rot', 
+  'Blade', 'Edge', 'Lash', 'Talon', 'Force', 'Scar', 
+  'Pulse', 'Sparks', 'Hazard', 'Wave', 'Pace', 'Fuse', 
+  'Phantom', 'Shadow', 'Prowl', 'Depths', 'Ghost', 'Trace'
+];
 
 export const ITEM_DB = {
   head: [
@@ -99,7 +110,7 @@ export const AUTONOMY_EVENTS = {
     { id: 'slept_armor', title: 'Slept in Full Armor', text: '"Who has time to unbuckle all these straps?"', effects: { stress: 10, mood: -5 } },
     { id: 'snake_oil', title: 'Snake Oil Sucker', text: '"Bought a premium health potion that is literally dyed tap water."', effects: { gold: -10, mood: -10 } },
     { id: 'stress_eat', title: 'Feral Stress Eating', text: '"I ate everything. All of it. I have no regrets."', effects: { hunger: -100, destroyRations: true } },
-    { id: 'pissed_wizard', title: 'Pissed Off a Wizard', text: '"Insulted a spellcaster who turned my hair neon pink."', effects: { mood: -10, stress: 10, applyCurse: 'dungeon_dye_job' } },
+    { id: 'pissed_wizard', title: 'Pissed Off a Wizard', text: '"Insulted a spellcaster who practiced some kind of hairomancy on me."', effects: { mood: -10, stress: 10, applyCurse: 'dungeon_dye_job' } },
     { id: 'pet_rock', title: 'Adopted a Rock', text: '"He is my best friend and his name is Rocky."', effects: { applyCompanion: 'pet_rock' } },
     { id: 'edgy_rebrand', title: 'Edgy Rebrand', text: '"Call me Bloodhawk from now on."', effects: { mood: -5, edgyRebrand: true } },
     { id: 'slime', title: 'Covered in Slime', text: '"Why is everything so sticky?!"', effects: { applyCurse: 'butterfingers' } },
@@ -144,7 +155,7 @@ export const CURSES = {
   identity_crisis: { id: 'identity_crisis', name: 'Identity Crisis', desc: 'Unequips all gear. Refuses to equip anything outside their new delusion.', effects: { unequipAll: true, forceClass: true }, removal: { autoRemoveFails: 3 } },
   pacifism: { id: 'pacifism', name: 'Sudden Pacifism', desc: 'Refuses to take Combat Adventures.', effects: { lockAdventures: true }, removal: { autoRemoveTasks: 2 } },
   butterfingers: { id: 'butterfingers', name: 'Butterfingers', desc: '+10% Fail Chance on all Combat Adventures due to slime.', effects: { combatFailPenalty: 0.1 }, removal: { sleepEstate: true, getShitfaced: true } },
-  dungeon_dye_job: { id: 'dungeon_dye_job', name: 'Dungeon Dye Job', desc: 'Hair changes to a terrible neon color.', effects: { visualOverride: 'neon_hair' }, removal: { id: 'remove_dye', label: 'Visit the Barber', cost: 10, days: 0, costType: 'gp', type: 'social', message: 'Fixed my hair.', effects: {} } },
+  dungeon_dye_job: { id: 'dungeon_dye_job', name: 'Dungeon Dye Job', desc: 'Hair changes to a neon color or terrible style. Removal: Natural 5 days, or "Visit the Barber" Free Action (10g).', effects: { visualOverride: 'neon_hair' }, removal: { id: 'remove_dye', label: 'Visit the Barber', cost: 10, days: 0, costType: 'gp', type: 'social', message: 'Fixed my hair.', effects: {} } },
   girdle: { id: 'girdle', name: 'Girdle of Opposite Gender', desc: 'The sprite dynamically swaps genders.', effects: { visualOverride: 'swap_gender' }, removal: { id: 'remove_girdle', label: 'Remove Curse (Temple)', cost: 50, days: 0, costType: 'gp', type: 'magic', message: 'The curse is broken.', effects: {} } }
 };
 
