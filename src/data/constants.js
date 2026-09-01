@@ -49,6 +49,7 @@ export const ITEM_DB = {
     { id: 'ale', name: 'Liquid Courage', type: 'drink', category: 'Drink', cost: 5, description: 'Makes everyone prettier.', effects: { thirst: -15, mood: 10, stress: -10 } },
     { id: 'wine', name: 'Fancy Grape Juice', type: 'drink', category: 'Drink', cost: 25, description: 'Pinkies out!', effects: { thirst: -20, mood: 20, stress: -15 } },
     { id: 'water', name: 'Water', type: 'drink', category: 'Drink', cost: 0, description: 'Basic hydration. Only available at Inn or Estate.', effects: { thirst: -40 } },
+    { id: 'shiny_trash', name: 'Shiny Trash', type: 'loot', category: 'Junk', cost: 0, description: 'It glitters! You refuse to throw it away, but a merchant might buy it.', effects: {} }
   ]
 };
 
