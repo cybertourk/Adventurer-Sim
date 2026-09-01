@@ -415,7 +415,7 @@ const MorningReport = ({ log, onClose }) => {
   );
 };
 
-const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppearance, equipped, attributes, updateAttribute, pointsAvailable, getStatInfo, startGame }) => {
+const CreationScreen = ({ creationStep, setCreationStep, characterName, setCharacterName, appearance, updateAppearance, equipped, attributes, updateAttribute, pointsAvailable, getStatInfo, startGame }) => {
   return (
     <div className="h-screen bg-zinc-950 text-zinc-100 font-sans flex flex-col items-center justify-center p-4">
         <div className="w-full max-w-4xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
@@ -425,12 +425,18 @@ const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppea
             </div>
             <div className="flex-1 p-6 flex flex-col bg-zinc-900/50">
                 <div className="flex gap-4 mb-6 border-b border-zinc-800">
-                    <button onClick={() => setCreationStep(1)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 1 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-500 hover:text-zinc-300'}`}>1. Appearance</button>
+                    <button onClick={() => setCreationStep(1)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 1 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-500 hover:text-zinc-300'}`}>1. Details</button>
                     <button onClick={() => setCreationStep(2)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 2 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-500 hover:text-zinc-300'}`}>2. Attributes</button>
                 </div>
                 <div className="flex-1 overflow-y-auto pr-2 space-y-6">
                     {creationStep === 1 && (
                         <>
+                            <div><h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Identity</h3>
+                                <div className="flex gap-3">
+                                    <input type="text" placeholder="First Name" value={characterName.first} onChange={(e) => setCharacterName({...characterName, first: e.target.value})} className="flex-1 bg-zinc-950 border border-zinc-700 rounded-lg p-2.5 text-sm font-bold text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                                    <input type="text" placeholder="Last Name" value={characterName.last} onChange={(e) => setCharacterName({...characterName, last: e.target.value})} className="flex-1 bg-zinc-950 border border-zinc-700 rounded-lg p-2.5 text-sm font-bold text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" />
+                                </div>
+                            </div>
                             <div><h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Gender</h3>
                                 <div className="flex gap-2">{['male', 'female'].map(g => (<button key={g} onClick={() => updateAppearance('gender', g)} className={`flex-1 py-2.5 rounded-lg border text-xs font-bold uppercase transition-all ${appearance.gender === g ? 'bg-indigo-600 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.3)]' : 'bg-zinc-800/80 border-zinc-700 text-zinc-400 hover:bg-zinc-700'}`}>{g}</button>))}</div>
                             </div>
@@ -468,7 +474,7 @@ const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppea
                     )}
                 </div>
                 <div className="mt-6 pt-4 border-t border-zinc-800 flex justify-end">
-                    {creationStep === 1 ? ( <button onClick={() => setCreationStep(2)} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wider uppercase text-sm rounded-xl transition-all shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_20px_rgba(99,102,241,0.5)]">Next: Attributes</button> ) : ( <button onClick={startGame} disabled={pointsAvailable > 0} className={`px-8 py-3 font-bold tracking-wider uppercase text-sm rounded-xl transition-all ${pointsAvailable > 0 ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(52,211,153,0.3)] hover:shadow-[0_0_20px_rgba(52,211,153,0.5)]'}`}>Start Adventure</button> )}
+                    {creationStep === 1 ? ( <button onClick={() => setCreationStep(2)} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wider uppercase text-sm rounded-xl transition-all shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_20px_rgba(99,102,241,0.5)]">Next: Attributes</button> ) : ( <button onClick={startGame} disabled={pointsAvailable > 0 || !characterName.first} className={`px-8 py-3 font-bold tracking-wider uppercase text-sm rounded-xl transition-all ${(pointsAvailable > 0 || !characterName.first) ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(52,211,153,0.3)] hover:shadow-[0_0_20px_rgba(52,211,153,0.5)]'}`}>Start Adventure</button> )}
                 </div>
             </div>
         </div>
@@ -478,7 +484,7 @@ const CreationScreen = ({ creationStep, setCreationStep, appearance, updateAppea
 
 const App = () => {
   const {
-    gameStarted, setGameStarted, creationStep, setCreationStep, attributes, updateAttribute,
+    gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, attributes, updateAttribute,
     stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
@@ -564,18 +570,6 @@ const App = () => {
           details.base = stats[statKey];
           details.total = stats[statKey];
           details.max = maxStats[statKey];
-      } else if (statKey === 'quirk') {
-           details.title = quirk.name;
-           details.description = quirk.desc;
-           details.isQuirk = true;
-      } else if (statKey === 'companion') {
-           details.title = COMPANIONS[activeCompanion].name;
-           details.description = COMPANIONS[activeCompanion].desc;
-           details.isQuirk = true;
-      } else if (statKey === 'curse') {
-           details.title = CURSES[activeCurse].name;
-           details.description = CURSES[activeCurse].desc;
-           details.isQuirk = true;
       }
 
       return details;
@@ -584,7 +578,7 @@ const App = () => {
   if (!gameStarted) {
     return (
       <CreationScreen 
-        creationStep={creationStep} setCreationStep={setCreationStep} appearance={appearance} updateAppearance={updateAppearance} 
+        creationStep={creationStep} setCreationStep={setCreationStep} characterName={characterName} setCharacterName={setCharacterName} appearance={appearance} updateAppearance={updateAppearance} 
         equipped={resolvedEquipped} attributes={attributes} updateAttribute={updateAttribute} pointsAvailable={pointsAvailable} 
         getStatInfo={getStatInfo} startGame={startGame} 
       />
@@ -598,34 +592,11 @@ const App = () => {
          <StatBlock label="Thirst" value={stats.thirst} max={maxStats.thirst} alert={stats.thirst > 70} inverted onClick={() => setActiveDetailModal('thirst')} />
          <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} onClick={() => setActiveDetailModal('mood')} />
          <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 70} inverted onClick={() => setActiveDetailModal('stress')} />
-         
-         <div className="flex flex-col gap-1 md:gap-1.5 ml-1 md:ml-0 md:mt-1">
-             {quirk && (
-                 <button onClick={() => setActiveDetailModal('quirk')} className="flex items-center justify-center w-full h-[18px] md:h-[20px] bg-indigo-950/80 rounded-md border border-indigo-500/40 hover:border-indigo-400 shadow-sm transition-all hover:scale-105 px-1.5 min-w-[50px]">
-                     <span className="text-[8px] md:text-[9px] font-bold text-indigo-200 truncate">{quirk.name}</span>
-                 </button>
-             )}
-             {activeCompanion && (
-                 <button onClick={() => setActiveDetailModal('companion')} className="flex items-center justify-center w-full h-[18px] md:h-[20px] bg-emerald-950/80 rounded-md border border-emerald-500/40 hover:border-emerald-400 shadow-sm transition-all hover:scale-105 px-1.5 min-w-[50px]">
-                     <span className="text-[8px] md:text-[9px] font-bold text-emerald-300 truncate text-center leading-tight max-w-[80px]">Comp: {COMPANIONS[activeCompanion].name}</span>
-                 </button>
-             )}
-             {activeCurse && (
-                 <button onClick={() => setActiveDetailModal('curse')} className="flex items-center justify-center w-full h-[18px] md:h-[20px] bg-red-950/80 rounded-md border border-red-500/40 hover:border-red-400 shadow-sm transition-all hover:scale-105 px-1.5 min-w-[50px]">
-                     <span className="text-[8px] md:text-[9px] font-bold text-red-300 truncate">Curse!</span>
-                 </button>
-             )}
-         </div>
     </>
   );
 
   const attributesContent = (
     <>
-         {pointsAvailable > 0 && (
-             <div className="absolute -top-4 md:-top-5 left-0 right-0 text-center text-[10px] font-bold text-emerald-400 animate-pulse tracking-widest uppercase drop-shadow-[0_0_5px_rgba(52,211,153,0.8)]">
-                 Points: {pointsAvailable}
-             </div>
-         )}
          {['str', 'dex', 'con', 'int', 'cha', 'ac'].map(attr => (
              <AttributeBlock 
                  key={attr} label={attr} value={getAttributeTotal(attr)} 
@@ -754,18 +725,12 @@ const App = () => {
             <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex items-center justify-center gap-1.5">
                 {metersContent}
             </div>
-            <div className="relative bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex items-center justify-center gap-1.5 mt-2">
-                {attributesContent}
-            </div>
         </div>
       </div>
 
       <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto items-start gap-4">
           <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
               {metersContent}
-          </div>
-          <div className="relative bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 pt-6 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
-              {attributesContent}
           </div>
       </div>
 
@@ -789,6 +754,7 @@ const App = () => {
       <div className="absolute bottom-6 md:bottom-auto md:top-1/2 left-1/2 md:left-auto md:right-6 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2 z-20 pointer-events-auto">
           <div className="bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-row md:flex-col gap-2">
               {[
+                { id: 'character', icon: User, label: 'Char' },
                 { id: 'actions', icon: Tent, label: 'Actions' },
                 { id: 'inventory', icon: Backpack, label: 'Bag' },
                 { id: 'shop', icon: Store, label: 'Shop' },
@@ -800,7 +766,7 @@ const App = () => {
                   <button 
                       key={tab.id} 
                       onClick={() => setOpenPanel(isActive ? null : tab.id)} 
-                      className={`flex flex-col items-center justify-center w-16 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl transition-all ${
+                      className={`flex flex-col items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl transition-all ${
                           isActive 
                               ? 'bg-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.5)] border border-indigo-400 scale-105' 
                               : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border border-transparent'
@@ -823,11 +789,12 @@ const App = () => {
                  
                  <div className="flex justify-between items-center p-4 sm:p-5 border-b border-zinc-700/80 bg-zinc-950/60 shadow-sm">
                      <h2 className="font-bold uppercase tracking-widest text-indigo-400 flex items-center gap-3 text-lg drop-shadow-[0_0_5px_rgba(99,102,241,0.4)]">
+                        {openPanel === 'character' && <User size={20}/>}
                         {openPanel === 'actions' && <Tent size={20}/>}
                         {openPanel === 'inventory' && <Backpack size={20}/>}
                         {openPanel === 'shop' && <Store size={20}/>}
                         {openPanel === 'log' && <List size={20}/>}
-                        {openPanel}
+                        {openPanel === 'character' ? 'Character Sheet' : openPanel}
                      </h2>
                      <button onClick={() => setOpenPanel(null)} className="p-2 bg-zinc-800 rounded-full hover:bg-red-900/80 hover:text-red-400 transition-colors border border-zinc-700 shadow-sm">
                          <X size={16} strokeWidth={3} />
@@ -836,6 +803,60 @@ const App = () => {
 
                  <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 scroll-smooth bg-gradient-to-b from-transparent to-zinc-950/30">
                      
+                     {openPanel === 'character' && (
+                        <div className="space-y-6">
+                            <div className="bg-zinc-800/80 p-5 rounded-xl border border-zinc-700 shadow-inner flex flex-col gap-1">
+                                <h3 className="text-2xl font-bold text-indigo-400 drop-shadow-md">{characterName.first || 'Unknown'} {characterName.last || 'Adventurer'}</h3>
+                                <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest">Level {resources.level} • {resources.xp} XP</p>
+                            </div>
+
+                            <div>
+                                <div className="flex justify-between items-center mb-3 border-b border-zinc-800 pb-1">
+                                    <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Attributes</h3>
+                                    {pointsAvailable > 0 && <span className="text-[10px] font-bold text-emerald-400 animate-pulse tracking-widest uppercase">Points: {pointsAvailable}</span>}
+                                </div>
+                                <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
+                                    {attributesContent}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">Status Effects</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    <div className="bg-indigo-950/30 border border-indigo-900/50 p-4 rounded-xl">
+                                        <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Trait</h4>
+                                        {quirk ? (
+                                            <div>
+                                                <span className="text-sm font-bold text-indigo-300 block mb-1">{quirk.name}</span>
+                                                <p className="text-[10px] text-zinc-400 leading-relaxed">{quirk.desc}</p>
+                                            </div>
+                                        ) : <span className="text-xs text-zinc-600 italic">None</span>}
+                                    </div>
+
+                                    <div className="bg-emerald-950/30 border border-emerald-900/50 p-4 rounded-xl">
+                                        <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Companion</h4>
+                                        {activeCompanion ? (
+                                            <div>
+                                                <span className="text-sm font-bold text-emerald-400 block mb-1">{COMPANIONS[activeCompanion].name}</span>
+                                                <p className="text-[10px] text-zinc-400 leading-relaxed">{COMPANIONS[activeCompanion].desc}</p>
+                                            </div>
+                                        ) : <span className="text-xs text-zinc-600 italic">None</span>}
+                                    </div>
+
+                                    <div className="bg-red-950/30 border border-red-900/50 p-4 rounded-xl">
+                                        <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Curse</h4>
+                                        {activeCurse ? (
+                                            <div>
+                                                <span className="text-sm font-bold text-red-400 block mb-1">{CURSES[activeCurse].name}</span>
+                                                <p className="text-[10px] text-zinc-400 leading-relaxed">{CURSES[activeCurse].desc}</p>
+                                            </div>
+                                        ) : <span className="text-xs text-zinc-600 italic">None</span>}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                     )}
+
                      {openPanel === 'actions' && (
                         <>
                            <div>
