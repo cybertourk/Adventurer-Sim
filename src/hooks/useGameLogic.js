@@ -29,7 +29,7 @@ export const useGameLogic = () => {
   const [companionVariant, setCompanionVariant] = useState(null);
   const [activeCurse, setActiveCurse] = useState(null);
   const [curseVariant, setCurseVariant] = useState(null);
-  const [curseTracker, setCurseTracker] = useState({ fails: 0, jobs: 0, ales: 0 });
+  const [curseTracker, setCurseTracker] = useState({ fails: 0, jobs: 0, ales: 0, days: 0 });
   const [shitfacedToday, setShitfacedToday] = useState(false);
   const [stats, setStats] = useState({ hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 });
   const [resources, setResources] = useState({ gold: 50, xp: 0, level: 1 });
@@ -153,7 +153,7 @@ export const useGameLogic = () => {
         setQuirk(parsed.quirk || null); 
         setActiveCompanion(parsed.activeCompanion || null);
         setActiveCurse(parsed.activeCurse || null);
-        setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0 });
+        setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0, days: 0 });
         setShitfacedToday(parsed.shitfacedToday || false);
         
         let loadedVariant = parsed.companionVariant || null;
@@ -204,8 +204,21 @@ export const useGameLogic = () => {
       let newStats = { ...stats };
       let newGold = resources.gold;
       let currentEdgy = edgyName ? { ...edgyName } : null;
+      let currentCurse = activeCurse;
       
       setShitfacedToday(false);
+
+      if (currentCurse === 'dungeon_dye_job') {
+          let nextDays = (curseTracker.days || 0) + daysPassed;
+          if (nextDays >= 5) {
+              currentCurse = null;
+              setActiveCurse(null);
+              setCurseVariant(null);
+              changes.push("Hair returned to normal");
+              nextDays = 0;
+          }
+          setCurseTracker(prev => ({ ...prev, days: nextDays }));
+      }
 
       for (let i = 0; i < daysPassed; i++) {
           
@@ -220,7 +233,7 @@ export const useGameLogic = () => {
           if (rentActive) {
               const locId = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : null;
               
-              if (locId === 'inn_room' && activeCurse === 'blacklist') {
+              if (locId === 'inn_room' && currentCurse === 'blacklist') {
                   setHousing('homeless'); setRentActive(false);
                   newStats.mood = Math.max(0, newStats.mood - 20);
                   rentMsg = "Barkeep spotted you and threw you into the dirt.";
@@ -239,7 +252,8 @@ export const useGameLogic = () => {
                       if (!skipDecay && locId === 'inn_room') { newStats.hunger += 5; newStats.thirst += 5; }
                       if (locId === 'estate') { 
                           newStats.hunger = 0; newStats.thirst = 0; 
-                          if (activeCurse === 'butterfingers') {
+                          if (currentCurse === 'butterfingers') {
+                              currentCurse = null;
                               setActiveCurse(null);
                               changes.push("Washed off slime in the bath");
                           }
@@ -263,10 +277,11 @@ export const useGameLogic = () => {
           if (activeCompanion === 'spouse') newStats.stress += 15;
           if (activeCompanion === 'groupie') newStats.mood -= 15;
           if (activeCompanion === 'goblin') newGold = Math.max(0, newGold - (Math.floor(Math.random() * 4) + 1));
-          if (activeCurse === 'cult_member') {
+          if (currentCurse === 'cult_member') {
               newStats.mood += 20; newStats.stress -= 20;
               if (newGold >= 10) newGold -= 10;
               else {
+                  currentCurse = null;
                   setActiveCurse(null);
                   setCurseVariant(null);
                   newStats.stress += 30; changes.push("Kicked from Cult");
@@ -287,7 +302,7 @@ export const useGameLogic = () => {
           while (!validEvent && attempts < 10) {
               incident = pool[Math.floor(Math.random() * pool.length)];
               if (incident.effects.applyCompanion && activeCompanion) { attempts++; continue; }
-              if (incident.effects.applyCurse && activeCurse) { attempts++; continue; }
+              if (incident.effects.applyCurse && currentCurse) { attempts++; continue; }
               if (incident.effects.edgyRebrand && currentEdgy) { attempts++; continue; }
               validEvent = true;
           }
@@ -327,6 +342,7 @@ export const useGameLogic = () => {
                   }
               }
               if (fx.applyCurse) {
+                  currentCurse = fx.applyCurse;
                   setActiveCurse(fx.applyCurse);
                   
                   if (fx.applyCurse === 'blacklist') {
@@ -346,7 +362,8 @@ export const useGameLogic = () => {
                   } else if (fx.applyCurse === 'butterfingers') {
                       incidentMsg = "Woke up covered in unidentifiable dungeon slime. I can't hold my weapon straight and everything smells like rotting kelp.";
                   } else if (fx.applyCurse === 'dungeon_dye_job') {
-                      incidentMsg = "Insulted a passing wizard and he turned my hair neon. I look like a clown.";
+                      incidentMsg = "Insulted a spellcaster who practiced some kind of hairomancy on me.";
+                      setCurseVariant(Math.floor(Math.random() * 4) + 1);
                   } else if (fx.applyCurse === 'girdle') {
                       incidentMsg = "Put on a shiny belt I found. Suddenly my center of gravity is completely different and I can't take the belt off.";
                   }
@@ -355,7 +372,7 @@ export const useGameLogic = () => {
                       setInventory(prev => [...prev, { instanceId: 'inst_cultist_robe', itemId: 'cultist_robe', displayName: 'Cultist Robes' }]);
                       setEquipped(prev => ({ ...prev, body: 'inst_cultist_robe', head: 'inst_none' }));
                   }
-                  if (fx.applyCurse === 'identity_crisis' || fx.applyCurse === 'pacifism') setCurseTracker({ fails: 0, jobs: 0, ales: 0 });
+                  if (fx.applyCurse === 'identity_crisis' || fx.applyCurse === 'pacifism' || fx.applyCurse === 'dungeon_dye_job') setCurseTracker({ fails: 0, jobs: 0, ales: 0, days: 0 });
               }
               
               if (fx.destroyRations) setInventory(prev => prev.filter(i => ITEM_DB.supplies.find(s => s.id === i.itemId)?.type !== 'food'));
@@ -393,7 +410,7 @@ export const useGameLogic = () => {
       addToLog({ type: 'morning', day: days, sleepLoc: housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Outside', rent: rentMsg, incidentTitle: incident ? incident.title : "Uneventful Night", incidentText: incidentMsg, status: changes.length > 0 ? `Changes: ${changes.join(", ")}` : "No significant changes." });
       setDays(prev => prev + daysPassed); refreshShop();
       const nextComp = incident && incident.effects.applyCompanion ? incident.effects.applyCompanion : activeCompanion;
-      const nextCur = incident && incident.effects.applyCurse ? incident.effects.applyCurse : activeCurse;
+      const nextCur = incident && incident.effects.applyCurse ? incident.effects.applyCurse : currentCurse;
       const newQuests = generateDailyQuests(maxTier, nextComp, nextCur);
       setDailyQuests(newQuests);
   };
