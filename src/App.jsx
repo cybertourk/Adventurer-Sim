@@ -233,7 +233,16 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       curse_cult2_female: `${baseUrl}Curse_cult2_female.png`,
 
       curse_girdle_male: `${baseUrl}Curse_girdle_male.png`,
-      curse_girdle_female: `${baseUrl}Curse_girdle_female.png`
+      curse_girdle_female: `${baseUrl}Curse_girdle_female.png`,
+
+      curse_dye1_male: `${baseUrl}Curse_dye1_male.png`,
+      curse_dye1_female: `${baseUrl}Curse_dye1_female.png`,
+      curse_dye2_male: `${baseUrl}Curse_dye2_male.png`,
+      curse_dye2_female: `${baseUrl}Curse_dye2_female.png`,
+      curse_dye3_male: `${baseUrl}Curse_dye3_male.png`,
+      curse_dye3_female: `${baseUrl}Curse_dye3_female.png`,
+      curse_dye4_male: `${baseUrl}Curse_dye4_male.png`,
+      curse_dye4_female: `${baseUrl}Curse_dye4_female.png`
     };
 
     let loadedCount = 0;
@@ -315,10 +324,13 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       }
 
       const wearingFullHelm = equipped.head === 'iron_helm';
-      if (appearance.hairStyle !== 'bald' && !wearingFullHelm) {
-          if (activeCurse === 'dungeon_dye_job') ctx.filter = 'hue-rotate(270deg) saturate(300%) brightness(1.5)';
-          drawLayer(`hair_${appearance.hairStyle}_${renderGender}_${appearance.hairColor}`);
-          ctx.filter = !isAlive ? 'grayscale(100%) opacity(50%)' : 'none'; 
+      
+      if (!wearingFullHelm && equipped.body !== 'cultist_robe') {
+          if (activeCurse === 'dungeon_dye_job') {
+              drawLayer(`curse_dye${curseVariant || 1}_${renderGender}`);
+          } else if (appearance.hairStyle !== 'bald') {
+              drawLayer(`hair_${appearance.hairStyle}_${renderGender}_${appearance.hairColor}`);
+          }
       }
 
       if (equipped.body === 'cultist_robe') {
