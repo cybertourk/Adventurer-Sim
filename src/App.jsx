@@ -222,7 +222,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       companion_spouse_female1: `${baseUrl}companion_spouse_female1.png`,
       companion_spouse_female2: `${baseUrl}companion_spouse_female2.png`,
       companion_spouse_female3: `${baseUrl}companion_spouse_female3.png`,
-      companion_pet_rock: `${baseUrl}companion_pet_rock.png`,
+      companion_pet_rock: `${baseUrl}companion_rock.png`,
       
       curse_butterfingers_male: `${baseUrl}Curse_Butterfingers_male.png`,
       curse_butterfingers_female: `${baseUrl}Curse_Butterfingers_female.png`,
@@ -230,7 +230,10 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       curse_cult1_male: `${baseUrl}Curse_cult1_male.png`,
       curse_cult1_female: `${baseUrl}Curse_cult1_female.png`,
       curse_cult2_male: `${baseUrl}Curse_cult2_male.png`,
-      curse_cult2_female: `${baseUrl}Curse_cult2_female.png`
+      curse_cult2_female: `${baseUrl}Curse_cult2_female.png`,
+
+      curse_girdle_male: `${baseUrl}Curse_girdle_male.png`,
+      curse_girdle_female: `${baseUrl}Curse_girdle_female.png`
     };
 
     let loadedCount = 0;
@@ -355,6 +358,10 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
 
       if (activeCurse === 'butterfingers') {
           drawLayer(`curse_butterfingers_${renderGender}`);
+      }
+
+      if (activeCurse === 'girdle') {
+          drawLayer(`curse_girdle_${renderGender}`);
       }
 
       animationFrameId = requestAnimationFrame(render);
@@ -840,25 +847,29 @@ const App = () => {
                                         ) : <span className="text-xs text-zinc-600 italic">None</span>}
                                     </div>
 
-                                    <div className="bg-emerald-950/30 border border-emerald-900/50 p-4 rounded-xl">
-                                        <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Companion</h4>
-                                        {activeCompanion ? (
-                                            <div>
-                                                <span className="text-sm font-bold text-emerald-400 block mb-1">{COMPANIONS[activeCompanion].name}</span>
-                                                <p className="text-[10px] text-zinc-400 leading-relaxed">{COMPANIONS[activeCompanion].desc}</p>
-                                            </div>
-                                        ) : <span className="text-xs text-zinc-600 italic">None</span>}
-                                    </div>
+                                    {(activeCompanion || activeCurse) && (
+                                        <>
+                                            {activeCompanion && (
+                                                <div className="bg-emerald-950/30 border border-emerald-900/50 p-4 rounded-xl">
+                                                    <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Companion</h4>
+                                                    <div>
+                                                        <span className="text-sm font-bold text-emerald-400 block mb-1">{COMPANIONS[activeCompanion].name}</span>
+                                                        <p className="text-[10px] text-zinc-400 leading-relaxed">{COMPANIONS[activeCompanion].desc}</p>
+                                                    </div>
+                                                </div>
+                                            )}
 
-                                    <div className="bg-red-950/30 border border-red-900/50 p-4 rounded-xl">
-                                        <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Curse</h4>
-                                        {activeCurse ? (
-                                            <div>
-                                                <span className="text-sm font-bold text-red-400 block mb-1">{CURSES[activeCurse].name}</span>
-                                                <p className="text-[10px] text-zinc-400 leading-relaxed">{CURSES[activeCurse].desc}</p>
-                                            </div>
-                                        ) : <span className="text-xs text-zinc-600 italic">None</span>}
-                                    </div>
+                                            {activeCurse && (
+                                                <div className="bg-red-950/30 border border-red-900/50 p-4 rounded-xl">
+                                                    <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Curse</h4>
+                                                    <div>
+                                                        <span className="text-sm font-bold text-red-400 block mb-1">{CURSES[activeCurse].name}</span>
+                                                        <p className="text-[10px] text-zinc-400 leading-relaxed">{CURSES[activeCurse].desc}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
