@@ -20,6 +20,7 @@ const rollTieredItems = (pool, count) => {
 export const useGameLogic = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [creationStep, setCreationStep] = useState(1);
+  const [characterName, setCharacterName] = useState({ first: '', last: '' });
   const [attributes, setAttributes] = useState({ str: 10, dex: 10, con: 10, int: 10, cha: 10 });
   const [quirk, setQuirk] = useState(null); 
   const [activeCompanion, setActiveCompanion] = useState(null);
@@ -135,6 +136,7 @@ export const useGameLogic = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
+        setCharacterName(parsed.characterName || { first: '', last: '' });
         setAttributes(parsed.attributes || { str: 10, dex: 10, con: 10, int: 10, cha: 10 });
         setStats(parsed.stats || { hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 });
         setResources(parsed.resources || { gold: 50, xp: 0, level: 1 });
@@ -189,9 +191,9 @@ export const useGameLogic = () => {
       if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, lastSave: Date.now()
+        characterName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, lastSave: Date.now()
       }));
-  }, [attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday]);
+  }, [characterName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, maxTier, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday]);
 
   const passTime = (daysPassed, skipDecay = false) => {
       let rentMsg = "No rent paid (Homeless).";
@@ -599,7 +601,7 @@ export const useGameLogic = () => {
   const resetGame = () => { if (confirm("Reset game?")) { localStorage.removeItem(SAVE_KEY); window.location.reload(); } };
 
   return {
-    gameStarted, setGameStarted, creationStep, setCreationStep, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
+    gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages, isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk,
     activeCompanion, companionVariant, activeCurse, curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
   };
