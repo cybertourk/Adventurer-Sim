@@ -1,6 +1,9 @@
 export const SAVE_KEY = 'dnd_tamagotchi_v3'; 
 export const MAX_STAT = 100;
 
+export const EDGY_FIRST_NAMES = ['Blood', 'Dark', 'Raven', 'Shadow', 'Grim', 'Void', 'Chaos', 'Night', 'Frost', 'Bane'];
+export const EDGY_LAST_NAMES = ['Hawk', 'Reaper', 'Stalker', 'Fang', 'Blade', 'Death', 'Whisper', 'Scythe', 'Grave', 'Thorn'];
+
 export const ITEM_DB = {
   head: [
     { id: 'none', name: 'Bare', type: 'head', category: 'None', baseType: 'none', stats: { ac: 0 }, cost: 0, description: 'Wind in your hair.' },
