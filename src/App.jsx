@@ -143,7 +143,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       hair_long_male_white: `${baseUrl}hair_long_white.png`,
       hair_short_male_black: `${baseUrl}hair_short_black.png`,
       hair_short_male_blonde: `${baseUrl}hair_short_blonde.png`,
-      hair_short_male_brown: `${baseUrl}hair_short_male_brown.png`,
+      hair_short_male_brown: `${baseUrl}hair_short_brown.png`,
       hair_short_male_grey: `${baseUrl}hair_short_grey.png`,
       hair_short_male_red: `${baseUrl}hair_short_red.png`,
       hair_short_male_white: `${baseUrl}hair_short_white.png`,
