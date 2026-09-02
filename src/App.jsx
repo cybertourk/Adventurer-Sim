@@ -752,7 +752,7 @@ const App = () => {
                 <div className="flex sm:hidden flex-col border-l border-zinc-700/60 pl-3">
                     <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest truncate max-w-[70px]">{LOCATIONS[location]?.name}</span>
                     <span className={`text-[10px] font-bold ${housing === 'homeless' ? 'text-amber-500' : 'text-emerald-400'}`}>
-                        {housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Homeless'}
+                        {housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Homeless'}
                     </span>
                 </div>
             </div>
