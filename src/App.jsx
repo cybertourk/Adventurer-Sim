@@ -70,6 +70,84 @@ const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onCl
   );
 };
 
+const RollModal = ({ action, rollState, calculateOdds, executeRoll, finalizeAction, setStagedAction }) => {
+    if (!action) return null;
+    const odds = calculateOdds(action);
+
+    return (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden flex flex-col">
+                <div className="bg-indigo-950/40 p-5 border-b border-zinc-800 flex justify-between items-center">
+                    <div>
+                        <h2 className="text-lg font-bold text-indigo-400 uppercase tracking-widest leading-tight">{action.label}</h2>
+                        <span className="text-[10px] text-zinc-400 uppercase tracking-widest">{action.type} Check</span>
+                    </div>
+                    {!rollState.result && !rollState.isRolling && (
+                        <button onClick={() => setStagedAction(null)} className="text-zinc-500 hover:text-zinc-300 bg-zinc-800/80 p-2 rounded-full transition-colors"><X size={16} strokeWidth={3}/></button>
+                    )}
+                </div>
+
+                <div className="p-6 space-y-5 bg-gradient-to-b from-transparent to-zinc-950/50">
+                    <div className="text-center">
+                        <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-widest block mb-1">Target Number</span>
+                        <span className="text-4xl font-black text-white tracking-tight drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]">{odds.finalSuccessRate}%</span>
+                        <span className="text-xs text-zinc-500 block mt-1">Roll Equal or Under to Succeed</span>
+                    </div>
+
+                    <div className="space-y-2.5 bg-zinc-950/80 p-4 rounded-xl border border-zinc-800 font-mono text-xs shadow-inner">
+                        <div className="flex justify-between text-zinc-400">
+                            <span>Base Chance</span><span>{odds.baseSuccess}%</span>
+                        </div>
+                        <div className="flex justify-between text-emerald-400 font-bold">
+                            <span>Attribute Bonus</span><span>+{odds.attrBonus}%</span>
+                        </div>
+                        {odds.stressPenalty < 0 && (
+                            <div className="flex justify-between text-amber-400 font-bold">
+                                <span>Stress Penalty</span><span>{odds.stressPenalty}%</span>
+                            </div>
+                        )}
+                        {odds.miscPenalty < 0 && (
+                            <div className="flex justify-between text-red-400 font-bold">
+                                <span>Misc Penalty</span><span>{odds.miscPenalty}%</span>
+                            </div>
+                        )}
+                        <div className="h-px w-full bg-zinc-800 my-2" />
+                        <div className="flex justify-between text-white font-black text-sm">
+                            <span>Final Success Rate</span><span className={odds.finalSuccessRate >= 50 ? 'text-emerald-400' : 'text-red-400'}>{odds.finalSuccessRate}%</span>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col items-center justify-center h-28 border border-zinc-800 rounded-xl bg-zinc-950/50 relative overflow-hidden">
+                        {rollState.isRolling ? (
+                            <div className="text-3xl font-black text-indigo-400 animate-pulse tracking-widest drop-shadow-[0_0_15px_rgba(99,102,241,0.6)]">ROLLING...</div>
+                        ) : rollState.result !== null ? (
+                            <div className="flex flex-col items-center animate-in zoom-in-95 duration-300">
+                                <span className="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">You Rolled</span>
+                                <span className="text-6xl font-black text-white drop-shadow-lg leading-none">{rollState.result}</span>
+                                <span className={`text-sm font-black uppercase tracking-widest mt-2 px-3 py-1 rounded-md border ${rollState.isSuccess ? 'bg-emerald-950/50 text-emerald-400 border-emerald-900/50' : 'bg-red-950/50 text-red-500 border-red-900/50'}`}>
+                                    {rollState.isSuccess ? 'Success' : 'Failed'}
+                                </span>
+                            </div>
+                        ) : (
+                            <span className="text-zinc-600 font-bold uppercase tracking-widest text-sm">Awaiting Roll</span>
+                        )}
+                    </div>
+                </div>
+
+                <div className="p-4 border-t border-zinc-800 bg-zinc-950/80 flex justify-center">
+                    {!rollState.result && !rollState.isRolling ? (
+                        <button onClick={executeRoll} className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-widest uppercase rounded-xl transition-all shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:scale-[1.02] active:scale-95 text-lg">Roll d100</button>
+                    ) : rollState.result !== null ? (
+                        <button onClick={finalizeAction} className={`w-full py-4 font-bold tracking-widest uppercase rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-lg shadow-lg ${rollState.isSuccess ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-zinc-700 hover:bg-zinc-600 text-white shadow-zinc-900/50'}`}>Continue</button>
+                    ) : (
+                        <button disabled className="w-full py-4 bg-zinc-800 text-zinc-600 font-bold tracking-widest uppercase rounded-xl cursor-not-allowed text-lg">Rolling...</button>
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
 
 const getItemCategoryTab = (item) => {
@@ -529,22 +607,14 @@ const CreationScreen = ({ creationStep, setCreationStep, characterName, setChara
   );
 };
 
-const getTierPenalty = (tier) => {
-    if (tier === 1) return 0;
-    if (tier === 2) return 15;
-    if (tier === 3) return 30;
-    if (tier === 4) return 50;
-    if (tier === 5) return 75;
-    return 0;
-};
-
 const App = () => {
   const {
     gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute,
     stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
-    curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
+    curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction
   } = useGameLogic();
 
   const [openPanel, setOpenPanel] = useState(null);
@@ -629,27 +699,6 @@ const App = () => {
       }
 
       return details;
-  };
-  
-  const getSuccessRate = (action) => {
-      if (!['labor', 'adventure', 'social', 'magic'].includes(action.type)) return null;
-      
-      const { str, dex, con, int, cha, ac } = currentStats;
-      const stress = stats.stress;
-      const tierPenalty = getTierPenalty(action.questTier || 1);
-      
-      let failChance = 0;
-      if (action.type === 'labor') failChance = (40 + tierPenalty) - (str + con) + (stress * 0.2);
-      else if (action.type === 'adventure') failChance = (60 + tierPenalty) - (str + dex + ac) + (stress * 0.2);
-      else if (action.type === 'social') failChance = (40 + tierPenalty) - (cha * 2) + (stress * 0.2);
-      else if (action.type === 'magic') failChance = (40 + tierPenalty) - (int * 2) + (stress * 0.2);
-
-      failChance = failChance / 100;
-      if (activeCompanion === 'pet_rock') failChance += 0.05;
-      if (activeCurse === 'butterfingers' && action.type === 'adventure') failChance += 0.10;
-      
-      failChance = Math.max(0.05, Math.min(0.95, failChance));
-      return Math.floor((1 - failChance) * 100);
   };
   
   const currentLoc = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : 'village_road';
@@ -971,11 +1020,6 @@ const App = () => {
                                         disabled={isMaintenanceDisabled(action)} 
                                     />
                                  ))}
-                                 {housing === 'homeless' ? (
-                                    <ActionButton id="rent_start" label="Rent Inn Room" icon="Tent" cost={5} description="Lumpy bed, but safe." onClick={() => performAction({ id: 'rent_start', label: 'Rent Inn Room', cost: 5, days: 0, costType: 'gp', type: 'housing' })} disabled={isDead || resources.gold < 5 || activeCurse === 'blacklist'} />
-                                 ) : (
-                                    <ActionButton id="rent_stop" label="Checkout of Inn" icon="X" cost={0} description="Back to the dirt." onClick={() => performAction({ id: 'rent_stop', label: 'Checkout of Inn', cost: 0, days: 0, costType: 'gp', type: 'housing' })} disabled={isDead} />
-                                 )}
                               </div>
                            </div>
                            
@@ -983,7 +1027,7 @@ const App = () => {
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Hammer size={14} className="text-amber-500"/> Labor (STR/CON)</h3>
                                   <div className="grid grid-cols-1 gap-3">
-                                      {dailyQuests.labor.map(q => <ActionButton key={q.id} {...q} successRate={getSuccessRate(q)} onClick={() => performAction(q)} disabled={isDead} />)}
+                                      {dailyQuests.labor.map(q => <ActionButton key={q.id} {...q} successRate={calculateOdds(q)?.finalSuccessRate} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
                               </div>
                            )}
@@ -992,7 +1036,7 @@ const App = () => {
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Shield size={14} className="text-indigo-400"/> Adventure (STR/DEX/AC)</h3>
                                   <div className="grid grid-cols-1 gap-3">
-                                      {dailyQuests.adventure.map(q => <ActionButton key={q.id} {...q} successRate={getSuccessRate(q)} onClick={() => performAction(q)} disabled={isDead || activeCurse === 'pacifism'} />)}
+                                      {dailyQuests.adventure.map(q => <ActionButton key={q.id} {...q} successRate={calculateOdds(q)?.finalSuccessRate} onClick={() => performAction(q)} disabled={isDead || activeCurse === 'pacifism'} />)}
                                   </div>
                               </div>
                            )}
@@ -1001,7 +1045,7 @@ const App = () => {
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><User size={14} className="text-emerald-400"/> Social (CHA)</h3>
                                   <div className="grid grid-cols-1 gap-3">
-                                      {dailyQuests.social.map(q => <ActionButton key={q.id} {...q} successRate={getSuccessRate(q)} onClick={() => performAction(q)} disabled={isDead} />)}
+                                      {dailyQuests.social.map(q => <ActionButton key={q.id} {...q} successRate={calculateOdds(q)?.finalSuccessRate} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
                               </div>
                            )}
@@ -1010,7 +1054,7 @@ const App = () => {
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Zap size={14} className="text-cyan-400"/> Magic (INT)</h3>
                                   <div className="grid grid-cols-1 gap-3">
-                                      {dailyQuests.magic.map(q => <ActionButton key={q.id} {...q} successRate={getSuccessRate(q)} onClick={() => performAction(q)} disabled={isDead} />)}
+                                      {dailyQuests.magic.map(q => <ActionButton key={q.id} {...q} successRate={calculateOdds(q)?.finalSuccessRate} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
                               </div>
                            )}
@@ -1229,6 +1273,18 @@ const App = () => {
               </div>
           </div>
       )}
+
+      {stagedAction && (
+          <RollModal 
+              action={stagedAction} 
+              rollState={rollState} 
+              calculateOdds={calculateOdds} 
+              executeRoll={executeRoll} 
+              finalizeAction={finalizeAction} 
+              setStagedAction={setStagedAction} 
+          />
+      )}
+
     </div>
   );
 };
