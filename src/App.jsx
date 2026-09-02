@@ -752,7 +752,7 @@ const App = () => {
                 <div className="flex sm:hidden flex-col border-l border-zinc-700/60 pl-3">
                     <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest truncate max-w-[70px]">{LOCATIONS[location]?.name}</span>
                     <span className={`text-[10px] font-bold ${housing === 'homeless' ? 'text-amber-500' : 'text-emerald-400'}`}>
-                        {housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Homeless'}
+                        {housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Homeless'}
                     </span>
                 </div>
             </div>
@@ -794,8 +794,8 @@ const App = () => {
           </div>
       </div>
 
-      <div className="absolute top-1/2 -translate-y-1/2 right-2 md:right-6 z-20 pointer-events-none flex items-start">
-          <div className="bg-zinc-900/95 pointer-events-auto backdrop-blur-xl border border-zinc-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-col gap-2">
+      <div className="absolute bottom-6 md:bottom-auto md:top-1/2 left-1/2 md:left-auto md:right-6 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2 z-20 pointer-events-auto">
+          <div className="bg-zinc-900/95 pointer-events-auto backdrop-blur-xl border border-zinc-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-row md:flex-col gap-2">
               {[
                 { id: 'character', icon: User, label: 'Char', alert: pointsAvailable > 0 },
                 { id: 'actions', icon: Tent, label: 'Actions' },
