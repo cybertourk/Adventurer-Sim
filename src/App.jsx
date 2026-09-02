@@ -436,18 +436,20 @@ const MorningReport = ({ log, onClose }) => {
 
 const CreationScreen = ({ creationStep, setCreationStep, characterName, setCharacterName, appearance, updateAppearance, equipped, attributes, updateAttribute, pointsAvailable, getStatInfo, startGame }) => {
   return (
-    <div className="h-screen bg-zinc-950 text-zinc-100 font-sans flex flex-col items-center justify-center p-4">
-        <div className="w-full max-w-4xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden h-[85vh]">
-            <div className="w-full md:w-1/3 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-zinc-800 relative">
-                <h2 className="text-xl font-bold mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
-                <div className="w-64 h-64 md:w-72 md:h-72"><CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} activeCompanion={null} companionVariant={null} curseVariant={null} /></div>
+    <div className="h-[100dvh] bg-zinc-950 text-zinc-100 font-sans flex flex-col items-center justify-center p-0 md:p-4 overflow-hidden">
+        <div className="w-full h-full max-w-4xl bg-zinc-900 border border-zinc-700 md:rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden md:h-[85vh]">
+            <div className="w-full md:w-1/3 h-[40vh] md:h-auto bg-gradient-to-b from-zinc-900 to-zinc-950 p-4 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-zinc-800 relative shrink-0">
+                <h2 className="text-xl font-bold mb-2 md:mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
+                <div className="w-full max-w-[240px] md:max-w-[300px] aspect-square flex items-center justify-center">
+                    <CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} activeCompanion={null} companionVariant={null} curseVariant={null} />
+                </div>
             </div>
-            <div className="flex-1 p-6 flex flex-col bg-zinc-900/50">
-                <div className="flex gap-4 mb-6 border-b border-zinc-800">
+            <div className="flex-1 p-4 md:p-6 flex flex-col bg-zinc-900/50 min-h-0">
+                <div className="flex gap-4 mb-4 border-b border-zinc-800 shrink-0">
                     <button onClick={() => setCreationStep(1)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 1 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-500 hover:text-zinc-300'}`}>1. Details</button>
                     <button onClick={() => setCreationStep(2)} className={`pb-2 text-sm font-bold uppercase tracking-wider transition-colors ${creationStep === 2 ? 'text-indigo-400 border-b-2 border-indigo-500' : 'text-zinc-500 hover:text-zinc-300'}`}>2. Attributes</button>
                 </div>
-                <div className="flex-1 overflow-y-auto pr-2 space-y-6">
+                <div className="flex-1 overflow-y-auto pr-2 space-y-5 pb-6">
                     {creationStep === 1 && (
                         <>
                             <div><h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Identity</h3>
@@ -492,7 +494,7 @@ const CreationScreen = ({ creationStep, setCreationStep, characterName, setChara
                         </>
                     )}
                 </div>
-                <div className="mt-6 pt-4 border-t border-zinc-800 flex justify-end">
+                <div className="mt-2 pt-4 border-t border-zinc-800 flex justify-end shrink-0">
                     {creationStep === 1 ? ( <button onClick={() => setCreationStep(2)} className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-wider uppercase text-sm rounded-xl transition-all shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:shadow-[0_0_20px_rgba(99,102,241,0.5)]">Next: Attributes</button> ) : ( <button onClick={startGame} disabled={pointsAvailable > 0 || !characterName.first} className={`px-8 py-3 font-bold tracking-wider uppercase text-sm rounded-xl transition-all ${(pointsAvailable > 0 || !characterName.first) ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700' : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-[0_0_15px_rgba(52,211,153,0.3)] hover:shadow-[0_0_20px_rgba(52,211,153,0.5)]'}`}>Start Adventure</button> )}
                 </div>
             </div>
@@ -646,7 +648,7 @@ const App = () => {
   const modalDetails = activeDetailModal ? getModalDetails(activeDetailModal) : null;
 
   return (
-    <div className="relative w-full h-screen overflow-hidden text-zinc-200 font-sans select-none selection:bg-indigo-500/30">
+    <div className="relative w-full h-[100dvh] overflow-hidden text-zinc-200 font-sans select-none selection:bg-indigo-500/30">
       
       <ResponsiveBackground locationId={location} />
       
@@ -704,60 +706,64 @@ const App = () => {
         ))}
       </div>
 
-      <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 pointer-events-none flex flex-col gap-2">
-        <header className="pointer-events-auto bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/60 rounded-2xl p-3 md:p-4 flex flex-wrap items-center justify-between gap-2 md:gap-4 shadow-[0_10px_30px_rgba(0,0,0,0.6)]">
+      <div className="absolute top-0 left-0 right-0 z-10 p-2 md:p-4 pointer-events-none flex flex-col items-center">
+        <header className="pointer-events-auto bg-zinc-900/90 backdrop-blur-xl border border-zinc-700/60 rounded-xl md:rounded-2xl p-2 md:p-4 flex flex-wrap items-center justify-center gap-3 md:gap-4 shadow-[0_10px_30px_rgba(0,0,0,0.6)] w-fit max-w-[96vw]">
             <div className="flex items-center gap-3 md:gap-5">
-                <div className="flex flex-col pr-3 md:pr-4 border-r border-zinc-700/60 mr-1 md:mr-2">
-                    <span className="text-[10px] md:text-xs font-bold text-zinc-200 leading-tight truncate max-w-[80px] md:max-w-[100px]">{edgyName ? edgyName.first : (characterName.first || 'Unknown')}</span>
-                    <span className="text-[10px] md:text-xs font-bold text-zinc-400 leading-tight truncate max-w-[80px] md:max-w-[100px]">{edgyName ? edgyName.last : (characterName.last || 'Adventurer')}</span>
+                <div className="flex flex-col pr-3 md:pr-4 border-r border-zinc-700/60">
+                    <span className="text-[10px] md:text-xs font-bold text-zinc-200 leading-tight truncate max-w-[70px] md:max-w-[100px]">{edgyName ? edgyName.first : (characterName.first || 'Unknown')}</span>
+                    <span className="text-[10px] md:text-xs font-bold text-zinc-400 leading-tight truncate max-w-[70px] md:max-w-[100px]">{edgyName ? edgyName.last : (characterName.last || 'Adventurer')}</span>
                 </div>
+                
                 <div className="flex flex-col">
                     <span className="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Time</span>
-                    <span className="text-lg md:text-xl font-bold text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">Day {days}</span>
+                    <span className="text-sm md:text-xl font-bold text-indigo-400 drop-shadow-[0_0_8px_rgba(99,102,241,0.5)] whitespace-nowrap">Day {days}</span>
                 </div>
-                <div className="w-px h-6 md:h-8 bg-zinc-700/60 hidden md:block"></div>
-                <div className="flex flex-col">
+                
+                <div className="w-px h-6 md:h-8 bg-zinc-700/60 hidden sm:block"></div>
+                
+                <div className="hidden sm:flex flex-col">
                     <span className="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Location</span>
                     <span className="text-xs md:text-sm font-bold text-zinc-200">{LOCATIONS[location]?.name}</span>
                 </div>
-                <div className="w-px h-6 md:h-8 bg-zinc-700/60 hidden md:block"></div>
-                <div className="flex flex-col">
+
+                <div className="hidden sm:flex flex-col">
                     <span className="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Housing</span>
                     <span className={`text-xs md:text-sm font-bold ${housing === 'homeless' ? 'text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.4)]' : 'text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.4)]'}`}>
                         {housing === 'inn' ? 'Inn Room' : housing === 'estate' ? 'Estate' : 'Homeless'}
                     </span>
                 </div>
+
+                <div className="flex sm:hidden flex-col border-l border-zinc-700/60 pl-3">
+                    <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest truncate max-w-[70px]">{LOCATIONS[location]?.name}</span>
+                    <span className={`text-[10px] font-bold ${housing === 'homeless' ? 'text-amber-500' : 'text-emerald-400'}`}>
+                        {housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Homeless'}
+                    </span>
+                </div>
             </div>
             
-            <div className="flex items-center gap-3 md:gap-6 bg-zinc-950/70 px-3 py-1.5 md:py-2 rounded-xl border border-zinc-800/80 shadow-inner">
-                <div className="flex items-center gap-2">
-                    <div className="p-1 md:p-1.5 bg-amber-500/20 rounded-lg text-amber-400 border border-amber-500/30"><Coins size={14} className="md:w-4 md:h-4" /></div>
-                    <span className="text-base md:text-lg font-mono font-bold text-amber-400 drop-shadow-[0_0_5px_rgba(245,158,11,0.3)]">{resources.gold}g</span>
+            <div className="flex items-center gap-2 md:gap-6 bg-zinc-950/70 px-2 py-1 md:py-2 rounded-lg md:rounded-xl border border-zinc-800/80 shadow-inner">
+                <div className="flex items-center gap-1 md:gap-2">
+                    <div className="p-1 md:p-1.5 bg-amber-500/20 rounded-md md:rounded-lg text-amber-400 border border-amber-500/30"><Coins size={12} className="md:w-4 md:h-4" /></div>
+                    <span className="text-xs md:text-lg font-mono font-bold text-amber-400 drop-shadow-[0_0_5px_rgba(245,158,11,0.3)]">{resources.gold}g</span>
                 </div>
-                <div className="flex items-center gap-2">
-                    <div className="p-1 md:p-1.5 bg-cyan-500/20 rounded-lg text-cyan-400 border border-cyan-500/30"><Activity size={14} className="md:w-4 md:h-4" /></div>
+                <div className="flex items-center gap-1 md:gap-2">
+                    <div className="p-1 md:p-1.5 bg-cyan-500/20 rounded-md md:rounded-lg text-cyan-400 border border-cyan-500/30"><Activity size={12} className="md:w-4 md:h-4" /></div>
                     <div className="flex flex-col">
-                        <span className="text-[10px] md:text-xs font-bold text-cyan-400">Lv {resources.level}</span>
-                        <span className="text-[8px] md:text-[9px] text-cyan-200/50 font-mono">{resources.xp}/{resources.level*100}</span>
+                        <span className="text-[9px] md:text-xs font-bold text-cyan-400 whitespace-nowrap">Lv {resources.level}</span>
+                        <span className="text-[7px] md:text-[9px] text-cyan-200/50 font-mono leading-none">{resources.xp}/{resources.level*100}</span>
                     </div>
                 </div>
             </div>
         </header>
-
-        <div className="md:hidden pointer-events-auto flex flex-col items-center gap-3 max-w-fit mx-auto mt-1">
-            <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-2xl py-1.5 px-2 shadow-[0_5px_15px_rgba(0,0,0,0.5)] flex items-center justify-center gap-1.5">
-                {metersContent}
-            </div>
-        </div>
       </div>
 
-      <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-6 z-20 pointer-events-auto items-start gap-4">
-          <div className="bg-zinc-900/80 backdrop-blur-md border border-zinc-700/50 rounded-3xl p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-3">
+      <div className="absolute top-1/2 -translate-y-1/2 left-2 md:left-6 z-20 pointer-events-none flex items-start">
+          <div className="bg-zinc-900/80 pointer-events-auto backdrop-blur-md border border-zinc-700/50 rounded-2xl md:rounded-3xl p-2 md:p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-2 md:gap-3">
               {metersContent}
           </div>
       </div>
 
-      <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pt-[160px] pb-[100px] md:pt-[100px] md:pb-[40px] pointer-events-none">
+      <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pb-0 md:pb-[4vh] pointer-events-none">
           {isDead && (
              <div className="absolute inset-0 bg-red-950/90 z-40 flex flex-col items-center justify-center backdrop-blur-md pointer-events-auto">
                 <Skull size={72} className="text-red-500 mb-6 animate-bounce drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]" />
@@ -767,17 +773,15 @@ const App = () => {
              </div>
           )}
           
-          <div className="w-full h-full flex items-end justify-center transition-all duration-500">
-             <div className="w-auto h-full max-h-[600px] aspect-square max-w-[95vw]">
-                <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} companionVariant={companionVariant} curseVariant={curseVariant} />
-             </div>
+          <div className="w-full h-[65vh] md:h-[80vh] max-h-[900px] aspect-square flex shrink-0 items-end justify-center transition-all duration-500">
+             <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} companionVariant={companionVariant} curseVariant={curseVariant} />
           </div>
       </div>
 
-      <div className="absolute bottom-6 md:bottom-auto md:top-1/2 left-1/2 md:left-auto md:right-6 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2 z-20 pointer-events-auto">
-          <div className="bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-row md:flex-col gap-2">
+      <div className="absolute top-1/2 -translate-y-1/2 right-2 md:right-6 z-20 pointer-events-none flex items-start">
+          <div className="bg-zinc-900/95 pointer-events-auto backdrop-blur-xl border border-zinc-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-col gap-2">
               {[
-                { id: 'character', icon: User, label: 'Char' },
+                { id: 'character', icon: User, label: 'Char', alert: pointsAvailable > 0 },
                 { id: 'actions', icon: Tent, label: 'Actions' },
                 { id: 'inventory', icon: Backpack, label: 'Bag' },
                 { id: 'shop', icon: Store, label: 'Shop' },
@@ -789,12 +793,14 @@ const App = () => {
                   <button 
                       key={tab.id} 
                       onClick={() => setOpenPanel(isActive ? null : tab.id)} 
-                      className={`flex flex-col items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl transition-all ${
+                      className={`relative flex flex-col items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl transition-all ${
                           isActive 
                               ? 'bg-indigo-600 text-white shadow-[0_0_20px_rgba(99,102,241,0.5)] border border-indigo-400 scale-105' 
                               : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 border border-transparent'
                       }`}
                   >
+                      {tab.alert && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping shadow-[0_0_8px_rgba(52,211,153,0.8)]" />}
+                      {tab.alert && <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(52,211,153,0.8)]" />}
                       <Icon size={isActive ? 24 : 20} className="mb-1" />
                       <span className="text-[9px] md:text-[10px] font-bold tracking-widest uppercase">{tab.label}</span>
                   </button>
@@ -804,13 +810,13 @@ const App = () => {
       </div>
 
       {openPanel && (
-          <div className="absolute inset-0 z-30 pointer-events-none flex justify-center items-end sm:items-center p-2 sm:p-6 pb-28 sm:pb-6">
+          <div className="absolute inset-0 z-30 pointer-events-none flex justify-center items-center p-2 sm:p-6 pb-6">
               
               <div className="absolute inset-0 bg-zinc-950/70 pointer-events-auto backdrop-blur-md transition-opacity" onClick={() => setOpenPanel(null)} />
               
-              <div className="pointer-events-auto relative bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/80 rounded-3xl sm:rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] w-full max-w-2xl max-h-[75vh] flex flex-col overflow-hidden animate-in slide-in-from-bottom-8 fade-in duration-300">
+              <div className="pointer-events-auto relative bg-zinc-900/95 backdrop-blur-xl border border-zinc-700/80 rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.8)] w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in zoom-in-95 fade-in duration-200">
                  
-                 <div className="flex justify-between items-center p-4 sm:p-5 border-b border-zinc-700/80 bg-zinc-950/60 shadow-sm">
+                 <div className="flex justify-between items-center p-4 sm:p-5 border-b border-zinc-700/80 bg-zinc-950/60 shadow-sm shrink-0">
                      <h2 className="font-bold uppercase tracking-widest text-indigo-400 flex items-center gap-3 text-lg drop-shadow-[0_0_5px_rgba(99,102,241,0.4)]">
                          {openPanel === 'character' && <User size={20}/>}
                          {openPanel === 'actions' && <Tent size={20}/>}
