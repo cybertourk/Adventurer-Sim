@@ -752,7 +752,7 @@ const App = () => {
                 <div className="flex sm:hidden flex-col border-l border-zinc-700/60 pl-3">
                     <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest truncate max-w-[70px]">{LOCATIONS[location]?.name}</span>
                     <span className={`text-[10px] font-bold ${housing === 'homeless' ? 'text-amber-500' : 'text-emerald-400'}`}>
-                        {housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Homeless'}
+                        {housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Homeless'}
                     </span>
                 </div>
             </div>
@@ -779,7 +779,7 @@ const App = () => {
           </div>
       </div>
 
-      <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pb-0 pointer-events-none">
+      <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pb-[2vh] pointer-events-none">
           {isDead && (
              <div className="absolute inset-0 bg-red-950/90 z-40 flex flex-col items-center justify-center backdrop-blur-md pointer-events-auto">
                 <Skull size={72} className="text-red-500 mb-6 animate-bounce drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]" />
@@ -789,7 +789,7 @@ const App = () => {
              </div>
           )}
           
-          <div className="h-[60vh] w-[60vh] md:h-[85vh] md:w-[85vh] max-h-[900px] max-w-[900px] flex shrink-0 items-end justify-center transition-all duration-500 translate-y-[4vh] md:translate-y-[6vh]">
+          <div className="h-[60vh] w-[60vh] md:h-[85vh] md:w-[85vh] max-h-[900px] max-w-[900px] flex shrink-0 items-end justify-center transition-all duration-500">
              <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} companionVariant={companionVariant} curseVariant={curseVariant} />
           </div>
       </div>
