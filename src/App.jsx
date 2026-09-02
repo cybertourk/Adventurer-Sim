@@ -146,7 +146,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       
       hair_short_male_black: `${baseUrl}hair_short_black.png`,
       hair_short_male_blonde: `${baseUrl}hair_short_blonde.png`,
-      hair_short_male_brown: `${baseUrl}hair_short_brown.png`,
+      hair_short_brown: `${baseUrl}hair_short_brown.png`,
       hair_short_male_grey: `${baseUrl}hair_short_grey.png`,
       hair_short_male_red: `${baseUrl}hair_short_red.png`,
       hair_short_male_white: `${baseUrl}hair_short_white.png`,
@@ -336,7 +336,16 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
           if (activeCurse === 'dungeon_dye_job') {
               drawLayer(`curse_dye${curseVariant || 1}_${renderGender}`);
           } else if (appearance.hairStyle !== 'bald') {
-              drawLayer(`hair_${appearance.hairStyle}_${renderGender}_${appearance.hairColor}`);
+              let hairStr = `hair_${appearance.hairStyle}_${appearance.hairColor}`;
+              if (appearance.hairStyle === 'long' && renderGender === 'female') {
+                  hairStr = `hair_long_female_${appearance.hairColor}`;
+              } else if (appearance.hairStyle === 'short' && renderGender === 'female') {
+                  hairStr = `hair_short_female_${appearance.hairColor}`;
+              } else if (appearance.hairStyle === 'long' && renderGender === 'male') {
+                  hairStr = `hair_long_male_${appearance.hairColor}`;
+              }
+              // short male hair has no _male tag
+              drawLayer(hairStr);
           }
       }
 
@@ -447,7 +456,7 @@ const CreationScreen = ({ creationStep, setCreationStep, characterName, setChara
         <div className="w-full h-full max-w-4xl bg-zinc-900 border border-zinc-700 md:rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex flex-col md:flex-row overflow-hidden md:h-[85vh]">
             <div className="w-full md:w-1/3 h-[40vh] md:h-auto bg-gradient-to-b from-zinc-900 to-zinc-950 p-4 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-zinc-800 relative shrink-0">
                 <h2 className="text-xl font-bold mb-2 md:mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
-                <div className="w-full max-w-[240px] md:max-w-[300px] aspect-square flex items-center justify-center">
+                <div className="w-[100vw] h-[100vw] max-w-[280px] max-h-[280px] md:max-w-[350px] md:max-h-[350px] aspect-square flex items-center justify-center">
                     <CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} activeCompanion={null} companionVariant={null} curseVariant={null} />
                 </div>
             </div>
@@ -743,7 +752,7 @@ const App = () => {
                 <div className="flex sm:hidden flex-col border-l border-zinc-700/60 pl-3">
                     <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest truncate max-w-[70px]">{LOCATIONS[location]?.name}</span>
                     <span className={`text-[10px] font-bold ${housing === 'homeless' ? 'text-amber-500' : 'text-emerald-400'}`}>
-                        {housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Homeless'}
+                        {housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Homeless'}
                     </span>
                 </div>
             </div>
@@ -770,7 +779,7 @@ const App = () => {
           </div>
       </div>
 
-      <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pb-[6vh] md:pb-[4vh] pointer-events-none">
+      <div className="absolute inset-0 z-0 flex flex-col items-center justify-end pb-0 pointer-events-none">
           {isDead && (
              <div className="absolute inset-0 bg-red-950/90 z-40 flex flex-col items-center justify-center backdrop-blur-md pointer-events-auto">
                 <Skull size={72} className="text-red-500 mb-6 animate-bounce drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]" />
@@ -780,7 +789,7 @@ const App = () => {
              </div>
           )}
           
-          <div className="h-[60vh] w-[60vh] md:h-[85vh] md:w-[85vh] max-h-[900px] max-w-[900px] flex shrink-0 items-end justify-center transition-all duration-500">
+          <div className="h-[60vh] w-[60vh] md:h-[85vh] md:w-[85vh] max-h-[900px] max-w-[900px] flex shrink-0 items-end justify-center transition-all duration-500 translate-y-[4vh] md:translate-y-[6vh]">
              <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} companionVariant={companionVariant} curseVariant={curseVariant} />
           </div>
       </div>
