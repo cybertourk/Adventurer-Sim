@@ -46,13 +46,23 @@ const AttributeBlock = ({ label, value, onClick, onPlus }) => (
     </div>
 );
 
-const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onClick, disabled, description, effects }) => {
+const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onClick, disabled, description, effects, successRate }) => {
   const Icon = IconMap[IconName] || HelpCircle;
   return (
     <button onClick={onClick} disabled={disabled} className={`flex items-center gap-3 p-3 w-full rounded-lg border text-left transition-all relative overflow-hidden group ${disabled ? 'bg-zinc-900/80 border-zinc-800 text-zinc-600 cursor-not-allowed opacity-70' : 'bg-zinc-800/90 border-zinc-600 text-zinc-200 hover:bg-indigo-950/50 hover:border-indigo-500 hover:shadow-[0_0_15px_rgba(99,102,241,0.2)]'}`}>
       <div className={`p-2 rounded-md ${disabled ? 'bg-zinc-800' : 'bg-zinc-950 group-hover:text-indigo-400'}`}><Icon size={18} /></div>
       <div className="flex flex-col flex-1 min-w-0">
-        <div className="flex justify-between items-center mb-0.5"><span className="font-bold text-xs truncate">{label}</span>{days > 0 && <span className="text-[9px] text-zinc-400 flex items-center gap-0.5"><Clock size={10}/> {days}d</span>}</div>
+        <div className="flex justify-between items-center mb-0.5">
+            <span className="font-bold text-xs truncate">{label}</span>
+            <div className="flex items-center gap-2">
+                {successRate !== undefined && successRate !== null && (
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${successRate >= 80 ? 'bg-emerald-900/30 text-emerald-400 border-emerald-900/50' : successRate >= 50 ? 'bg-amber-900/30 text-amber-400 border-amber-900/50' : 'bg-red-900/30 text-red-400 border-red-900/50'}`}>
+                        {successRate}% Success
+                    </span>
+                )}
+                {days > 0 && <span className="text-[9px] text-zinc-400 flex items-center gap-0.5"><Clock size={10}/> {days}d</span>}
+            </div>
+        </div>
         <span className="text-[10px] text-zinc-500 truncate leading-tight">{description}</span>{effects && renderEffectsList(effects)}
       </div>
       {cost > 0 && <div className={`text-[10px] font-mono px-2 py-1 rounded ml-2 ${disabled ? 'bg-zinc-800' : 'bg-black/60'} ${costType === 'gp' ? 'text-amber-500' : 'text-cyan-500'}`}>-{cost}{costType}</div>}
@@ -519,6 +529,15 @@ const CreationScreen = ({ creationStep, setCreationStep, characterName, setChara
   );
 };
 
+const getTierPenalty = (tier) => {
+    if (tier === 1) return 0;
+    if (tier === 2) return 15;
+    if (tier === 3) return 30;
+    if (tier === 4) return 50;
+    if (tier === 5) return 75;
+    return 0;
+};
+
 const App = () => {
   const {
     gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute,
@@ -610,6 +629,36 @@ const App = () => {
       }
 
       return details;
+  };
+  
+  const getSuccessRate = (action) => {
+      if (!['labor', 'adventure', 'social', 'magic'].includes(action.type)) return null;
+      
+      const { str, dex, con, int, cha, ac } = currentStats;
+      const stress = stats.stress;
+      const tierPenalty = getTierPenalty(action.questTier || 1);
+      
+      let failChance = 0;
+      if (action.type === 'labor') failChance = (40 + tierPenalty) - (str + con) + (stress * 0.2);
+      else if (action.type === 'adventure') failChance = (60 + tierPenalty) - (str + dex + ac) + (stress * 0.2);
+      else if (action.type === 'social') failChance = (40 + tierPenalty) - (cha * 2) + (stress * 0.2);
+      else if (action.type === 'magic') failChance = (40 + tierPenalty) - (int * 2) + (stress * 0.2);
+
+      failChance = failChance / 100;
+      if (activeCompanion === 'pet_rock') failChance += 0.05;
+      if (activeCurse === 'butterfingers' && action.type === 'adventure') failChance += 0.10;
+      
+      failChance = Math.max(0.05, Math.min(0.95, failChance));
+      return Math.floor((1 - failChance) * 100);
+  };
+  
+  const currentLoc = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : 'village_road';
+  const isMaintenanceDisabled = (action) => {
+      if (isDead) return true;
+      if (action.cost > 0 && resources.gold < action.cost) return true;
+      if (action.id === 'shitfaced' && shitfacedToday) return true;
+      if (action.reqLocation && action.reqLocation !== 'any' && action.reqLocation !== currentLoc) return true;
+      return false;
   };
 
   if (!gameStarted) {
@@ -919,7 +968,7 @@ const App = () => {
                                         key={action.id} 
                                         {...action} 
                                         onClick={() => performAction(action)} 
-                                        disabled={isDead || (action.cost > 0 && resources.gold < action.cost) || (action.id === 'drink_water' && housing === 'homeless') || (action.id === 'shitfaced' && shitfacedToday)} 
+                                        disabled={isMaintenanceDisabled(action)} 
                                     />
                                  ))}
                                  {housing === 'homeless' ? (
@@ -934,7 +983,7 @@ const App = () => {
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Hammer size={14} className="text-amber-500"/> Labor (STR/CON)</h3>
                                   <div className="grid grid-cols-1 gap-3">
-                                      {dailyQuests.labor.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
+                                      {dailyQuests.labor.map(q => <ActionButton key={q.id} {...q} successRate={getSuccessRate(q)} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
                               </div>
                            )}
@@ -943,7 +992,7 @@ const App = () => {
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Shield size={14} className="text-indigo-400"/> Adventure (STR/DEX/AC)</h3>
                                   <div className="grid grid-cols-1 gap-3">
-                                      {dailyQuests.adventure.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead || activeCurse === 'pacifism'} />)}
+                                      {dailyQuests.adventure.map(q => <ActionButton key={q.id} {...q} successRate={getSuccessRate(q)} onClick={() => performAction(q)} disabled={isDead || activeCurse === 'pacifism'} />)}
                                   </div>
                               </div>
                            )}
@@ -952,7 +1001,7 @@ const App = () => {
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><User size={14} className="text-emerald-400"/> Social (CHA)</h3>
                                   <div className="grid grid-cols-1 gap-3">
-                                      {dailyQuests.social.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
+                                      {dailyQuests.social.map(q => <ActionButton key={q.id} {...q} successRate={getSuccessRate(q)} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
                               </div>
                            )}
@@ -961,7 +1010,7 @@ const App = () => {
                               <div>
                                   <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1"><Zap size={14} className="text-cyan-400"/> Magic (INT)</h3>
                                   <div className="grid grid-cols-1 gap-3">
-                                      {dailyQuests.magic.map(q => <ActionButton key={q.id} {...q} onClick={() => performAction(q)} disabled={isDead} />)}
+                                      {dailyQuests.magic.map(q => <ActionButton key={q.id} {...q} successRate={getSuccessRate(q)} onClick={() => performAction(q)} disabled={isDead} />)}
                                   </div>
                               </div>
                            )}
