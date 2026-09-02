@@ -530,7 +530,7 @@ const App = () => {
 
   const [openPanel, setOpenPanel] = useState(null);
   const [showMorningReport, setShowMorningReport] = useState(false);
-  const [activeDetailModal, useState] = useState(null);
+  const [activeDetailModal, setActiveDetailModal] = useState(null);
   const [inventoryTab, setInventoryTab] = useState('All');
   const [shopTab, setShopTab] = useState('All');
 
