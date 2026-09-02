@@ -61,6 +61,9 @@ export const useGameLogic = () => {
   const [isDead, setIsDead] = useState(false);
   const [dailyLogs, setDailyLogs] = useState([]); 
 
+  const [stagedAction, setStagedAction] = useState(null);
+  const [rollState, setRollState] = useState({ isRolling: false, result: null, isSuccess: false });
+
   const calculateMaxStats = (level, con) => ({ health: 10 + (level * 10) + (con * 2), mood: MAX_STAT, hunger: MAX_STAT, thirst: MAX_STAT, stress: MAX_STAT });
   const getModifier = (val) => Math.floor((val - 10) / 2);
 
@@ -86,7 +89,6 @@ export const useGameLogic = () => {
         Object.entries(quirk.effects.stats).forEach(([stat, val]) => { if (total[stat] !== undefined) total[stat] += val; });
     }
     
-    // Cap stats to 20 dynamically based on v3 rules
     Object.keys(total).forEach(k => {
         if (['str','dex','con','int','cha'].includes(k)) total[k] = Math.min(20, total[k]);
     });
@@ -145,7 +147,6 @@ export const useGameLogic = () => {
     };
 
     const nextTier = currentTier + 1;
-    // 25% chance to feature ONE higher tier quest (capped at 5)
     if (Math.random() < 0.25 && nextTier <= 5) {
        const cat = Math.random();
        if (cat < 0.25 && JOB_DB[`tier${nextTier}`]) quests.labor.push(...selectRandom(JOB_DB[`tier${nextTier}`].map(q => ({...q, questTier: nextTier})), 1));
@@ -221,6 +222,36 @@ export const useGameLogic = () => {
       }));
   }, [characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday]);
 
+  const calculateOdds = (action) => {
+      if (!['labor', 'adventure', 'social', 'magic'].includes(action.type)) return null;
+      const { str, dex, con, int, cha, ac } = currentStats;
+      const stress = stats.stress;
+      const tierPenalty = getTierPenalty(action.questTier || 1);
+      
+      let baseFail = action.type === 'adventure' ? 60 : 40;
+      let attrSum = 0;
+      
+      if (action.type === 'labor') attrSum = str + con;
+      else if (action.type === 'adventure') attrSum = str + dex + ac;
+      else if (action.type === 'social') attrSum = cha * 2;
+      else if (action.type === 'magic') attrSum = int * 2;
+
+      let stressPen = Math.floor(stress * 0.2);
+      let compPen = activeCompanion === 'pet_rock' ? 5 : 0;
+      let cursePen = (activeCurse === 'butterfingers' && action.type === 'adventure') ? 10 : 0;
+
+      let rawFailChance = (baseFail + tierPenalty) - attrSum + stressPen + compPen + cursePen;
+      let clampedFail = Math.max(5, Math.min(95, rawFailChance));
+      
+      return {
+          baseSuccess: 100 - (baseFail + tierPenalty),
+          attrBonus: attrSum,
+          stressPenalty: -stressPen,
+          miscPenalty: -(compPen + cursePen),
+          finalSuccessRate: Math.floor(100 - clampedFail)
+      };
+  };
+
   const passTime = (daysPassed, skipDecay = false) => {
       let rentMsg = "No rent paid (Homeless).";
       let changes = [];
@@ -236,11 +267,8 @@ export const useGameLogic = () => {
       if (currentCurse === 'dungeon_dye_job') {
           let nextDays = (curseTracker.days || 0) + daysPassed;
           if (nextDays >= 5) {
-              currentCurse = null;
-              setActiveCurse(null);
-              setCurseVariant(null);
-              changes.push("Hair returned to normal");
-              nextDays = 0;
+              currentCurse = null; setActiveCurse(null); setCurseVariant(null);
+              changes.push("Hair returned to normal"); nextDays = 0;
           }
           setCurseTracker(prev => ({ ...prev, days: nextDays }));
       }
@@ -251,8 +279,7 @@ export const useGameLogic = () => {
           if (currentEdgy && currentEdgy.daysLeft > 0) {
               currentEdgy.daysLeft -= 1;
               if (currentEdgy.daysLeft <= 0) {
-                  currentEdgy = null;
-                  changes.push("Reverted name");
+                  currentEdgy = null; changes.push("Reverted name");
               }
           }
 
@@ -293,7 +320,6 @@ export const useGameLogic = () => {
               newStats.thirst += (mod.thirst || 0); 
           }
 
-          // Survival Auto-Consume Logic
           let survivalChanges = [];
           while ((newStats.hunger >= 100 || newStats.thirst >= 100) && currentInventory.length > 0) {
               const viableIdx = currentInventory.findIndex(invItem => {
@@ -324,10 +350,8 @@ export const useGameLogic = () => {
           if (survivalChanges.length > 0) changes.push(...survivalChanges);
 
           if (newStats.health <= 0 || newStats.hunger >= 100 || newStats.thirst >= 100) {
-              setIsDead(true);
-              addMessage("Your adventurer has perished!", "error");
-              changes.push("DIED");
-              break;
+              setIsDead(true); addMessage("Your adventurer has perished!", "error");
+              changes.push("DIED"); break;
           }
           
           if (currentLocId === 'estate' && currentCurse === 'butterfingers') {
@@ -388,13 +412,10 @@ export const useGameLogic = () => {
 
               if (fx.applyCompanion) {
                   setActiveCompanion(fx.applyCompanion);
-                  
                   if (fx.applyCompanion === 'spouse') {
-                      const isMale = Math.random() < 0.5;
-                      const variantNum = Math.floor(Math.random() * 3) + 1;
-                      const nameString = isMale ? "Jared? Jerald? Jimmy? He" : "Janet? Jenet? Jenny? She";
+                      const isMale = Math.random() < 0.5; const variantNum = Math.floor(Math.random() * 3) + 1;
                       const pron = isMale ? "his" : "her";
-                      incidentMsg = `Went to bed drunk and single, woke up hungover and married to......${nameString} hasn't stopped nagging me to get a job so I can ask ${pron} name again.`;
+                      incidentMsg = `Went to bed drunk and single, woke up hungover and married. Hasn't stopped nagging me to get a job so I can ask ${pron} name again.`;
                       setCompanionVariant(`${isMale ? 'male' : 'female'}_${variantNum}`);
                   } else if (fx.applyCompanion === 'groupie') {
                       incidentMsg = "Woke up to the sound of a horribly out-of-tune lute. A 'fan' is following me everywhere and won't shut up about how great I am.";
@@ -407,14 +428,10 @@ export const useGameLogic = () => {
                   }
               }
               if (fx.applyCurse) {
-                  currentCurse = fx.applyCurse;
-                  setActiveCurse(fx.applyCurse);
-                  
+                  currentCurse = fx.applyCurse; setActiveCurse(fx.applyCurse);
                   if (fx.applyCurse === 'blacklist') {
                       incidentMsg = "The barkeep threw me out and permanently banned me. Apparently, tables aren't meant to be body-slammed.";
-                      if (housing === 'inn') {
-                          setHousing('homeless'); setRentActive(false); changes.push("Evicted from Inn");
-                      }
+                      if (housing === 'inn') { setHousing('homeless'); setRentActive(false); changes.push("Evicted from Inn"); }
                   } else if (fx.applyCurse === 'cult_member') {
                       incidentMsg = "Some nice people in robes told me all my problems are my own fault, but they can fix them for 10g a day. I feel so enlightened!";
                       setCurseVariant(Math.floor(Math.random() * 2) + 1);
@@ -466,8 +483,7 @@ export const useGameLogic = () => {
 
       if (quirk && quirk.id === 'shiny_syndrome' && Math.random() < (quirk.effects.junkChance || 0)) { 
           setInventory(prev => [...prev, { instanceId: `loot_${generateId()}`, itemId: 'shiny_trash', displayName: 'Shiny Trash' }]);
-          incidentMsg += " Also... found some shiny trash."; 
-          changes.push("+Shiny Trash"); 
+          incidentMsg += " Also... found some shiny trash."; changes.push("+Shiny Trash"); 
       }
 
       setEdgyName(currentEdgy);
@@ -490,10 +506,7 @@ export const useGameLogic = () => {
 
     if (action.reqLocation && action.reqLocation !== 'any') {
         const currentLoc = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : 'village_road';
-        if (action.reqLocation !== currentLoc) {
-            addMessage(`Requires Location: ${LOCATIONS[action.reqLocation]?.name || action.reqLocation}`, "error");
-            return;
-        }
+        if (action.reqLocation !== currentLoc) { addMessage(`Requires Location: ${LOCATIONS[action.reqLocation]?.name || action.reqLocation}`, "error"); return; }
     }
 
     if (action.id === 'shitfaced') {
@@ -501,6 +514,34 @@ export const useGameLogic = () => {
         setShitfacedToday(true);
     }
 
+    if (['labor', 'adventure', 'social', 'magic'].includes(action.type)) {
+        setStagedAction(action);
+        setRollState({ isRolling: false, result: null, isSuccess: false });
+    } else {
+        executeAction(action, true);
+    }
+  };
+
+  const executeRoll = () => {
+      setRollState({ isRolling: true, result: null, isSuccess: false });
+      const odds = calculateOdds(stagedAction);
+      const roll = Math.floor(Math.random() * 100) + 1;
+      const isSuccess = roll <= odds.finalSuccessRate;
+      
+      setTimeout(() => {
+          setRollState({ isRolling: false, result: roll, isSuccess });
+      }, 1200); 
+  };
+
+  const finalizeAction = () => {
+      const actionToExecute = stagedAction;
+      const success = rollState.isSuccess;
+      setStagedAction(null);
+      setRollState({ isRolling: false, result: null, isSuccess: false });
+      executeAction(actionToExecute, success);
+  };
+
+  const executeAction = (action, isSuccess) => {
     let changes = [];
 
     if (action.id === 'rent_start') {
@@ -522,23 +563,6 @@ export const useGameLogic = () => {
 
     if (cost > 0 && action.costType === 'gp') { setResources(prev => ({ ...prev, gold: prev.gold - cost })); changes.push(`-${cost} Gold`); }
     if (action.days > 0) passTime(action.days, action.type !== 'maintenance' && action.type !== 'housing');
-    
-    let isSuccess = true; let failChance = 0;
-    const { str, dex, con, int, cha } = currentStats; const ac = currentStats.ac; const stress = stats.stress;
-    
-    const tierPenalty = getTierPenalty(action.questTier || 1);
-
-    if (action.type === 'labor') failChance = (40 + tierPenalty) - (str + con) + (stress * 0.2);
-    else if (action.type === 'adventure') failChance = (60 + tierPenalty) - (str + dex + ac) + (stress * 0.2);
-    else if (action.type === 'social') failChance = (40 + tierPenalty) - (cha * 2) + (stress * 0.2);
-    else if (action.type === 'magic') failChance = (40 + tierPenalty) - (int * 2) + (stress * 0.2);
-
-    failChance = failChance / 100;
-    if (activeCompanion === 'pet_rock') failChance += 0.05;
-    if (activeCurse === 'butterfingers' && action.type === 'adventure') failChance += 0.10;
-    
-    failChance = Math.max(0.05, Math.min(0.95, failChance));
-    if (['labor', 'adventure', 'social', 'magic'].includes(action.type)) { if (Math.random() < failChance) isSuccess = false; }
 
     if (isSuccess) {
         let moodGain = action.effects?.mood || 0; if (quirk && quirk.id === 'drama_queen' && moodGain > 0) moodGain *= (quirk.effects.moodMultiplier || 1);
@@ -547,25 +571,18 @@ export const useGameLogic = () => {
         setStats(prev => ({ health: Math.max(0, Math.min(maxStats.health, prev.health + healthGain)), mood: Math.max(0, Math.min(maxStats.mood, prev.mood + moodGain)), hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + hungerGain)), thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + thirstGain)), stress: Math.max(0, Math.min(maxStats.stress, prev.stress + stressGain)) }));
         if(healthGain !== 0) changes.push(`${healthGain > 0 ? '+' : ''}${healthGain} Health`); if(moodGain !== 0) changes.push(`${moodGain > 0 ? '+' : ''}${moodGain} Mood`); if(hungerGain !== 0) changes.push(`${hungerGain > 0 ? '+' : ''}${hungerGain} Hunger`); if(thirstGain !== 0) changes.push(`${thirstGain > 0 ? '+' : ''}${thirstGain} Thirst`); if(stressGain !== 0) changes.push(`${stressGain > 0 ? '+' : ''}${stressGain} Stress`);
 
-        if (action.id === 'shitfaced' && activeCurse === 'butterfingers') {
-            setActiveCurse(null);
-            changes.push("Slime washed off");
-        }
+        if (action.id === 'shitfaced' && activeCurse === 'butterfingers') { setActiveCurse(null); changes.push("Slime washed off"); }
 
         let logText = action.message || "Completed action."; let lootText = "";
 
         if (action.id.startsWith('remove_')) {
-            let nextComp = activeCompanion;
-            let nextCur = activeCurse;
-            if (activeCompanion && COMPANIONS[activeCompanion].removal?.id === action.id) {
-                setActiveCompanion(null); setCompanionVariant(null); nextComp = null;
-            }
+            let nextComp = activeCompanion; let nextCur = activeCurse;
+            if (activeCompanion && COMPANIONS[activeCompanion].removal?.id === action.id) { setActiveCompanion(null); setCompanionVariant(null); nextComp = null; }
             if (activeCurse && CURSES[activeCurse].removal?.id === action.id) {
                  if (activeCurse === 'cult_member') setEquipped(prev => ({ ...prev, body: 'inst_tunic' }));
                  setActiveCurse(null); setCurseVariant(null); nextCur = null;
             }
-            logText = action.message;
-            setDailyQuests(generateDailyQuests(resources.level, nextComp, nextCur));
+            logText = action.message; setDailyQuests(generateDailyQuests(resources.level, nextComp, nextCur));
         }
 
         if (action.effects && action.effects.xp) {
@@ -581,20 +598,14 @@ export const useGameLogic = () => {
         }
         
         if (action.type === 'adventure') { 
-           const r = Math.random();
-           let foundItem = null;
+           const r = Math.random(); let foundItem = null;
            const findableItems = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].filter(i => i.cost > 0);
            const consumables = ITEM_DB.supplies.filter(i => i.cost > 0 && i.id !== 'shiny_trash');
 
-           if (r < 0.05) {
-               foundItem = rollTieredItems(findableItems, 1)[0];
-           } else if (r < 0.20) {
-               foundItem = rollTieredItems(findableItems, 1)[0];
-           } else if (r < 0.45) {
-               foundItem = rollTieredItems(findableItems, 1)[0];
-           } else if (r < 0.65) {
-               foundItem = consumables[Math.floor(Math.random() * consumables.length)];
-           }
+           if (r < 0.05) foundItem = rollTieredItems(findableItems, 1)[0];
+           else if (r < 0.20) foundItem = rollTieredItems(findableItems, 1)[0];
+           else if (r < 0.45) foundItem = rollTieredItems(findableItems, 1)[0];
+           else if (r < 0.65) foundItem = consumables[Math.floor(Math.random() * consumables.length)];
 
            if (foundItem) {
              let displayName = foundItem.name;
@@ -626,7 +637,6 @@ export const useGameLogic = () => {
         addMessage(failMsg, "error"); 
         addToLog({ type: 'action', day: days, title: action.label, text: failMsg, status: 'Failed', changes: changes.length > 0 ? `Changes: ${changes.join(", ")}` : "" });
     }
-    if (action.days > 0) refreshShop(); 
   };
 
   const revive = () => {
@@ -642,21 +652,12 @@ export const useGameLogic = () => {
         setInventory(prev => [...prev, { instanceId: `inv_${generateId()}`, itemId: item.id, displayName: item.displayName }]); 
         addMessage(`Purchased ${item.displayName}`, 'success'); 
         addToLog({ type: 'action', day: days, title: 'Shop', text: `Bought ${item.displayName}.`, status: 'Success', changes: `Changes: -${cost} Gold, +${item.displayName}` }); 
-    } else { 
-        addMessage("Not enough gold!", 'error'); 
-    }
+    } else { addMessage("Not enough gold!", 'error'); }
   };
 
   const sellItem = (item) => {
-    if (['food', 'drink', 'potion'].includes(item.type)) {
-        addMessage("Cannot sell consumables back.", "error");
-        return;
-    }
-    
-    let sellValue = Math.floor(item.cost / 2);
-    if (item.id === 'shiny_trash') {
-        sellValue = Math.floor(Math.random() * 4) + 1;
-    }
+    if (['food', 'drink', 'potion'].includes(item.type)) { addMessage("Cannot sell consumables back.", "error"); return; }
+    let sellValue = Math.floor(item.cost / 2); if (item.id === 'shiny_trash') { sellValue = Math.floor(Math.random() * 4) + 1; }
     
     setResources(prev => ({ ...prev, gold: prev.gold + sellValue })); 
     setInventory(prev => prev.filter(i => i.instanceId !== item.instanceId)); 
@@ -672,22 +673,12 @@ export const useGameLogic = () => {
   const consumeItem = (item) => {
       setInventory(prev => prev.filter(i => i.instanceId !== item.instanceId)); 
       const effects = item.effects || {};
-      let hungerRec = effects.hunger || 0;
-      let moodRec = effects.mood || 0;
-      let stressRec = effects.stress || 0;
+      let hungerRec = effects.hunger || 0; let moodRec = effects.mood || 0; let stressRec = effects.stress || 0;
       
       if (activeCompanion === 'mimic' && hungerRec < 0) hungerRec = Math.floor(hungerRec * 0.5);
-      if (effects.random_mood_stress) {
-          if (Math.random() < 0.5) moodRec = effects.random_mood_stress;
-          else stressRec = effects.random_mood_stress;
-      }
-      
+      if (effects.random_mood_stress) { if (Math.random() < 0.5) moodRec = effects.random_mood_stress; else stressRec = effects.random_mood_stress; }
       if (activeCurse === 'pacifism' && item.type === 'drink') {
-          setCurseTracker(prev => {
-              const next = { ...prev, ales: prev.ales + 1 };
-              if (next.ales >= 3) { setActiveCurse(null); addMessage("Pacifism cured by alcohol!", "success"); }
-              return next;
-          });
+          setCurseTracker(prev => { const next = { ...prev, ales: prev.ales + 1 }; if (next.ales >= 3) { setActiveCurse(null); addMessage("Pacifism cured by alcohol!", "success"); } return next; });
       }
 
       setStats(prev => ({ health: Math.max(0, Math.min(maxStats.health, prev.health + (effects.health || 0))), mood: Math.max(0, Math.min(maxStats.mood, prev.mood + moodRec)), hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + hungerRec)), thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + (effects.thirst || 0))), stress: Math.max(0, Math.min(maxStats.stress, prev.stress + stressRec)) }));
@@ -696,15 +687,13 @@ export const useGameLogic = () => {
       changes.push(`-${item.displayName}`); addToLog({ type: 'action', day: days, title: 'Inventory', text: `Ate/Drank ${item.displayName}.`, status: 'Success', changes: `Changes: ${changes.join(", ")}` });
   };
 
-  const updateAppearance = (key, value) => {
-      setAppearance(prev => ({ ...prev, [key]: value }));
-  };
+  const updateAppearance = (key, value) => setAppearance(prev => ({ ...prev, [key]: value }));
 
   const updateAttribute = (attr, delta) => {
       const pointsSpent = Object.values(attributes).reduce((a, b) => a + b, 0) - 50; 
       const maxPts = 10 + Math.floor(resources.level / 2);
       if ((delta > 0 && pointsSpent >= maxPts) || (delta < 0 && attributes[attr] <= 10)) return;
-      if (delta > 0 && attributes[attr] >= 20) return; // Cap at 20 natively
+      if (delta > 0 && attributes[attr] >= 20) return;
       setAttributes(prev => ({ ...prev, [attr]: prev[attr] + delta }));
   };
 
@@ -720,6 +709,7 @@ export const useGameLogic = () => {
   return {
     gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages, isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk,
-    activeCompanion, companionVariant, activeCurse, curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable
+    activeCompanion, companionVariant, activeCurse, curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction
   };
 };
