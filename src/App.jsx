@@ -92,7 +92,7 @@ const ResponsiveBackground = ({ locationId }) => {
     return (
         <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden bg-[#09090b]">
             <div 
-                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-full min-w-[1920px] min-h-[1080px]"
+                className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full h-full min-w-[1440px] min-h-[810px] md:min-w-[1920px] md:min-h-[1080px]"
                 style={{
                     backgroundImage: `url('${bgImage}')`,
                     backgroundSize: 'cover',
@@ -789,13 +789,13 @@ const App = () => {
              </div>
           )}
           
-          <div className="h-[60vh] w-[60vh] md:h-[85vh] md:w-[85vh] max-h-[900px] max-w-[900px] flex shrink-0 items-end justify-center transition-all duration-500">
+          <div className="h-[45vh] w-[45vh] md:h-[85vh] md:w-[85vh] max-h-[900px] max-w-[900px] flex shrink-0 items-end justify-center transition-all duration-500">
              <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} companionVariant={companionVariant} curseVariant={curseVariant} />
           </div>
       </div>
 
-      <div className="absolute bottom-6 md:bottom-auto md:top-1/2 left-1/2 md:left-auto md:right-6 -translate-x-1/2 md:translate-x-0 md:-translate-y-1/2 z-20 pointer-events-auto">
-          <div className="bg-zinc-900/95 pointer-events-auto backdrop-blur-xl border border-zinc-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-row md:flex-col gap-2">
+      <div className="absolute top-1/2 right-2 md:right-6 -translate-y-1/2 z-20 pointer-events-auto">
+          <div className="bg-zinc-900/95 pointer-events-auto backdrop-blur-xl border border-zinc-700/60 p-2 md:p-3 rounded-2xl md:rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.7)] flex flex-col gap-2">
               {[
                 { id: 'character', icon: User, label: 'Char', alert: pointsAvailable > 0 },
                 { id: 'actions', icon: Tent, label: 'Actions' },
