@@ -11,17 +11,22 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install and Build 🔧
-        # We use npm install because you don't have a package-lock.json yet
-        run: |
-          npm install
-          npm run build
-
-      - name: Deploy 🚀
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          folder: dist
-          branch: gh-pages
+          node-version: 24
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Project
+        run: CI=false npm run build
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
