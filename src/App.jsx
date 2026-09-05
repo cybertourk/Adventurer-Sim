@@ -24,6 +24,26 @@ const renderEffectsList = (effects) => {
     );
 };
 
+const renderArrayBadges = (changesArr) => {
+    if (!changesArr || changesArr.length === 0) return null;
+    return (
+        <div className="flex flex-wrap gap-1 mt-2">
+            {changesArr.map((change, i) => {
+                const isBad = (change.includes('-') && (change.includes('Health') || change.includes('Mood') || change.includes('Gold') || change.includes('XP') || change.includes('Lost'))) || 
+                              (change.includes('+') && (change.includes('Stress') || change.includes('Hunger') || change.includes('Thirst')));
+                const isGood = (change.includes('+') && (change.includes('Health') || change.includes('Mood') || change.includes('Gold') || change.includes('XP'))) || 
+                               (change.includes('-') && (change.includes('Stress') || change.includes('Hunger') || change.includes('Thirst'))) || change.includes('Cured');
+                
+                let colorClass = 'bg-zinc-900/50 text-zinc-400 border-zinc-800';
+                if (isGood) colorClass = 'bg-emerald-950/50 text-emerald-400 border-emerald-900/50';
+                if (isBad) colorClass = 'bg-red-950/50 text-red-400 border-red-900/50';
+
+                return <span key={i} className={`text-[9px] px-1.5 py-0.5 rounded font-bold border ${colorClass}`}>{change}</span>;
+            })}
+        </div>
+    );
+};
+
 const StatBlock = ({ label, value, max, alert, inverted, onClick, subValue }) => (
     <button onClick={onClick} className={`flex flex-col items-center justify-center w-[42px] h-[42px] md:w-[60px] md:h-[60px] bg-zinc-900/90 rounded-xl md:rounded-2xl border backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all hover:scale-105 active:scale-95 ${alert ? 'border-red-500/50 bg-red-950/80' : inverted ? 'border-amber-500/50 bg-amber-950/80' : 'border-zinc-700/80 hover:border-zinc-500'}`}>
         <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-widest ${alert ? 'text-red-400' : inverted ? 'text-amber-500' : 'text-zinc-400'}`}>{label}</span>
@@ -148,7 +168,96 @@ const RollModal = ({ action, rollState, calculateOdds, executeRoll, finalizeActi
     );
 };
 
-const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
+const DailySummaryModal = ({ reportDay, dailyLogs, onClose, currentStats, activeCompanion, activeCurse }) => {
+    const dayLogs = dailyLogs.filter(l => l.day === reportDay);
+    const actionLogs = dayLogs.filter(l => l.type !== 'night');
+    const nightLog = dayLogs.find(l => l.type === 'night');
+
+    return (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}>
+            <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-lg max-h-[85vh] shadow-2xl relative overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+                <div className="bg-gradient-to-r from-indigo-900/40 to-zinc-900 p-5 border-b border-zinc-800 flex items-center justify-between shrink-0">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-indigo-500/20 rounded-full text-indigo-400 border border-indigo-500/30"><Scroll size={24} /></div>
+                        <div><h2 className="text-xl font-bold text-white tracking-wide">Day {reportDay} Record</h2><div className="text-[10px] text-indigo-200/60 font-mono uppercase tracking-widest">Full Daily Summary</div></div>
+                    </div>
+                    <button onClick={onClose} className="text-zinc-500 hover:text-white p-2 bg-zinc-800 rounded-full transition-colors"><X size={16}/></button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-4 md:p-5 space-y-6 scroll-smooth">
+                    <section>
+                        <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">Daytime Activities</h3>
+                        <div className="space-y-3">
+                            {actionLogs.length === 0 ? <p className="text-xs text-zinc-600 italic">No actions recorded.</p> : actionLogs.map((log, i) => (
+                                <div key={i} className="bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-3 shadow-inner">
+                                    <div className="flex justify-between items-center mb-1.5">
+                                        <span className="font-bold text-sm text-zinc-200">{log.title}</span>
+                                        {log.status && <span className={`text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded border ${log.status === 'Success' ? 'bg-emerald-950/50 text-emerald-400 border-emerald-900/50' : 'bg-red-950/50 text-red-400 border-red-900/50'}`}>{log.status}</span>}
+                                    </div>
+                                    <p className="text-[11px] text-zinc-400 leading-relaxed italic">"{log.text}"</p>
+                                    {renderArrayBadges(log.changesArr)}
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    {nightLog && (
+                        <section>
+                            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">The Night Phase</h3>
+                            <div className="bg-zinc-950/50 border border-zinc-800/80 rounded-xl p-4 shadow-inner space-y-4">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div><span className="block text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Sleep Loc</span><span className="text-sm font-bold text-zinc-200">{nightLog.sleepLoc}</span></div>
+                                    <div><span className="block text-[9px] text-zinc-500 uppercase font-bold tracking-widest">Rent</span><span className="text-sm font-mono text-amber-400">{nightLog.rent}</span></div>
+                                </div>
+                                <div className="h-px bg-zinc-800 w-full" />
+                                <div>
+                                    <span className="font-bold text-sm text-zinc-200 block mb-1">{nightLog.incidentTitle}</span>
+                                    <p className="text-xs text-zinc-400 italic">"{nightLog.incidentText}"</p>
+                                </div>
+                                {renderArrayBadges(nightLog.changesArr)}
+                            </div>
+                        </section>
+                    )}
+                    
+                    <section>
+                        <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">Waking Status (Day {reportDay + 1})</h3>
+                        <div className="grid grid-cols-5 gap-1.5 mb-3">
+                            <div className="bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center flex flex-col items-center">
+                                <span className="text-[8px] text-red-400 font-bold uppercase mb-1">HP</span><span className="text-xs font-mono font-bold text-white">{currentStats.health}</span>
+                            </div>
+                            <div className="bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center flex flex-col items-center">
+                                <span className="text-[8px] text-amber-500 font-bold uppercase mb-1">HNG</span><span className="text-xs font-mono font-bold text-white">{currentStats.hunger}</span>
+                            </div>
+                            <div className="bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center flex flex-col items-center">
+                                <span className="text-[8px] text-blue-400 font-bold uppercase mb-1">THR</span><span className="text-xs font-mono font-bold text-white">{currentStats.thirst}</span>
+                            </div>
+                            <div className="bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center flex flex-col items-center">
+                                <span className="text-[8px] text-indigo-400 font-bold uppercase mb-1">MOOD</span><span className="text-xs font-mono font-bold text-white">{currentStats.mood}</span>
+                            </div>
+                            <div className="bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center flex flex-col items-center">
+                                <span className="text-[8px] text-zinc-400 font-bold uppercase mb-1">STRS</span><span className="text-xs font-mono font-bold text-white">{currentStats.stress}</span>
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <div className="flex-1 bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center">
+                                <span className="text-[8px] text-emerald-400 font-bold uppercase tracking-widest block mb-1">Companion</span>
+                                <span className="text-[10px] font-bold text-zinc-300 truncate block">{activeCompanion ? COMPANIONS[activeCompanion].name : "None"}</span>
+                            </div>
+                            <div className="flex-1 bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center">
+                                <span className="text-[8px] text-red-400 font-bold uppercase tracking-widest block mb-1">Curse</span>
+                                <span className="text-[10px] font-bold text-zinc-300 truncate block">{activeCurse ? CURSES[activeCurse].name : "None"}</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+                
+                <div className="p-4 border-t border-zinc-800 bg-zinc-950/80 flex justify-end shrink-0">
+                    <button onClick={onClose} className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-widest uppercase rounded-lg transition-colors shadow-[0_0_15px_rgba(99,102,241,0.4)] text-xs">Start Day</button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const getItemCategoryTab = (item) => {
     if (!item) return 'All';
@@ -490,45 +599,6 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
   );
 };
 
-const MorningReport = ({ log, onClose }) => {
-  if (!log) return null;
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}>
-      <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-md shadow-2xl relative overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="bg-gradient-to-r from-amber-900/40 to-zinc-900 p-6 border-b border-zinc-800 flex items-center gap-4">
-            <div className="p-3 bg-amber-500/20 rounded-full text-amber-400 border border-amber-500/30"><Sun size={28} /></div>
-            <div><h2 className="text-xl font-bold text-white tracking-wide">Day {log.day}</h2><div className="text-xs text-amber-200/60 font-mono uppercase tracking-widest">Morning Report</div></div>
-        </div>
-        <div className="p-6 space-y-6">
-            <div className="relative">
-                <div className="absolute -left-2 -top-2 text-4xl text-zinc-700 font-serif">“</div>
-                <p className="text-lg text-zinc-200 italic font-serif leading-relaxed px-4">{log.incidentText}</p>
-                <div className="absolute -right-2 -bottom-4 text-4xl text-zinc-700 font-serif">”</div>
-            </div>
-            <div className="h-px bg-zinc-800 w-full" />
-            <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
-                    <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1">Last Night's Sleep</span>
-                    <span className="text-sm text-zinc-300 font-medium flex items-center gap-2">{log.sleepLoc}</span>
-                </div>
-                <div className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
-                    <span className="text-[10px] text-zinc-500 font-bold uppercase block mb-1">Expenses</span>
-                    <span className="text-sm text-amber-400 font-medium">{log.rent.includes('Paid') ? log.rent.split(':')[1] : '0g'}</span>
-                </div>
-            </div>
-            <div className="p-3 bg-indigo-900/20 rounded-lg border border-indigo-500/20 text-center">
-                <span className="text-[10px] text-indigo-300 font-bold uppercase block mb-1">Current Mood</span>
-                <span className="text-xs text-indigo-200">{log.status}</span>
-            </div>
-        </div>
-        <div className="p-4 border-t border-zinc-800 bg-zinc-950/30 flex justify-end">
-            <button onClick={onClose} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(99,102,241,0.4)]">Start Day</button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const CreationScreen = ({ creationStep, setCreationStep, characterName, setCharacterName, appearance, updateAppearance, equipped, attributes, updateAttribute, pointsAvailable, getStatInfo, startGame }) => {
   return (
     <div className="h-[100dvh] bg-zinc-950 text-zinc-100 font-sans flex flex-col items-center justify-center p-0 md:p-4 overflow-hidden">
@@ -605,20 +675,13 @@ const App = () => {
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
     curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
-    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime
   } = useGameLogic();
 
   const [openPanel, setOpenPanel] = useState(null);
-  const [showMorningReport, setShowMorningReport] = useState(false);
   const [activeDetailModal, setActiveDetailModal] = useState(null);
   const [inventoryTab, setInventoryTab] = useState('All');
   const [shopTab, setShopTab] = useState('All');
-
-  useEffect(() => {
-    if (dailyLogs.length > 0 && dailyLogs[0].type === 'morning' && dailyLogs[0].day === days) {
-        setShowMorningReport(true);
-    }
-  }, [days, dailyLogs]);
 
   const resolveItemId = (instanceId) => {
       if (!instanceId) return 'none';
@@ -701,6 +764,13 @@ const App = () => {
       return false;
   };
 
+  const groupedLogs = dailyLogs.reduce((acc, log) => {
+      if (!acc[log.day]) acc[log.day] = { day: log.day, logs: [] };
+      acc[log.day].logs.push(log);
+      return acc;
+  }, {});
+  const sortedDays = Object.values(groupedLogs).sort((a,b) => b.day - a.day);
+
   if (!gameStarted) {
     return (
       <CreationScreen 
@@ -757,7 +827,17 @@ const App = () => {
       
       <ResponsiveBackground locationId={location} />
       
-      {showMorningReport && dailyLogs[0] && ( <MorningReport log={dailyLogs[0]} onClose={() => setShowMorningReport(false)} /> )}
+      {reportData && (
+          <DailySummaryModal 
+              reportDay={reportData} 
+              dailyLogs={dailyLogs} 
+              onClose={() => setReportData(null)} 
+              currentStats={currentStats}
+              resources={resources}
+              activeCompanion={activeCompanion}
+              activeCurse={activeCurse}
+          />
+      )}
 
       {activeDetailModal && modalDetails && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setActiveDetailModal(null)}>
@@ -1196,7 +1276,7 @@ const App = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {displayedShop.map((item) => {
                                         let cost = item.cost || 0;
-                                        if (quirk && quirk.id === 'iron_liver' && (item.type === 'drink' || item.id === 'ale' || item.id === 'wine')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
+                                        if (quirk && quirk.id === 'iron_liver' && (item.type === 'drink' || item.id === 'courage' || item.id === 'stout')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
                                         const canAfford = resources.gold >= cost;
 
                                         return (
@@ -1229,27 +1309,23 @@ const App = () => {
 
                      {openPanel === 'log' && (
                         <div className="space-y-3 pb-4">
-                            {dailyLogs.length === 0 ? (
+                            {sortedDays.length === 0 ? (
                                 <div className="p-8 text-center bg-zinc-900/50 rounded-xl border border-zinc-700/50 border-dashed">
                                     <p className="text-sm text-zinc-500 font-medium">No events recorded yet.</p>
                                 </div>
                             ) : (
-                                dailyLogs.map(log => (
-                                    <div key={log.id} className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)]">
-                                        <div className="flex justify-between items-center mb-3">
-                                            <span className={`text-[9px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-md border ${log.type === 'morning' ? 'bg-amber-950/60 text-amber-500 border-amber-700/50' : 'bg-zinc-900 text-zinc-400 border-zinc-700'}`}>
-                                                {log.type === 'morning' ? 'Morning Report' : 'Action Log'}
-                                            </span>
-                                            <span className="text-[10px] font-mono font-bold text-zinc-500">Day {log.day}</span>
+                                sortedDays.map(dayGroup => (
+                                    <button 
+                                        key={dayGroup.day} 
+                                        onClick={() => setReportData(dayGroup.day)} 
+                                        className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 flex justify-between items-center hover:bg-zinc-800 transition-colors text-left shadow-[0_4px_10px_rgba(0,0,0,0.2)]"
+                                    >
+                                        <div>
+                                            <h3 className="font-bold text-zinc-200">Day {dayGroup.day} Record</h3>
+                                            <span className="text-[10px] text-zinc-400">{dayGroup.logs.length} events logged</span>
                                         </div>
-                                        <p className="text-sm font-bold text-zinc-200">{log.title || log.incidentTitle}</p>
-                                        <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">{log.text || log.incidentText}</p>
-                                        {(log.changes || log.status !== 'Success') && (
-                                            <div className={`mt-3 p-2.5 rounded-lg text-[10px] font-bold border tracking-wide ${log.status === 'Failed' ? 'bg-red-950/50 text-red-400 border-red-900/50' : 'bg-indigo-950/50 text-indigo-300 border-indigo-900/50'}`}>
-                                                {log.changes || log.status}
-                                            </div>
-                                        )}
-                                    </div>
+                                        <List size={16} className="text-zinc-500" />
+                                    </button>
                                 ))
                             )}
                             <div className="flex justify-center mt-8 pt-4 border-t border-zinc-800">
