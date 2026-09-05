@@ -60,6 +60,7 @@ export const useGameLogic = () => {
   const [messages, setMessages] = useState([]);
   const [isDead, setIsDead] = useState(false);
   const [dailyLogs, setDailyLogs] = useState([]); 
+  const [gameStats, setGameStats] = useState({ deaths: 0, marriages: 0, dungeonFoodEaten: 0 });
 
   const [stagedAction, setStagedAction] = useState(null);
   const [rollState, setRollState] = useState({ isRolling: false, result: null, isSuccess: false });
@@ -183,6 +184,7 @@ export const useGameLogic = () => {
         setActiveCurse(parsed.activeCurse || null);
         setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0, days: 0 });
         setShitfacedToday(parsed.shitfacedToday || false);
+        setGameStats(parsed.gameStats || { deaths: 0, marriages: 0, dungeonFoodEaten: 0 });
         
         let loadedVariant = parsed.companionVariant || null;
         if (parsed.activeCompanion === 'spouse' && !loadedVariant) loadedVariant = `${Math.random() < 0.5 ? 'male' : 'female'}_${Math.floor(Math.random() * 3) + 1}`;
@@ -219,9 +221,9 @@ export const useGameLogic = () => {
       if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, lastSave: Date.now()
+        characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, lastSave: Date.now()
       }));
-  }, [characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday]);
+  }, [characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats]);
 
   const calculateOdds = (action) => {
       if (!['labor', 'adventure', 'social', 'magic'].includes(action.type)) return null;
@@ -400,6 +402,10 @@ export const useGameLogic = () => {
       if (incident) {
           incidentMsg = incident.text; 
           const fx = incident.effects;
+          
+          if (incident.id === 'weird_shit') setGameStats(p => ({ ...p, dungeonFoodEaten: p.dungeonFoodEaten + 1 }));
+          if (incident.id === 'spontaneous_marriage') setGameStats(p => ({ ...p, marriages: p.marriages + 1 }));
+
           if (fx) {
               if (fx.edgyRebrand) {
                   const first = EDGY_FIRST_NAMES[Math.floor(Math.random() * EDGY_FIRST_NAMES.length)];
@@ -488,8 +494,20 @@ export const useGameLogic = () => {
       }
 
       setEdgyName(currentEdgy);
-      setStats({ health: Math.max(0, Math.min(maxStats.health, newStats.health)), mood: Math.max(0, Math.min(maxStats.mood, newStats.mood)), hunger: Math.min(maxStats.hunger, Math.max(0, newStats.hunger)), thirst: Math.min(maxStats.thirst, Math.max(0, newStats.thirst)), stress: Math.max(0, Math.min(maxStats.stress, newStats.stress)) });
+      
+      const cappedStats = { 
+          health: Math.max(0, Math.min(maxStats.health, newStats.health)), 
+          mood: Math.max(0, Math.min(maxStats.mood, newStats.mood)), 
+          hunger: Math.min(maxStats.hunger, Math.max(0, newStats.hunger)), 
+          thirst: Math.min(maxStats.thirst, Math.max(0, newStats.thirst)), 
+          stress: Math.max(0, Math.min(maxStats.stress, newStats.stress)) 
+      };
+      
+      setStats(cappedStats);
       setResources(prev => ({ ...prev, gold: newGold }));
+
+      const nextComp = incident && incident.effects?.applyCompanion ? incident.effects.applyCompanion : activeCompanion;
+      const nextCur = incident && incident.effects?.applyCurse ? incident.effects.applyCurse : currentCurse;
 
       addToLog({ 
           type: 'night', 
@@ -499,14 +517,15 @@ export const useGameLogic = () => {
           rent: rentMsg, 
           incidentTitle: incident ? incident.title : "Uneventful Night", 
           incidentText: incidentMsg, 
-          changesArr: changes 
+          changesArr: changes,
+          endOfDayStats: { ...cappedStats },
+          endOfDayCompanion: nextComp,
+          endOfDayCurse: nextCur
       });
 
       setDays(prev => prev + daysPassed); 
       setReportData(days); 
       refreshShop();
-      const nextComp = incident && incident.effects.applyCompanion ? incident.effects.applyCompanion : activeCompanion;
-      const nextCur = incident && incident.effects.applyCurse ? incident.effects.applyCurse : currentCurse;
       setDailyQuests(generateDailyQuests(resources.level, nextComp, nextCur));
   };
 
@@ -682,6 +701,7 @@ export const useGameLogic = () => {
   };
 
   const revive = () => {
+    setGameStats(p => ({ ...p, deaths: p.deaths + 1 }));
     setStats({ health: maxStats.health, mood: maxStats.mood, hunger: 0, thirst: 0, stress: 0 }); setIsDead(false); setResources(prev => ({ ...prev, xp: Math.max(0, prev.xp - 50) })); setHousing('homeless'); setRentActive(false); addMessage("Revived... destitute.", "info");
     addToLog({ type: 'action', day: days, title: 'Revived', text: 'I have returned from the dead. Ouch.', status: 'Revived', changesArr: ['-50 XP', '-Housing', '+Life'] });
   };
@@ -753,6 +773,6 @@ export const useGameLogic = () => {
     gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages, isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk,
     activeCompanion, companionVariant, activeCurse, curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
-    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats
   };
 };
