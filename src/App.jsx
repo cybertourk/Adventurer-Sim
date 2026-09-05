@@ -90,6 +90,13 @@ const ActionButton = ({ icon: IconName, label, days, cost, costType = 'gp', onCl
   );
 };
 
+const StatRow = ({ label, value, colorClass }) => (
+    <div className="bg-zinc-800/40 border border-zinc-700/50 rounded-lg p-3 flex justify-between items-center shadow-[0_2px_5px_rgba(0,0,0,0.2)]">
+        <span className="text-xs text-zinc-300 font-bold tracking-wide">{label}</span>
+        <span className={`font-mono font-black text-lg ${colorClass}`}>{value}</span>
+    </div>
+);
+
 const RollModal = ({ action, rollState, calculateOdds, executeRoll, finalizeAction, setStagedAction }) => {
     if (!action) return null;
     const odds = calculateOdds(action);
@@ -173,7 +180,6 @@ const DailySummaryModal = ({ reportDay, dailyLogs, onClose, currentStats, active
     const actionLogs = dayLogs.filter(l => l.type !== 'night');
     const nightLog = dayLogs.find(l => l.type === 'night');
 
-    // Prioritize the captured night stats to reflect how the character woke up on that specific day
     const statsToDisplay = nightLog?.endOfDayStats || currentStats;
     const compToDisplay = nightLog?.endOfDayCompanion !== undefined ? nightLog.endOfDayCompanion : activeCompanion;
     const curseToDisplay = nightLog?.endOfDayCurse !== undefined ? nightLog.endOfDayCurse : activeCurse;
@@ -1355,18 +1361,48 @@ const App = () => {
                             )}
 
                             {logTab === 'stats' && (
-                                <div className="grid grid-cols-1 gap-3 pb-4">
-                                    <div className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] flex justify-between items-center">
-                                        <span className="text-sm text-zinc-300 font-bold tracking-wide">Times Died</span>
-                                        <span className="text-red-400 font-mono font-black text-xl">{gameStats?.deaths || 0}</span>
+                                <div className="space-y-6 pb-4">
+                                    <div>
+                                        <h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest mb-3 border-b border-zinc-800 pb-1">Survival & Degeneracy</h4>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            <StatRow label="Times Died" value={gameStats?.deaths || 0} colorClass="text-red-400" />
+                                            <StatRow label="Times Got Shitfaced" value={gameStats?.shitfacedCount || 0} colorClass="text-amber-400" />
+                                            <StatRow label="Puddle Water Drank" value={gameStats?.puddlesDrank || 0} colorClass="text-blue-400" />
+                                            <StatRow label="Void Screams Released" value={gameStats?.voidScreams || 0} colorClass="text-indigo-400" />
+                                            <StatRow label="Survival Auto-Consumes" value={gameStats?.autoConsumes || 0} colorClass="text-emerald-400" />
+                                        </div>
                                     </div>
-                                    <div className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] flex justify-between items-center">
-                                        <span className="text-sm text-zinc-300 font-bold tracking-wide">Spontaneous Marriages</span>
-                                        <span className="text-pink-400 font-mono font-black text-xl">{gameStats?.marriages || 0}</span>
+                                    
+                                    <div>
+                                        <h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest mb-3 border-b border-zinc-800 pb-1">Chaos & Autonomy</h4>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            <StatRow label="Spontaneous Marriages" value={gameStats?.marriages || 0} colorClass="text-pink-400" />
+                                            <StatRow label="Dungeon Floor-Meat Eaten" value={gameStats?.dungeonFoodEaten || 0} colorClass="text-lime-400" />
+                                            <StatRow label="Tables Fought (And Lost)" value={gameStats?.tablesFought || 0} colorClass="text-orange-400" />
+                                            <StatRow label="Innocent Beds Stabbed" value={gameStats?.bedsStabbed || 0} colorClass="text-zinc-300" />
+                                            <StatRow label="Times Arrested" value={gameStats?.timesArrested || 0} colorClass="text-cyan-400" />
+                                            <StatRow label="Times Blacklisted" value={gameStats?.timesBlacklisted || 0} colorClass="text-red-500" />
+                                        </div>
                                     </div>
-                                    <div className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] flex justify-between items-center">
-                                        <span className="text-sm text-zinc-300 font-bold tracking-wide">Dungeon Floor-Meat Eaten</span>
-                                        <span className="text-emerald-400 font-mono font-black text-xl">{gameStats?.dungeonFoodEaten || 0}</span>
+
+                                    <div>
+                                        <h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest mb-3 border-b border-zinc-800 pb-1">Quests & Combat</h4>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            <StatRow label="Total Checks Passed" value={gameStats?.checksPassed || 0} colorClass="text-emerald-400" />
+                                            <StatRow label="Total Checks Failed" value={gameStats?.checksFailed || 0} colorClass="text-red-400" />
+                                            <StatRow label="Magic Backfires" value={gameStats?.magicBackfires || 0} colorClass="text-purple-400" />
+                                            <StatRow label="Dungeon Loot Found" value={gameStats?.dungeonLootFound || 0} colorClass="text-yellow-400" />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 className="text-[10px] font-bold uppercase text-zinc-500 tracking-widest mb-3 border-b border-zinc-800 pb-1">Financials</h4>
+                                        <div className="grid grid-cols-1 gap-2">
+                                            <StatRow label="Lifetime Gold Earned" value={`${gameStats?.lifetimeGoldEarned || 0}g`} colorClass="text-amber-400" />
+                                            <StatRow label="Lifetime Gold Spent on Rent" value={`${gameStats?.lifetimeRentPaid || 0}g`} colorClass="text-amber-500" />
+                                            <StatRow label="Cult Tithes Paid" value={`${gameStats?.cultTithesPaid || 0}g`} colorClass="text-red-400" />
+                                            <StatRow label="Gold Stolen by Goblins" value={`${gameStats?.goldStolenByGoblins || 0}g`} colorClass="text-zinc-400" />
+                                        </div>
                                     </div>
                                 </div>
                             )}
