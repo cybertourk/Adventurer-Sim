@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List } from 'lucide-react';
+import { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List, TrendingUp } from 'lucide-react';
 import { ITEM_DB, MAINTENANCE_ACTIONS, LOCATIONS, APPEARANCE_OPTIONS, COMPANIONS, CURSES } from './data/constants';
 import { useGameLogic } from './hooks/useGameLogic';
 
-const IconMap = { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List, Zap };
+const IconMap = { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List, Zap, TrendingUp };
 
 const renderEffectsList = (effects) => {
     if (!effects) return null;
@@ -173,6 +173,11 @@ const DailySummaryModal = ({ reportDay, dailyLogs, onClose, currentStats, active
     const actionLogs = dayLogs.filter(l => l.type !== 'night');
     const nightLog = dayLogs.find(l => l.type === 'night');
 
+    // Prioritize the captured night stats to reflect how the character woke up on that specific day
+    const statsToDisplay = nightLog?.endOfDayStats || currentStats;
+    const compToDisplay = nightLog?.endOfDayCompanion !== undefined ? nightLog.endOfDayCompanion : activeCompanion;
+    const curseToDisplay = nightLog?.endOfDayCurse !== undefined ? nightLog.endOfDayCurse : activeCurse;
+
     return (
         <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-zinc-950/90 backdrop-blur-md animate-in fade-in duration-300" onClick={onClose}>
             <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-lg max-h-[85vh] shadow-2xl relative overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
@@ -223,31 +228,38 @@ const DailySummaryModal = ({ reportDay, dailyLogs, onClose, currentStats, active
                         <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">Waking Status (Day {reportDay + 1})</h3>
                         <div className="grid grid-cols-5 gap-1.5 mb-3">
                             <div className="bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center flex flex-col items-center">
-                                <span className="text-[8px] text-red-400 font-bold uppercase mb-1">HP</span><span className="text-xs font-mono font-bold text-white">{currentStats.health}</span>
+                                <span className="text-[8px] text-red-400 font-bold uppercase mb-1">HP</span><span className="text-xs font-mono font-bold text-white">{statsToDisplay.health}</span>
                             </div>
                             <div className="bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center flex flex-col items-center">
-                                <span className="text-[8px] text-amber-500 font-bold uppercase mb-1">HNG</span><span className="text-xs font-mono font-bold text-white">{currentStats.hunger}</span>
+                                <span className="text-[8px] text-amber-500 font-bold uppercase mb-1">HNG</span><span className="text-xs font-mono font-bold text-white">{statsToDisplay.hunger}</span>
                             </div>
                             <div className="bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center flex flex-col items-center">
-                                <span className="text-[8px] text-blue-400 font-bold uppercase mb-1">THR</span><span className="text-xs font-mono font-bold text-white">{currentStats.thirst}</span>
+                                <span className="text-[8px] text-blue-400 font-bold uppercase mb-1">THR</span><span className="text-xs font-mono font-bold text-white">{statsToDisplay.thirst}</span>
                             </div>
                             <div className="bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center flex flex-col items-center">
-                                <span className="text-[8px] text-indigo-400 font-bold uppercase mb-1">MOOD</span><span className="text-xs font-mono font-bold text-white">{currentStats.mood}</span>
+                                <span className="text-[8px] text-indigo-400 font-bold uppercase mb-1">MOOD</span><span className="text-xs font-mono font-bold text-white">{statsToDisplay.mood}</span>
                             </div>
                             <div className="bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center flex flex-col items-center">
-                                <span className="text-[8px] text-zinc-400 font-bold uppercase mb-1">STRS</span><span className="text-xs font-mono font-bold text-white">{currentStats.stress}</span>
+                                <span className="text-[8px] text-zinc-400 font-bold uppercase mb-1">STRS</span><span className="text-xs font-mono font-bold text-white">{statsToDisplay.stress}</span>
                             </div>
                         </div>
-                        <div className="flex gap-2">
-                            <div className="flex-1 bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center">
-                                <span className="text-[8px] text-emerald-400 font-bold uppercase tracking-widest block mb-1">Companion</span>
-                                <span className="text-[10px] font-bold text-zinc-300 truncate block">{activeCompanion ? COMPANIONS[activeCompanion].name : "None"}</span>
+                        
+                        {(compToDisplay || curseToDisplay) && (
+                            <div className="flex gap-2">
+                                {compToDisplay && (
+                                    <div className="flex-1 bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center">
+                                        <span className="text-[8px] text-emerald-400 font-bold uppercase tracking-widest block mb-1">Companion</span>
+                                        <span className="text-[10px] font-bold text-zinc-300 truncate block">{COMPANIONS[compToDisplay].name}</span>
+                                    </div>
+                                )}
+                                {curseToDisplay && (
+                                    <div className="flex-1 bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center">
+                                        <span className="text-[8px] text-red-400 font-bold uppercase tracking-widest block mb-1">Curse</span>
+                                        <span className="text-[10px] font-bold text-zinc-300 truncate block">{CURSES[curseToDisplay].name}</span>
+                                    </div>
+                                )}
                             </div>
-                            <div className="flex-1 bg-zinc-950/80 border border-zinc-800 p-2 rounded-lg text-center">
-                                <span className="text-[8px] text-red-400 font-bold uppercase tracking-widest block mb-1">Curse</span>
-                                <span className="text-[10px] font-bold text-zinc-300 truncate block">{activeCurse ? CURSES[activeCurse].name : "None"}</span>
-                            </div>
-                        </div>
+                        )}
                     </section>
                 </div>
                 
@@ -675,13 +687,14 @@ const App = () => {
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
     curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
-    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats
   } = useGameLogic();
 
   const [openPanel, setOpenPanel] = useState(null);
   const [activeDetailModal, setActiveDetailModal] = useState(null);
   const [inventoryTab, setInventoryTab] = useState('All');
   const [shopTab, setShopTab] = useState('All');
+  const [logTab, setLogTab] = useState('daily');
 
   const resolveItemId = (instanceId) => {
       if (!instanceId) return 'none';
@@ -833,7 +846,6 @@ const App = () => {
               dailyLogs={dailyLogs} 
               onClose={() => setReportData(null)} 
               currentStats={currentStats}
-              resources={resources}
               activeCompanion={activeCompanion}
               activeCurse={activeCurse}
           />
@@ -1308,26 +1320,57 @@ const App = () => {
                      )}
 
                      {openPanel === 'log' && (
-                        <div className="space-y-3 pb-4">
-                            {sortedDays.length === 0 ? (
-                                <div className="p-8 text-center bg-zinc-900/50 rounded-xl border border-zinc-700/50 border-dashed">
-                                    <p className="text-sm text-zinc-500 font-medium">No events recorded yet.</p>
-                                </div>
-                            ) : (
-                                sortedDays.map(dayGroup => (
-                                    <button 
-                                        key={dayGroup.day} 
-                                        onClick={() => setReportData(dayGroup.day)} 
-                                        className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 flex justify-between items-center hover:bg-zinc-800 transition-colors text-left shadow-[0_4px_10px_rgba(0,0,0,0.2)]"
-                                    >
-                                        <div>
-                                            <h3 className="font-bold text-zinc-200">Day {dayGroup.day} Record</h3>
-                                            <span className="text-[10px] text-zinc-400">{dayGroup.logs.length} events logged</span>
+                        <div className="space-y-4">
+                            <div className="flex gap-2 border-b border-zinc-800 pb-3">
+                                <button onClick={() => setLogTab('daily')} className={`flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all ${logTab === 'daily' ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:bg-zinc-700'}`}>
+                                    <List size={14} /> Daily Records
+                                </button>
+                                <button onClick={() => setLogTab('stats')} className={`flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all ${logTab === 'stats' ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:bg-zinc-700'}`}>
+                                    <TrendingUp size={14} /> Lifetime Stats
+                                </button>
+                            </div>
+
+                            {logTab === 'daily' && (
+                                <div className="space-y-3 pb-4">
+                                    {sortedDays.length === 0 ? (
+                                        <div className="p-8 text-center bg-zinc-900/50 rounded-xl border border-zinc-700/50 border-dashed">
+                                            <p className="text-sm text-zinc-500 font-medium">No events recorded yet.</p>
                                         </div>
-                                        <List size={16} className="text-zinc-500" />
-                                    </button>
-                                ))
+                                    ) : (
+                                        sortedDays.map(dayGroup => (
+                                            <button 
+                                                key={dayGroup.day} 
+                                                onClick={() => setReportData(dayGroup.day)} 
+                                                className="w-full bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 flex justify-between items-center hover:bg-zinc-800 transition-colors text-left shadow-[0_4px_10px_rgba(0,0,0,0.2)] group"
+                                            >
+                                                <div>
+                                                    <h3 className="font-bold text-zinc-200">Day {dayGroup.day} Record</h3>
+                                                    <span className="text-[10px] text-zinc-500 uppercase tracking-widest">{dayGroup.logs.length} events logged</span>
+                                                </div>
+                                                <List size={16} className="text-zinc-500 group-hover:text-indigo-400 transition-colors" />
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
                             )}
+
+                            {logTab === 'stats' && (
+                                <div className="grid grid-cols-1 gap-3 pb-4">
+                                    <div className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] flex justify-between items-center">
+                                        <span className="text-sm text-zinc-300 font-bold tracking-wide">Times Died</span>
+                                        <span className="text-red-400 font-mono font-black text-xl">{gameStats?.deaths || 0}</span>
+                                    </div>
+                                    <div className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] flex justify-between items-center">
+                                        <span className="text-sm text-zinc-300 font-bold tracking-wide">Spontaneous Marriages</span>
+                                        <span className="text-pink-400 font-mono font-black text-xl">{gameStats?.marriages || 0}</span>
+                                    </div>
+                                    <div className="bg-zinc-800/60 border border-zinc-700/60 rounded-xl p-4 shadow-[0_4px_10px_rgba(0,0,0,0.2)] flex justify-between items-center">
+                                        <span className="text-sm text-zinc-300 font-bold tracking-wide">Dungeon Floor-Meat Eaten</span>
+                                        <span className="text-emerald-400 font-mono font-black text-xl">{gameStats?.dungeonFoodEaten || 0}</span>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="flex justify-center mt-8 pt-4 border-t border-zinc-800">
                                 <button onClick={resetGame} className="text-[10px] text-red-500/50 hover:text-red-400 font-bold uppercase tracking-widest transition-colors flex items-center gap-1 bg-red-950/20 px-4 py-2 rounded-lg border border-red-900/30 hover:bg-red-900/40">
                                     <X size={12}/> Hard Reset Game
