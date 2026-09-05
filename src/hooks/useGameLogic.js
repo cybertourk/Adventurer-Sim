@@ -29,6 +29,13 @@ const getTierPenalty = (tier) => {
 
 const getMaxTier = (lvl) => Math.min(5, Math.ceil(lvl / 2));
 
+const defaultStats = {
+    deaths: 0, marriages: 0, dungeonFoodEaten: 0, shitfacedCount: 0, puddlesDrank: 0, voidScreams: 0, autoConsumes: 0, 
+    tablesFought: 0, bedsStabbed: 0, timesArrested: 0, timesBlacklisted: 0, goldStolenByGoblins: 0, 
+    checksPassed: 0, checksFailed: 0, magicBackfires: 0, dungeonLootFound: 0, 
+    lifetimeGoldEarned: 0, lifetimeRentPaid: 0, cultTithesPaid: 0
+};
+
 export const useGameLogic = () => {
   const [gameStarted, setGameStarted] = useState(false);
   const [creationStep, setCreationStep] = useState(1);
@@ -60,7 +67,7 @@ export const useGameLogic = () => {
   const [messages, setMessages] = useState([]);
   const [isDead, setIsDead] = useState(false);
   const [dailyLogs, setDailyLogs] = useState([]); 
-  const [gameStats, setGameStats] = useState({ deaths: 0, marriages: 0, dungeonFoodEaten: 0 });
+  const [gameStats, setGameStats] = useState(defaultStats);
 
   const [stagedAction, setStagedAction] = useState(null);
   const [rollState, setRollState] = useState({ isRolling: false, result: null, isSuccess: false });
@@ -184,7 +191,7 @@ export const useGameLogic = () => {
         setActiveCurse(parsed.activeCurse || null);
         setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0, days: 0 });
         setShitfacedToday(parsed.shitfacedToday || false);
-        setGameStats(parsed.gameStats || { deaths: 0, marriages: 0, dungeonFoodEaten: 0 });
+        setGameStats({ ...defaultStats, ...(parsed.gameStats || {}) });
         
         let loadedVariant = parsed.companionVariant || null;
         if (parsed.activeCompanion === 'spouse' && !loadedVariant) loadedVariant = `${Math.random() < 0.5 ? 'male' : 'female'}_${Math.floor(Math.random() * 3) + 1}`;
@@ -255,11 +262,12 @@ export const useGameLogic = () => {
       };
   };
 
-  const passTime = (daysPassed, skipDecay = false, startingStats = stats, startingInv = inventory, startingGold = resources.gold) => {
+  const passTime = (daysPassed, skipDecay = false, startingStats = stats, startingInv = inventory, startingGold = resources.gold, startingGameStats = gameStats) => {
       let rentMsg = "No rent paid (Homeless).";
       let changes = [];
       let newStats = { ...startingStats };
       let newGold = startingGold;
+      let newGameStats = { ...startingGameStats };
       let currentEdgy = edgyName ? { ...edgyName } : null;
       let currentCurse = activeCurse;
       let currentInventory = [...startingInv];
@@ -302,6 +310,7 @@ export const useGameLogic = () => {
           if (currentLocId !== 'village_road') {
               if (newGold >= LOCATIONS[currentLocId].dailyCost) {
                   newGold -= LOCATIONS[currentLocId].dailyCost;
+                  newGameStats.lifetimeRentPaid += LOCATIONS[currentLocId].dailyCost;
                   if (i === 0) rentMsg = `Paid rent: -${LOCATIONS[currentLocId].dailyCost * daysPassed}g.`;
               } else {
                   setHousing('homeless'); setRentActive(false); currentLocId = 'village_road';
@@ -345,6 +354,7 @@ export const useGameLogic = () => {
                   newStats.thirst = Math.max(0, newStats.thirst + (fx.thirst || 0));
                   newStats.stress = Math.max(0, newStats.stress + (fx.stress || 0));
                   newStats.mood = Math.min(100, newStats.mood + (fx.mood || 0));
+                  newGameStats.autoConsumes += 1;
                   survivalChanges.push(`Auto-Consumed ${dbItem.name}`);
               } else { break; }
           }
@@ -363,13 +373,17 @@ export const useGameLogic = () => {
           if (activeCompanion === 'groupie') newStats.mood -= 15;
           if (activeCompanion === 'goblin') {
               const stolen = Math.floor(Math.random() * 4) + 1;
-              newGold = Math.max(0, newGold - stolen);
-              if (i === 0) changes.push(`Goblin Stole ${stolen}g`);
+              const actualStolen = Math.min(newGold, stolen);
+              newGold = Math.max(0, newGold - actualStolen);
+              newGameStats.goldStolenByGoblins += actualStolen;
+              if (i === 0 && actualStolen > 0) changes.push(`Goblin Stole ${actualStolen}g`);
           }
           if (currentCurse === 'cult_member') {
               newStats.mood += 20; newStats.stress -= 20;
-              if (newGold >= 10) newGold -= 10;
-              else {
+              if (newGold >= 10) {
+                  newGold -= 10;
+                  newGameStats.cultTithesPaid += 10;
+              } else {
                   currentCurse = null; setActiveCurse(null); setCurseVariant(null);
                   newStats.stress += 30; changes.push("Kicked from Cult");
                   setEquipped(prev => ({ ...prev, body: 'inst_tunic' }));
@@ -378,7 +392,10 @@ export const useGameLogic = () => {
       }
 
       setInventory(currentInventory);
-      if (isDead) return;
+      if (isDead) {
+          setGameStats(newGameStats);
+          return;
+      }
 
       let zone = 'risk';
       if (newStats.mood > 40 && newStats.stress < 60) zone = 'safe';
@@ -403,8 +420,11 @@ export const useGameLogic = () => {
           incidentMsg = incident.text; 
           const fx = incident.effects;
           
-          if (incident.id === 'weird_shit') setGameStats(p => ({ ...p, dungeonFoodEaten: p.dungeonFoodEaten + 1 }));
-          if (incident.id === 'spontaneous_marriage') setGameStats(p => ({ ...p, marriages: p.marriages + 1 }));
+          if (incident.id === 'weird_shit') newGameStats.dungeonFoodEaten += 1;
+          if (incident.id === 'spontaneous_marriage') newGameStats.marriages += 1;
+          if (incident.id === 'table_brawl') newGameStats.tablesFought += 1;
+          if (incident.id === 'paranoid_mimic') newGameStats.bedsStabbed += 1;
+          if (incident.id === 'arrested') newGameStats.timesArrested += 1;
 
           if (fx) {
               if (fx.edgyRebrand) {
@@ -437,6 +457,7 @@ export const useGameLogic = () => {
                   currentCurse = fx.applyCurse; setActiveCurse(fx.applyCurse);
                   if (fx.applyCurse === 'blacklist') {
                       incidentMsg = "The barkeep threw me out and permanently banned me. Apparently, tables aren't meant to be body-slammed.";
+                      newGameStats.timesBlacklisted += 1;
                       if (housing === 'inn') { setHousing('homeless'); setRentActive(false); changes.push("Evicted from Inn"); }
                   } else if (fx.applyCurse === 'cult_member') {
                       incidentMsg = "Some nice people in robes told me all my problems are my own fault, but they can fix them for 10g a day. I feel so enlightened!";
@@ -505,6 +526,7 @@ export const useGameLogic = () => {
       
       setStats(cappedStats);
       setResources(prev => ({ ...prev, gold: newGold }));
+      setGameStats(newGameStats);
 
       const nextComp = incident && incident.effects?.applyCompanion ? incident.effects.applyCompanion : activeCompanion;
       const nextCur = incident && incident.effects?.applyCurse ? incident.effects.applyCurse : currentCurse;
@@ -578,6 +600,7 @@ export const useGameLogic = () => {
     let newGold = resources.gold;
     let newXp = resources.xp;
     let newLevel = resources.level;
+    let newGameStats = { ...gameStats };
     let changes = [];
     let logText = action.message || "Completed action.";
     let lootText = "";
@@ -585,9 +608,11 @@ export const useGameLogic = () => {
     if (action.id === 'rent_start') {
         if (newGold >= 5) {
             setHousing('inn'); setRentActive(true); newGold -= 5; addMessage("Rented room at Rusty Spoon.", 'success');
+            newGameStats.lifetimeRentPaid += 5;
             addToLog({ type: 'housing', day: days, title: 'Housing', text: 'Rented a room at the Rusty Spoon.', status: 'Success', changesArr: ['-5 Gold', '+Warm Bed'] });
         } else { addMessage("Not enough gold to rent room.", 'error'); addToLog({ type: 'housing', day: days, title: 'Housing', text: 'Tried to rent a room but was too poor.', status: 'Failed', changesArr: [] }); }
         setResources(prev => ({ ...prev, gold: newGold }));
+        setGameStats(newGameStats);
         return;
     }
     if (action.id === 'rent_stop') {
@@ -601,6 +626,11 @@ export const useGameLogic = () => {
     if (cost > 0 && action.costType === 'gp') { newGold -= cost; changes.push(`-${cost} Gold`); }
 
     if (isSuccess) {
+        if (['labor', 'adventure', 'social', 'magic'].includes(action.type)) newGameStats.checksPassed += 1;
+        if (action.id === 'shitfaced') newGameStats.shitfacedCount += 1;
+        if (action.id === 'drink_puddle') newGameStats.puddlesDrank += 1;
+        if (action.id === 'scream') newGameStats.voidScreams += 1;
+
         let moodGain = action.effects?.mood || 0; if (quirk && quirk.id === 'drama_queen' && moodGain > 0) moodGain *= (quirk.effects.moodMultiplier || 1);
         const healthGain = action.effects?.health || 0, hungerGain = action.effects?.hunger || 0, thirstGain = action.effects?.thirst || 0, stressGain = action.effects?.stress || 0;
 
@@ -627,7 +657,11 @@ export const useGameLogic = () => {
         if (action.effects && action.effects.xp) {
           newXp += action.effects.xp; let goldGain = action.effects.gold || 0;
           if (action.type === 'social' && quirk && quirk.id === 'compulsive_looter' && Math.random() < (quirk.effects.socialGoldChance || 0)) { goldGain += 5; addMessage("Swiped some extra coin!", "success"); lootText += " (Bonus 5g)"; changes.push("+5 Gold (Bonus)"); }
-          if(goldGain > 0) { newGold += goldGain; changes.push(`+${goldGain} Gold`); }
+          if(goldGain > 0) { 
+              newGold += goldGain; 
+              newGameStats.lifetimeGoldEarned += goldGain;
+              changes.push(`+${goldGain} Gold`); 
+          }
           changes.push(`+${action.effects.xp} XP`);
           if (newXp >= newLevel * 100) { newLevel++; addMessage(`Level Up! You are now level ${newLevel}`, "success"); lootText += " LEVEL UP!"; changes.push("LEVEL UP"); }
         }
@@ -646,6 +680,7 @@ export const useGameLogic = () => {
              let displayName = foundItem.name;
              if (foundItem.merchantNames) displayName = foundItem.merchantNames[Math.floor(Math.random() * foundItem.merchantNames.length)];
              newInv.push({ instanceId: `loot_${generateId()}`, itemId: foundItem.id, displayName });
+             newGameStats.dungeonLootFound += 1;
              addMessage(`Loot: Found ${displayName}!`, 'success'); lootText += ` Found: ${displayName}`; changes.push(`+${displayName}`); 
            }
         }
@@ -655,9 +690,11 @@ export const useGameLogic = () => {
         }
         addMessage(action.message, "success");
     } else {
+        if (['labor', 'adventure', 'social', 'magic'].includes(action.type)) newGameStats.checksFailed += 1;
+        
         logText = "Failed!"; let stressGain = 0;
         if (action.type === 'labor') { logText = "Screwed up the job. No pay."; stressGain = 10; } 
-        else if (action.type === 'magic') { logText = "Spell backfired! You smell like sulfur."; stressGain = 15; }
+        else if (action.type === 'magic') { logText = "Spell backfired! You smell like sulfur."; stressGain = 15; newGameStats.magicBackfires += 1; }
         else if (action.type === 'adventure') { 
             logText = "Defeated! Retreated with wounds."; 
             newStats.health = Math.max(0, newStats.health - 20);
@@ -692,10 +729,11 @@ export const useGameLogic = () => {
 
     if (action.days > 0) {
         setResources(prev => ({ ...prev, xp: newXp, level: newLevel })); 
-        passTime(action.days, action.type !== 'maintenance' && action.type !== 'housing', newStats, newInv, newGold);
+        passTime(action.days, action.type !== 'maintenance' && action.type !== 'housing', newStats, newInv, newGold, newGameStats);
     } else {
         setStats(newStats);
         setInventory(newInv);
+        setGameStats(newGameStats);
         setResources(prev => ({ ...prev, xp: newXp, level: newLevel, gold: newGold }));
     }
   };
@@ -721,6 +759,7 @@ export const useGameLogic = () => {
     if (['food', 'drink', 'potion'].includes(item.type)) { addMessage("Cannot sell consumables back.", "error"); return; }
     let sellValue = Math.floor(item.cost / 2); if (item.id === 'shiny_trash') { sellValue = Math.floor(Math.random() * 4) + 1; }
     
+    setGameStats(p => ({ ...p, lifetimeGoldEarned: p.lifetimeGoldEarned + sellValue }));
     setResources(prev => ({ ...prev, gold: prev.gold + sellValue })); 
     setInventory(prev => prev.filter(i => i.instanceId !== item.instanceId)); 
     addMessage(`Sold ${item.displayName} for ${sellValue}g`, 'success'); 
