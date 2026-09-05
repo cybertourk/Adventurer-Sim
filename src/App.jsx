@@ -225,19 +225,19 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       eyes_female_hazel: `${baseUrl}eyes_female_hazel.png`,
       eyes_female_red: `${baseUrl}eyes_female_red.png`,
       
-      hair_long_male_black: `${baseUrl}hair_long_black.png`,
-      hair_long_male_blonde: `${baseUrl}hair_long_blonde.png`,
-      hair_long_male_brown: `${baseUrl}hair_long_brown.png`,
-      hair_long_male_grey: `${baseUrl}hair_long_grey.png`,
-      hair_long_male_red: `${baseUrl}hair_long_red.png`,
-      hair_long_male_white: `${baseUrl}hair_long_white.png`,
+      hair_long_male_black: `${baseUrl}hair_long_male_black.png`,
+      hair_long_male_blonde: `${baseUrl}hair_long_male_blonde.png`,
+      hair_long_male_brown: `${baseUrl}hair_long_male_brown.png`,
+      hair_long_male_grey: `${baseUrl}hair_long_male_grey.png`,
+      hair_long_male_red: `${baseUrl}hair_long_male_red.png`,
+      hair_long_male_white: `${baseUrl}hair_long_male_white.png`,
       
-      hair_short_male_black: `${baseUrl}hair_short_black.png`,
-      hair_short_male_blonde: `${baseUrl}hair_short_blonde.png`,
-      hair_short_brown: `${baseUrl}hair_short_brown.png`,
-      hair_short_male_grey: `${baseUrl}hair_short_grey.png`,
-      hair_short_male_red: `${baseUrl}hair_short_red.png`,
-      hair_short_male_white: `${baseUrl}hair_short_white.png`,
+      hair_short_male_black: `${baseUrl}hair_short_male_black.png`,
+      hair_short_male_blonde: `${baseUrl}hair_short_male_blonde.png`,
+      hair_short_male_brown: `${baseUrl}hair_short_male_brown.png`,
+      hair_short_male_grey: `${baseUrl}hair_short_male_grey.png`,
+      hair_short_male_red: `${baseUrl}hair_short_male_red.png`,
+      hair_short_male_white: `${baseUrl}hair_short_male_white.png`,
       
       hair_long_female_black: `${baseUrl}hair_long_female_black.png`,
       hair_long_female_blonde: `${baseUrl}hair_long_female_blonde.png`,
@@ -424,16 +424,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
           if (activeCurse === 'dungeon_dye_job') {
               drawLayer(`curse_dye${curseVariant || 1}_${renderGender}`);
           } else if (appearance.hairStyle !== 'bald') {
-              let hairStr = `hair_${appearance.hairStyle}_${appearance.hairColor}`;
-              if (appearance.hairStyle === 'long' && renderGender === 'female') {
-                  hairStr = `hair_long_female_${appearance.hairColor}`;
-              } else if (appearance.hairStyle === 'short' && renderGender === 'female') {
-                  hairStr = `hair_short_female_${appearance.hairColor}`;
-              } else if (appearance.hairStyle === 'long' && renderGender === 'male') {
-                  hairStr = `hair_long_male_${appearance.hairColor}`;
-              }
-              // short male hair has no _male tag
-              drawLayer(hairStr);
+              drawLayer(`hair_${appearance.hairStyle}_${renderGender}_${appearance.hairColor}`);
           }
       }
 
