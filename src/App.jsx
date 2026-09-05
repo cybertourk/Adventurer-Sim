@@ -277,6 +277,8 @@ const DailySummaryModal = ({ reportDay, dailyLogs, onClose, currentStats, active
     );
 };
 
+const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
+
 const getItemCategoryTab = (item) => {
     if (!item) return 'All';
     const itemId = String(item.id || '');
