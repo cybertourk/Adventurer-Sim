@@ -10,7 +10,7 @@ const IntroScreen = ({ onComplete }) => {
         <div 
             className="absolute inset-0 w-full h-full opacity-40 mix-blend-luminosity"
             style={{
-                backgroundImage: `url('${baseUrl}bg_intro.jpg')`,
+                backgroundImage: `url('${baseUrl}bg_intro.png')`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 imageRendering: 'pixelated'
@@ -19,17 +19,18 @@ const IntroScreen = ({ onComplete }) => {
 
         {/* Notebook Paper Overlay */}
         <div 
-            className="relative z-10 w-full max-w-2xl max-h-[90vh] mx-4 bg-[#fdfaf3] text-slate-800 p-8 md:p-12 rounded-sm shadow-[10px_10px_40px_rgba(0,0,0,0.9)] overflow-y-auto transform -rotate-1"
+            className="relative z-10 w-full max-w-2xl max-h-[90vh] mx-4 bg-[#fdfaf3] text-slate-800 p-[32px] md:p-[64px] rounded-sm shadow-[10px_10px_40px_rgba(0,0,0,0.9)] overflow-y-auto transform -rotate-1"
             style={{ 
                 backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, #cbd5e1 32px)', 
                 backgroundAttachment: 'local',
+                backgroundPosition: '0 8px',
                 lineHeight: '32px'
             }}
         >
             <div className="absolute left-6 md:left-10 top-0 bottom-0 w-0.5 bg-red-400/50" />
             
             <div className="pl-6 md:pl-8">
-                <h1 className="text-2xl md:text-3xl font-bold mb-4 text-slate-900 leading-[32px] pt-1 underline decoration-wavy decoration-slate-400">
+                <h1 className="text-2xl md:text-3xl font-bold mb-[32px] text-slate-900 leading-[32px] underline decoration-wavy decoration-slate-400">
                     Session One: The "Adventure" Begins
                 </h1>
                 
@@ -68,12 +69,12 @@ const IntroScreen = ({ onComplete }) => {
                         </ul>
                     </div>
                     
-                    <p className="font-bold text-lg md:text-xl text-center leading-[32px] m-0 pt-4">
+                    <p className="font-bold text-lg md:text-xl text-center leading-[32px] m-0 pt-[32px]">
                         Let's roll some dice and make the DM regret inviting me.
                     </p>
                 </div>
 
-                <div className="mt-8 flex justify-center pb-8">
+                <div className="mt-[32px] flex justify-center pb-[32px]">
                     <button 
                         onClick={onComplete}
                         className="px-8 py-2 bg-zinc-900 text-zinc-100 font-sans font-bold uppercase tracking-widest rounded-lg shadow-xl hover:bg-indigo-600 transition-all hover:scale-110 transform rotate-2 active:scale-95"
