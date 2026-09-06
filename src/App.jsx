@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List, TrendingUp, Download, Upload } from 'lucide-react';
 import { ITEM_DB, MAINTENANCE_ACTIONS, LOCATIONS, COMPANIONS, CURSES } from './data/constants';
 import { useGameLogic } from './hooks/useGameLogic';
 import CharacterCanvas from './components/CharacterCanvas';
@@ -211,7 +211,7 @@ const App = () => {
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
     curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
-    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, exportSave, importSave
   } = useGameLogic();
 
   const [openPanel, setOpenPanel] = useState(null);
@@ -219,6 +219,7 @@ const App = () => {
   const [inventoryTab, setInventoryTab] = useState('All');
   const [shopTab, setShopTab] = useState('All');
   const [logTab, setLogTab] = useState('daily');
+  const fileInputRef = useRef(null);
 
   const resolveItemId = (instanceId) => {
       if (!instanceId) return 'none';
@@ -308,13 +309,39 @@ const App = () => {
   }, {});
   const sortedDays = Object.values(groupedLogs).sort((a,b) => b.day - a.day);
 
+  const handleImportClick = () => {
+      fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+          importSave(event.target.result);
+      };
+      reader.readAsText(file);
+      e.target.value = null; 
+  };
+
   if (!gameStarted) {
     return (
-      <CreationScreen 
-        creationStep={creationStep} setCreationStep={setCreationStep} characterName={characterName} setCharacterName={setCharacterName} appearance={appearance} updateAppearance={updateAppearance} 
-        equipped={resolvedEquipped} attributes={attributes} updateAttribute={updateAttribute} pointsAvailable={pointsAvailable} 
-        getStatInfo={getStatInfo} startGame={startGame} 
-      />
+      <div className="relative w-full h-[100dvh]">
+          <CreationScreen 
+            creationStep={creationStep} setCreationStep={setCreationStep} characterName={characterName} setCharacterName={setCharacterName} appearance={appearance} updateAppearance={updateAppearance} 
+            equipped={resolvedEquipped} attributes={attributes} updateAttribute={updateAttribute} pointsAvailable={pointsAvailable} 
+            getStatInfo={getStatInfo} startGame={startGame} 
+          />
+          <div className="absolute top-4 right-4 md:top-6 md:right-6 z-50">
+              <input type="file" accept=".json" ref={fileInputRef} className="hidden" onChange={handleFileChange} />
+              <button 
+                  onClick={handleImportClick} 
+                  className="flex items-center gap-2 px-4 py-2.5 bg-zinc-900 border border-zinc-700 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-xl shadow-[0_5px_15px_rgba(0,0,0,0.5)] transition-all text-xs font-bold uppercase tracking-wider hover:border-indigo-500"
+              >
+                  <Upload size={14} /> Import Save
+              </button>
+          </div>
+      </div>
     );
   }
 
@@ -845,13 +872,23 @@ const App = () => {
 
                      {openPanel === 'log' && (
                         <div className="space-y-4">
-                            <div className="flex gap-2 border-b border-zinc-800 pb-3">
-                                <button onClick={() => setLogTab('daily')} className={`flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all ${logTab === 'daily' ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:bg-zinc-700'}`}>
-                                    <List size={14} /> Daily Records
-                                </button>
-                                <button onClick={() => setLogTab('stats')} className={`flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all ${logTab === 'stats' ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:bg-zinc-700'}`}>
-                                    <TrendingUp size={14} /> Lifetime Stats
-                                </button>
+                            <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center border-b border-zinc-800 pb-3 mb-4">
+                                <div className="flex gap-2">
+                                    <button onClick={() => setLogTab('daily')} className={`flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all ${logTab === 'daily' ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:bg-zinc-700'}`}>
+                                        <List size={14} /> Daily Records
+                                    </button>
+                                    <button onClick={() => setLogTab('stats')} className={`flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all ${logTab === 'stats' ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:bg-zinc-700'}`}>
+                                        <TrendingUp size={14} /> Lifetime Stats
+                                    </button>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={exportSave} className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border bg-zinc-800/80 text-emerald-400 border-emerald-900/50 hover:bg-emerald-900/40 transition-all shadow-[0_0_10px_rgba(52,211,153,0.1)]">
+                                        <Download size={14} /> Export Save
+                                    </button>
+                                    <button onClick={resetGame} className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider rounded-lg border bg-red-950/20 text-red-500/80 border-red-900/30 hover:bg-red-900/40 hover:text-red-400 transition-all">
+                                        <X size={14} /> Hard Reset
+                                    </button>
+                                </div>
                             </div>
 
                             {logTab === 'daily' && (
@@ -924,12 +961,6 @@ const App = () => {
                                     </div>
                                 </div>
                             )}
-
-                            <div className="flex justify-center mt-8 pt-4 border-t border-zinc-800">
-                                <button onClick={resetGame} className="text-[10px] text-red-500/50 hover:text-red-400 font-bold uppercase tracking-widest transition-colors flex items-center gap-1 bg-red-950/20 px-4 py-2 rounded-lg border border-red-900/30 hover:bg-red-900/40">
-                                    <X size={12}/> Hard Reset Game
-                                </button>
-                            </div>
                         </div>
                      )}
 
