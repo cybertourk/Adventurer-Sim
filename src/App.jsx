@@ -5,6 +5,7 @@ import { useGameLogic } from './hooks/useGameLogic';
 import CharacterCanvas from './components/CharacterCanvas';
 import CreationScreen from './components/CreationScreen';
 import DailySummaryModal from './components/DailySummaryModal';
+import IntroScreen from './components/IntroScreen';
 
 const IconMap = { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List, Zap, TrendingUp };
 
@@ -175,11 +176,6 @@ const getItemCategoryTab = (item) => {
     return 'All';
 };
 
-const getSerial = (id) => {
-    if (!id) return '';
-    return id.split('_')[1]?.substring(0,4).toUpperCase() || id.slice(-4).toUpperCase();
-};
-
 const ResponsiveBackground = ({ locationId }) => {
     const baseUrl = import.meta.env.BASE_URL;
     let bgImage = `${baseUrl}bg_village.png`;
@@ -206,7 +202,7 @@ const ResponsiveBackground = ({ locationId }) => {
 
 const App = () => {
   const {
-    gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute,
+    gameStarted, setGameStarted, showIntro, setShowIntro, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute,
     stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
@@ -345,52 +341,15 @@ const App = () => {
     );
   }
 
-  const metersContent = (
-    <>
-         <StatBlock label="HP" value={stats.health} max={maxStats.health} alert={stats.health < maxStats.health * 0.3} onClick={() => setActiveDetailModal('health')} />
-         <StatBlock label="Hunger" value={stats.hunger} max={maxStats.hunger} alert={stats.hunger > 70} inverted onClick={() => setActiveDetailModal('hunger')} />
-         <StatBlock label="Thirst" value={stats.thirst} max={maxStats.thirst} alert={stats.thirst > 70} inverted onClick={() => setActiveDetailModal('thirst')} />
-         <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} onClick={() => setActiveDetailModal('mood')} />
-         <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 70} inverted onClick={() => setActiveDetailModal('stress')} />
-    </>
-  );
-
-  const attributesContent = (
-    <>
-         {['str', 'dex', 'con', 'int', 'cha', 'ac'].map(attr => (
-             <AttributeBlock 
-                 key={attr} label={attr} value={getAttributeTotal(attr)} 
-                 onClick={() => setActiveDetailModal(attr)} 
-                 onPlus={attr !== 'ac' && pointsAvailable > 0 ? () => updateAttribute(attr, 1) : null}
-             />
-         ))}
-    </>
-  );
-
-  const displayedInventory = inventory
-      .filter(invItem => !['inst_none', 'inst_tunic', 'inst_fist', 'inst_cultist_robe'].includes(invItem.instanceId))
-      .map(invItem => {
-          const dbItem = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === invItem.itemId);
-          return dbItem ? { ...dbItem, instanceId: invItem.instanceId, displayName: invItem.displayName } : null;
-      })
-      .filter(Boolean)
-      .filter(item => inventoryTab === 'All' || getItemCategoryTab(item) === inventoryTab);
-
-  const displayedShop = shopStock
-      .map(shopItem => {
-          const dbItem = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand, ...ITEM_DB.supplies].find(i => i.id === shopItem.itemId);
-          return dbItem ? { ...dbItem, instanceId: shopItem.instanceId, displayName: shopItem.displayName } : null;
-      })
-      .filter(Boolean)
-      .filter(item => shopTab === 'All' || getItemCategoryTab(item) === shopTab);
-
-  const modalDetails = activeDetailModal ? getModalDetails(activeDetailModal) : null;
-
   return (
     <div className="relative w-full h-[100dvh] overflow-hidden text-zinc-200 font-sans select-none selection:bg-indigo-500/30">
       
       <ResponsiveBackground locationId={location} />
       
+      {showIntro && (
+          <IntroScreen onComplete={() => setShowIntro(false)} />
+      )}
+
       {reportData && (
           <DailySummaryModal 
               reportDay={reportData} 
@@ -507,7 +466,11 @@ const App = () => {
 
       <div className="absolute top-[160px] md:top-1/2 md:-translate-y-1/2 left-2 md:left-6 z-20 pointer-events-none flex items-start">
           <div className="bg-zinc-900/80 pointer-events-auto backdrop-blur-md border border-zinc-700/50 rounded-2xl md:rounded-3xl p-2 md:p-3 shadow-[0_10px_25px_rgba(0,0,0,0.6)] flex flex-col gap-2 md:gap-3">
-              {metersContent}
+              <StatBlock label="HP" value={stats.health} max={maxStats.health} alert={stats.health < maxStats.health * 0.3} onClick={() => setActiveDetailModal('health')} />
+              <StatBlock label="Hunger" value={stats.hunger} max={maxStats.hunger} alert={stats.hunger > 70} inverted onClick={() => setActiveDetailModal('hunger')} />
+              <StatBlock label="Thirst" value={stats.thirst} max={maxStats.thirst} alert={stats.thirst > 70} inverted onClick={() => setActiveDetailModal('thirst')} />
+              <StatBlock label="Mood" value={stats.mood} max={maxStats.mood} alert={stats.mood < 30} onClick={() => setActiveDetailModal('mood')} />
+              <StatBlock label="Stress" value={stats.stress} max={maxStats.stress} alert={stats.stress > 70} inverted onClick={() => setActiveDetailModal('stress')} />
           </div>
       </div>
 
@@ -596,7 +559,13 @@ const App = () => {
                                     {pointsAvailable > 0 && <span className="text-[10px] font-bold text-emerald-400 animate-pulse tracking-widest uppercase">Points: {pointsAvailable}</span>}
                                 </div>
                                 <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                                    {attributesContent}
+                                    {['str', 'dex', 'con', 'int', 'cha', 'ac'].map(attr => (
+                                         <AttributeBlock 
+                                             key={attr} label={attr} value={getAttributeTotal(attr)} 
+                                             onClick={() => setActiveDetailModal(attr)} 
+                                             onPlus={attr !== 'ac' && pointsAvailable > 0 ? () => updateAttribute(attr, 1) : null}
+                                         />
+                                     ))}
                                 </div>
                             </div>
 
