@@ -216,6 +216,8 @@ export const useGameLogic = () => {
 
         if (!parsed.shopStock || parsed.shopStock.length === 0) refreshShop();
         if (parsed.dailyQuests) setDailyQuests(parsed.dailyQuests); else setDailyQuests(generateDailyQuests(parsed.resources?.level || 1, parsed.activeCompanion, parsed.activeCurse));
+        
+        setIsDead(parsed.stats?.health <= 0 || parsed.stats?.hunger >= 100 || parsed.stats?.thirst >= 100);
         setGameStarted(true);
       } catch (e) { console.error("Failed to load save", e); refreshShop(); setDailyQuests(generateDailyQuests(1)); }
     } else { refreshShop(); setDailyQuests(generateDailyQuests(1)); setGameStarted(false); }
@@ -738,6 +740,61 @@ export const useGameLogic = () => {
     }
   };
 
+  const exportSave = () => {
+      const saveData = {
+          characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, lastSave: Date.now()
+      };
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(saveData));
+      const downloadAnchorNode = document.createElement('a');
+      downloadAnchorNode.setAttribute("href", dataStr);
+      const fileName = `${characterName.first || 'Unknown'}_Day${days}_Save.json`;
+      downloadAnchorNode.setAttribute("download", fileName);
+      document.body.appendChild(downloadAnchorNode); 
+      downloadAnchorNode.click();
+      downloadAnchorNode.remove();
+      addMessage("Game exported successfully!", "success");
+  };
+
+  const importSave = (saveString) => {
+      try {
+          const parsed = JSON.parse(saveString);
+          if (!parsed || !parsed.attributes || !parsed.resources) throw new Error("Invalid save format");
+          
+          setCharacterName(parsed.characterName || { first: '', last: '' });
+          setEdgyName(parsed.edgyName || null);
+          setAttributes(parsed.attributes || { str: 10, dex: 10, con: 10, int: 10, cha: 10 });
+          setStats(parsed.stats || { hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 });
+          setResources(parsed.resources || { gold: 50, xp: 0, level: 1 });
+          setAppearance(parsed.appearance || { gender: 'male', skinTone: 'fair', hairColor: 'brown', eyeColor: 'brown', hairStyle: 'short' });
+          setLocation(parsed.location || 'village_road');
+          setHousing(parsed.housing || 'homeless');
+          setRentActive(parsed.rentActive || false);
+          setDays(parsed.days || 1);
+          setDailyLogs(parsed.dailyLogs || []);
+          setQuirk(parsed.quirk || null); 
+          setActiveCompanion(parsed.activeCompanion || null);
+          setCompanionVariant(parsed.companionVariant || null);
+          setActiveCurse(parsed.activeCurse || null);
+          setCurseVariant(parsed.curseVariant || null);
+          setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0, days: 0 });
+          setShitfacedToday(parsed.shitfacedToday || false);
+          setGameStats({ ...defaultStats, ...(parsed.gameStats || {}) });
+          setInventory(parsed.inventory || []);
+          setEquipped(parsed.equipped || { head: 'inst_none', body: 'inst_tunic', mainHand: 'inst_fist', offHand: 'inst_none' });
+          setShopStock(parsed.shopStock || []);
+          setDailyQuests(parsed.dailyQuests || generateDailyQuests(parsed.resources?.level || 1, parsed.activeCompanion, parsed.activeCurse));
+          
+          setIsDead(parsed.stats?.health <= 0 || parsed.stats?.hunger >= 100 || parsed.stats?.thirst >= 100);
+          
+          localStorage.setItem(SAVE_KEY, saveString);
+          setGameStarted(true);
+          addMessage("Save imported successfully!", "success");
+      } catch (e) {
+          console.error("Failed to import save", e);
+          addMessage("Invalid save file.", "error");
+      }
+  };
+
   const revive = () => {
     setGameStats(p => ({ ...p, deaths: p.deaths + 1 }));
     setStats({ health: maxStats.health, mood: maxStats.mood, hunger: 0, thirst: 0, stress: 0 }); setIsDead(false); setResources(prev => ({ ...prev, xp: Math.max(0, prev.xp - 50) })); setHousing('homeless'); setRentActive(false); addMessage("Revived... destitute.", "info");
@@ -812,6 +869,6 @@ export const useGameLogic = () => {
     gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages, isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk,
     activeCompanion, companionVariant, activeCurse, curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
-    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, exportSave, importSave
   };
 };
