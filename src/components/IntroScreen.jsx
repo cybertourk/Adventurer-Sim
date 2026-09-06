@@ -28,7 +28,7 @@ const IntroScreen = ({ onComplete }) => {
             style={{ 
                 backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, #cbd5e1 32px)', 
                 backgroundAttachment: 'local',
-                backgroundPosition: '0 8px',
+                backgroundPosition: '0 2px',
                 lineHeight: '32px',
                 fontFamily: '"Caveat", cursive'
             }}
