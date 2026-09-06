@@ -8,7 +8,7 @@ const IntroScreen = ({ onComplete }) => {
         
         {/* Background Image layer */}
         <div 
-            className="absolute inset-0 w-full h-full opacity-40 mix-blend-luminosity"
+            className="absolute inset-0 w-full h-full opacity-40"
             style={{
                 backgroundImage: `url('${baseUrl}bg_intro.png')`,
                 backgroundSize: 'cover',
