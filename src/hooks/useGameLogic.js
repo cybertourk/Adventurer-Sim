@@ -38,6 +38,7 @@ const defaultStats = {
 
 export const useGameLogic = () => {
   const [gameStarted, setGameStarted] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
   const [creationStep, setCreationStep] = useState(1);
   const [characterName, setCharacterName] = useState({ first: '', last: '' });
   const [edgyName, setEdgyName] = useState(null);
@@ -192,6 +193,7 @@ export const useGameLogic = () => {
         setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0, days: 0 });
         setShitfacedToday(parsed.shitfacedToday || false);
         setGameStats({ ...defaultStats, ...(parsed.gameStats || {}) });
+        setShowIntro(parsed.showIntro || false);
         
         let loadedVariant = parsed.companionVariant || null;
         if (parsed.activeCompanion === 'spouse' && !loadedVariant) loadedVariant = `${Math.random() < 0.5 ? 'male' : 'female'}_${Math.floor(Math.random() * 3) + 1}`;
@@ -230,9 +232,9 @@ export const useGameLogic = () => {
       if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, lastSave: Date.now()
+        characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, showIntro, lastSave: Date.now()
       }));
-  }, [characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats]);
+  }, [characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, showIntro]);
 
   const calculateOdds = (action) => {
       if (!['labor', 'adventure', 'social', 'magic'].includes(action.type)) return null;
@@ -742,7 +744,7 @@ export const useGameLogic = () => {
 
   const exportSave = () => {
       const saveData = {
-          characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, lastSave: Date.now()
+          characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, showIntro, lastSave: Date.now()
       };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(saveData));
       const downloadAnchorNode = document.createElement('a');
@@ -779,6 +781,7 @@ export const useGameLogic = () => {
           setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0, days: 0 });
           setShitfacedToday(parsed.shitfacedToday || false);
           setGameStats({ ...defaultStats, ...(parsed.gameStats || {}) });
+          setShowIntro(parsed.showIntro || false);
           setInventory(parsed.inventory || []);
           setEquipped(parsed.equipped || { head: 'inst_none', body: 'inst_tunic', mainHand: 'inst_fist', offHand: 'inst_none' });
           setShopStock(parsed.shopStock || []);
@@ -859,14 +862,15 @@ export const useGameLogic = () => {
   const startGame = () => {
       const newMax = calculateMaxStats(1, attributes.con); setStats(prev => ({ ...prev, health: newMax.health }));
       const randomQuirk = QUIRKS[Math.floor(Math.random() * QUIRKS.length)]; setQuirk(randomQuirk);
-      setGameStarted(true); setDailyQuests(generateDailyQuests(1)); 
-      setTimeout(() => { alert(`You were born with a trait: ${randomQuirk.name}\n${randomQuirk.desc}`); }, 500);
+      setGameStarted(true); 
+      setShowIntro(true); 
+      setDailyQuests(generateDailyQuests(1)); 
   };
 
   const resetGame = () => { if (confirm("Reset game?")) { localStorage.removeItem(SAVE_KEY); window.location.reload(); } };
 
   return {
-    gameStarted, setGameStarted, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
+    gameStarted, setGameStarted, showIntro, setShowIntro, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages, isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk,
     activeCompanion, companionVariant, activeCurse, curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
     stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, exportSave, importSave
