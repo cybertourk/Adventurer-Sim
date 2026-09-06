@@ -30,6 +30,14 @@ const renderEffectsList = (effects) => {
 
 const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
 
+const getExpression = (mood, stress) => {
+    if (mood < 30 && stress > 70) return 'unhinged';
+    if (mood < 30 && stress <= 70) return 'miserable';
+    if (stress > 70 && mood >= 30) return 'stressed';
+    if (mood > 70 && stress < 70) return 'smug';
+    return 'neutral';
+};
+
 const StatBlock = ({ label, value, max, alert, inverted, onClick, subValue }) => (
     <button onClick={onClick} className={`flex flex-col items-center justify-center w-[42px] h-[42px] md:w-[60px] md:h-[60px] bg-zinc-900/90 rounded-xl md:rounded-2xl border backdrop-blur-md shadow-[0_4px_12px_rgba(0,0,0,0.5)] transition-all hover:scale-105 active:scale-95 ${alert ? 'border-red-500/50 bg-red-950/80' : inverted ? 'border-amber-500/50 bg-amber-950/80' : 'border-zinc-700/80 hover:border-zinc-500'}`}>
         <span className={`text-[8px] md:text-[9px] font-bold uppercase tracking-widest ${alert ? 'text-red-400' : inverted ? 'text-amber-500' : 'text-zinc-400'}`}>{label}</span>
@@ -485,7 +493,7 @@ const App = () => {
           )}
           
           <div className="h-[45vh] w-[45vh] md:h-[85vh] md:w-[85vh] max-h-[900px] max-w-[900px] flex shrink-0 items-end justify-center transition-all duration-500">
-             <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} companionVariant={companionVariant} curseVariant={curseVariant} />
+             <CharacterCanvas equipped={resolvedEquipped} appearance={appearance} isAlive={!isDead} activeCurse={activeCurse} activeCompanion={activeCompanion} companionVariant={companionVariant} curseVariant={curseVariant} expression={getExpression(stats.mood, stats.stress)} />
           </div>
       </div>
 
