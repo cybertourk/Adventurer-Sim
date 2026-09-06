@@ -25,6 +25,8 @@ const renderEffectsList = (effects) => {
     );
 };
 
+const renderItemStats = (item) => renderEffectsList(item.stats || item.effects);
+
 const renderArrayBadges = (changesArr) => {
     if (!changesArr || changesArr.length === 0) return null;
     return (
