@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCompanion, companionVariant, curseVariant }) => {
+const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCompanion, companionVariant, curseVariant, expression = 'neutral' }) => {
   const canvasRef = useRef(null);
   const imagesRef = useRef({});
   const [imagesLoaded, setImagesLoaded] = useState(false);
@@ -20,6 +20,12 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       base_female_dark: `${baseUrl}base_female_dark.png`,
       base_female_deep: `${baseUrl}base_female_deep.png`,
       
+      exp_neutral: `${baseUrl}exp_neutral.png`,
+      exp_smug: `${baseUrl}exp_smug.png`,
+      exp_stressed: `${baseUrl}exp_stressed.png`,
+      exp_miserable: `${baseUrl}exp_miserable.png`,
+      exp_unhinged: `${baseUrl}exp_unhinged.png`,
+
       eyes_male_blue: `${baseUrl}eyes_male_blue.png`,
       eyes_male_brown: `${baseUrl}eyes_male_brown.png`,
       eyes_male_green: `${baseUrl}eyes_male_green.png`,
@@ -216,6 +222,8 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       if (imagesRef.current[baseKey]) drawLayer(baseKey);
       else drawLayer(renderGender === 'female' ? 'base_female_pale' : 'base_male_pale');
 
+      drawLayer(`exp_${expression}`);
+
       drawLayer(`eyes_${renderGender}_${appearance.eyeColor}`);
 
       if (equipped.body && equipped.body !== 'tunic' && equipped.body !== 'none' && equipped.body !== 'cultist_robe') {
@@ -283,7 +291,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
     render();
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [equipped, appearance, isAlive, imagesLoaded, activeCurse, activeCompanion, companionVariant, curseVariant]);
+  }, [equipped, appearance, isAlive, imagesLoaded, activeCurse, activeCompanion, companionVariant, curseVariant, expression]);
 
   return (
     <canvas 
