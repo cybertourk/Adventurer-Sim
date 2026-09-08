@@ -10,7 +10,7 @@ const CreationScreen = ({ creationStep, setCreationStep, characterName, setChara
             <div className="w-full md:w-1/3 h-[40vh] md:h-auto bg-gradient-to-b from-zinc-900 to-zinc-950 p-4 flex flex-col items-center justify-center border-b md:border-b-0 md:border-r border-zinc-800 relative shrink-0">
                 <h2 className="text-xl font-bold mb-2 md:mb-4 text-indigo-400 uppercase tracking-widest drop-shadow-md">New Adventurer</h2>
                 <div className="w-[100vw] h-[100vw] max-w-[280px] max-h-[280px] md:max-w-[350px] md:max-h-[350px] aspect-square flex items-center justify-center">
-                    <CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} activeCompanion={null} companionVariant={null} curseVariant={null} />
+                    <CharacterCanvas equipped={equipped} appearance={appearance} isAlive={true} activeCurse={null} activeCompanion={null} companionVariant={null} curseVariant={null} expression="neutral" />
                 </div>
             </div>
             <div className="flex-1 p-4 md:p-6 flex flex-col bg-zinc-900/50 min-h-0">
