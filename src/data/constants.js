@@ -76,6 +76,9 @@ export const MAINTENANCE_ACTIONS = [
   { id: 'scream', label: 'Scream into the Void', icon: 'Activity', cost: 0, days: 0, costType: 'gp', type: 'maintenance', description: 'Therapeutic. (+10 Mood, -5 Stress, +10 Thirst)', reqLocation: 'any', effects: { mood: 10, stress: -5, thirst: 10 } },
   { id: 'shadowbox', label: 'Shadowboxing (Train)', icon: 'Hammer', cost: 0, days: 1, costType: 'gp', type: 'maintenance', description: 'Basic workout. (+5 XP, +15 Hunger/Thirst)', reqLocation: 'any', effects: { xp: 5, hunger: 15, thirst: 15 } },
 
+  { id: 'rent_start', label: 'Rent Inn Room', icon: 'Tent', cost: 5, days: 0, costType: 'gp', type: 'housing', description: 'A safe place to sleep. (5g/day)', reqLocation: 'any', effects: {} },
+  { id: 'rent_stop', label: 'Checkout of Inn', icon: 'X', cost: 0, days: 0, costType: 'gp', type: 'housing', description: 'Back to the streets.', reqLocation: 'any', effects: {} },
+
   { id: 'eat_slop', label: 'Order Tavern Slop', icon: 'Utensils', cost: 3, days: 0, costType: 'gp', type: 'maintenance', description: 'Questionable meat. (-30 Hunger)', reqLocation: 'inn_room', effects: { hunger: -30 } },
   { id: 'drink_tap', label: 'Order Tap Water', icon: 'Droplets', cost: 0, days: 0, costType: 'gp', type: 'maintenance', description: 'Cleanish. (-40 Thirst)', reqLocation: 'inn_room', effects: { thirst: -40 } },
   { id: 'drink_ale', label: 'Order Cheap Ale', icon: 'Beer', cost: 5, days: 0, costType: 'gp', type: 'maintenance', description: 'Glug glug. (-15 Thirst, -5 Stress)', reqLocation: 'inn_room', effects: { thirst: -15, stress: -5 } },
