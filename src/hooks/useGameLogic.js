@@ -118,9 +118,29 @@ export const useGameLogic = () => {
 
   const addToLog = (logEntry) => setDailyLogs(prev => [{ ...logEntry, id: Date.now() + Math.random() }, ...prev]);
 
-  const refreshShop = () => {
-    const purchasable = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].filter(i => i.cost > 0);
-    const selectedEquipment = rollTieredItems(purchasable, 5);
+  const refreshShop = (lvl = resources.level) => {
+    const currentTier = getMaxTier(lvl);
+    
+    const getItemTier = (item) => {
+        if (item.name.includes("Magical") || item.name.includes("Enchanted") || item.name.includes("Aegis") || item.name.includes("Arch-Mage")) {
+            if (item.stats.str >= 6 || item.stats.ac >= 10 || item.stats.int >= 6) return 4;
+            return 3;
+        }
+        if (item.stats.str >= 3 || item.stats.ac >= 3 || item.stats.int >= 3) return 2;
+        return 1;
+    };
+
+    const allEquipment = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].filter(i => i.cost > 0);
+    
+    const availablePool = allEquipment.filter(item => getItemTier(item) <= currentTier);
+    let selectedEquipment = rollTieredItems(availablePool, 4);
+    
+    const plusOnePool = allEquipment.filter(item => getItemTier(item) === Math.min(5, currentTier + 1));
+    if (Math.random() < 0.25 && plusOnePool.length > 0) {
+        selectedEquipment.push(rollTieredItems(plusOnePool, 1)[0]);
+    } else {
+        selectedEquipment.push(rollTieredItems(availablePool, 1)[0]);
+    }
     
     const consumables = ITEM_DB.supplies.filter(i => i.cost > 0 && i.id !== 'shiny_trash');
     const selectedConsumable = consumables[Math.floor(Math.random() * consumables.length)];
@@ -216,7 +236,7 @@ export const useGameLogic = () => {
         let loadedShop = parsed.shopStock || [];
         setShopStock(loadedShop);
 
-        if (!parsed.shopStock || parsed.shopStock.length === 0) refreshShop();
+        if (!parsed.shopStock || parsed.shopStock.length === 0) refreshShop(parsed.resources?.level || 1);
         if (parsed.dailyQuests) setDailyQuests(parsed.dailyQuests); else setDailyQuests(generateDailyQuests(parsed.resources?.level || 1, parsed.activeCompanion, parsed.activeCurse));
         
         setIsDead(parsed.stats?.health <= 0 || parsed.stats?.hunger >= 100 || parsed.stats?.thirst >= 100);
@@ -551,7 +571,7 @@ export const useGameLogic = () => {
 
       setDays(prev => prev + daysPassed); 
       setReportData(days); 
-      refreshShop();
+      refreshShop(resources.level);
       setDailyQuests(generateDailyQuests(resources.level, nextComp, nextCur));
   };
 
@@ -671,14 +691,37 @@ export const useGameLogic = () => {
         }
         
         if (action.type === 'adventure') { 
+           const currentTier = getMaxTier(newLevel);
            const r = Math.random(); let foundItem = null;
-           const findableItems = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].filter(i => i.cost > 0);
+           
+           const getItemTier = (item) => {
+               if (item.name.includes("Magical") || item.name.includes("Enchanted") || item.name.includes("Aegis") || item.name.includes("Arch-Mage")) {
+                   if (item.stats.str >= 6 || item.stats.ac >= 10 || item.stats.int >= 6) return 4;
+                   return 3;
+               }
+               if (item.stats.str >= 3 || item.stats.ac >= 3 || item.stats.int >= 3) return 2;
+               return 1;
+           };
+
+           const allEquipment = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].filter(i => i.cost > 0);
            const consumables = ITEM_DB.supplies.filter(i => i.cost > 0 && i.id !== 'shiny_trash');
 
-           if (r < 0.05) foundItem = rollTieredItems(findableItems, 1)[0];
-           else if (r < 0.20) foundItem = rollTieredItems(findableItems, 1)[0];
-           else if (r < 0.45) foundItem = rollTieredItems(findableItems, 1)[0];
-           else if (r < 0.65) foundItem = consumables[Math.floor(Math.random() * consumables.length)];
+           if (r < 0.05) {
+               const plusOnePool = allEquipment.filter(item => getItemTier(item) === Math.min(5, currentTier + 1));
+               if (plusOnePool.length > 0) foundItem = rollTieredItems(plusOnePool, 1)[0];
+               else foundItem = rollTieredItems(allEquipment.filter(item => getItemTier(item) === currentTier), 1)[0];
+           }
+           else if (r < 0.20) {
+               const currentPool = allEquipment.filter(item => getItemTier(item) === currentTier);
+               if (currentPool.length > 0) foundItem = rollTieredItems(currentPool, 1)[0];
+           }
+           else if (r < 0.45 && currentTier > 1) {
+               const lowerPool = allEquipment.filter(item => getItemTier(item) === currentTier - 1);
+               if (lowerPool.length > 0) foundItem = rollTieredItems(lowerPool, 1)[0];
+           }
+           else if (r < 0.65) {
+               foundItem = consumables[Math.floor(Math.random() * consumables.length)];
+           }
 
            if (foundItem) {
              let displayName = foundItem.name;
