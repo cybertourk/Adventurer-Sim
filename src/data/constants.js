@@ -21,6 +21,9 @@ export const ITEM_DB = {
     { id: 'leather_cap', name: 'Leather Cap', type: 'head', category: 'Light Helm', baseType: 'leather_cap', stats: { ac: 1 }, cost: 25, merchantNames: ["Assassin's Skullcap", "Helmet of the \"Silent Night\""] },
     { id: 'iron_helm', name: 'Iron Helm', type: 'head', category: 'Heavy Helm', baseType: 'iron_helm', stats: { ac: 3, dex: -1 }, cost: 60, merchantNames: ["Visor of the Undefeated (Has a Dent)", "Crown of the Iron Vanguard"] },
     { id: 'wizard_hat', name: 'Wizard Hat', type: 'head', category: 'Arcane Focus', baseType: 'hat_blue', stats: { int: 2 }, cost: 80, merchantNames: ["Crown of the Astral Plane", "The \"Mind-Expander\" Cone"] },
+    { id: 'enchanted_cap', name: 'Enchanted Cap', type: 'head', category: 'Light Helm', baseType: 'leather_cap', stats: { ac: 3, int: 2 }, cost: 180, merchantNames: ["Mind-Shielding Skullcap", "The \"Tinfoil\" Hat of Protection"] },
+    { id: 'arch_mage_hat', name: 'Arch-Mage Hat', type: 'head', category: 'Arcane Focus', baseType: 'hat_blue', stats: { int: 5 }, cost: 300, merchantNames: ["Crown of the Astral Plane (Glowing)", "The \"Know-It-All\" Cone"] },
+    { id: 'enchanted_iron_helm', name: 'Enchanted Iron Helm', type: 'head', category: 'Heavy Helm', baseType: 'iron_helm', stats: { ac: 7, dex: -1 }, cost: 600, merchantNames: ["Visor of the Undefeated (Glowing)", "Crown of the Adamantine Vanguard"] }
   ],
   body: [
     { id: 'tunic', name: 'Breezy Tunic', type: 'body', category: 'Clothing', baseType: 'tunic', stats: { ac: 0 }, cost: 0, description: 'Drafty.' },
@@ -29,6 +32,10 @@ export const ITEM_DB = {
     { id: 'leather_armor', name: 'Leather Armor', type: 'body', category: 'Light Armor', baseType: 'leather_armor', stats: { ac: 2 }, cost: 40, merchantNames: ["Faux Dragonhide Jerkin", "Shadow-Stalker's Harness (Squeaky)"] },
     { id: 'chainmail', name: 'Chainmail', type: 'body', category: 'Medium Armor', baseType: 'chainmail', stats: { ac: 6, dex: -1 }, cost: 150, merchantNames: ["Faux Mithril-Plated Links", "Crusader's Hauberk (Pre-Ruined)"] },
     { id: 'plate', name: 'Plate Armor', type: 'body', category: 'Heavy Armor', baseType: 'plate', stats: { ac: 10, dex: -2 }, cost: 500, merchantNames: ["Aegis of the Forgotten Emperor", "The \"I Swear to God It's Dragon-Proof\" Cuirass"] },
+    { id: 'magical_robe', name: 'Magical Robe', type: 'body', category: 'Clothing', baseType: 'robe_blue', stats: { ac: 3, int: 3 }, cost: 220, merchantNames: ["Robe of Minor Deflection", "The Itchy Spark-Garment"] },
+    { id: 'enchanted_leather', name: 'Enchanted Leather', type: 'body', category: 'Light Armor', baseType: 'leather_armor', stats: { ac: 5 }, cost: 240, merchantNames: ["Basilisk-Hide Jerkin", "Shadow-Stalker's Harness (Now Silent)"] },
+    { id: 'enchanted_chainmail', name: 'Enchanted Chainmail', type: 'body', category: 'Medium Armor', baseType: 'chainmail', stats: { ac: 10, dex: -1 }, cost: 800, merchantNames: ["True Mithril Links", "Crusader's Hauberk (Holy)"] },
+    { id: 'enchanted_plate', name: 'Enchanted Plate', type: 'body', category: 'Heavy Armor', baseType: 'plate', stats: { ac: 14, dex: -2 }, cost: 1200, merchantNames: ["Aegis of the Sun God", "The \"Literally Dragon-Proof\" Cuirass"] }
   ],
   mainHand: [
     { id: 'fist', name: 'These Two Hands', type: 'mainHand', category: 'Unarmed', baseType: 'fist', stats: { str: 0 }, cost: 0, description: 'Always loaded.' },
@@ -37,12 +44,20 @@ export const ITEM_DB = {
     { id: 'staff', name: 'Staff', type: 'mainHand', category: 'Quarterstaff', baseType: 'weapon_staff', stats: { int: 1, str: 1 }, cost: 60, merchantNames: ["Stick I Found Outside", "The \"Point This End at the Bad Guy\" Rod"] },
     { id: 'axe', name: 'Axe', type: 'mainHand', category: 'Battleaxe', baseType: 'weapon_axe', stats: { str: 3 }, cost: 75, merchantNames: ["Executioner's Right Hand", "Troll-Splitter"] },
     { id: 'hammer', name: 'Hammer', type: 'mainHand', category: 'Warhammer', baseType: 'weapon_hammer', stats: { str: 3 }, cost: 100, merchantNames: ["Skull-Crusher of the Ancients", "Dwarven \"Negotiator\" Mallet"] },
+    { id: 'magical_dagger', name: 'Magical Dagger', type: 'mainHand', category: 'Dagger', baseType: 'weapon_dagger', stats: { dex: 4, str: 2 }, cost: 200, merchantNames: ["The \"Glowing Shiv\"", "Assassin's Crutch"] },
+    { id: 'magical_sword', name: 'Magical Sword', type: 'mainHand', category: 'Longsword', baseType: 'weapon_sword', stats: { str: 5 }, cost: 250, merchantNames: ["Flaming Sword (Mild)", "Blade of Sunk Costs"] },
+    { id: 'magical_staff', name: 'Magical Staff', type: 'mainHand', category: 'Quarterstaff', baseType: 'weapon_staff', stats: { int: 6, str: 3 }, cost: 600, merchantNames: ["Staff of the Arrogant Mage", "The \"Point This End at the Dragon\" Rod"] },
+    { id: 'magical_axe', name: 'Magical Axe', type: 'mainHand', category: 'Battleaxe', baseType: 'weapon_axe', stats: { str: 8 }, cost: 750, merchantNames: ["Executioner's Flaming Hand", "Troll-Disintegrator"] },
+    { id: 'magical_hammer', name: 'Magical Hammer', type: 'mainHand', category: 'Warhammer', baseType: 'weapon_hammer', stats: { str: 9, con: 1 }, cost: 900, merchantNames: ["Meteor-Strike Mallet", "The \"Banhammer\""] }
   ],
   offHand: [
     { id: 'none', name: 'Empty', type: 'offHand', category: 'None', baseType: 'none', stats: { ac: 0 }, cost: 0, description: 'Free hand.' },
     { id: 'wooden_shield', name: 'Wooden Shield', type: 'offHand', category: 'Shield', baseType: 'shield_wooden', stats: { ac: 1 }, cost: 15, merchantNames: ["Splintering Ward of the Ancients", "The \"Impenetrable\" Barn Door"] },
     { id: 'tower_shield', name: 'Tower Shield', type: 'offHand', category: 'Tower Shield', baseType: 'shield_tower', stats: { ac: 3, dex: -2 }, cost: 60, merchantNames: ["The Immovable Object", "Phalanx Wall (Slightly Flammable)"] },
     { id: 'book', name: 'Spellbook', type: 'offHand', category: 'Arcane Focus', baseType: 'offhand_book', stats: { int: 3 }, cost: 200, merchantNames: ["Tome of Infinite Cosmos (Missing Pages)", "The \"Soul-Trapper\" Grimoire (Just a Diary)"] },
+    { id: 'magical_shield', name: 'Magical Shield', type: 'offHand', category: 'Shield', baseType: 'shield_wooden', stats: { ac: 4 }, cost: 200, merchantNames: ["Hovering Ward of the Ancients", "The \"Deflection\" Barn Door"] },
+    { id: 'aegis_shield', name: 'Aegis Shield', type: 'offHand', category: 'Tower Shield', baseType: 'shield_tower', stats: { ac: 8, dex: -2 }, cost: 700, merchantNames: ["The Truly Immovable Object", "Phalanx Wall (Now Fireproof)"] },
+    { id: 'enchanted_book', name: 'Enchanted Spellbook', type: 'offHand', category: 'Arcane Focus', baseType: 'offhand_book', stats: { int: 7 }, cost: 850, merchantNames: ["Tome of the Infinite Cosmos (Complete)", "The \"Soul-Trapper\" Grimoire"] }
   ],
   supplies: [
     { id: 'ration', name: 'Dungeon Ration', type: 'food', category: 'Food', cost: 8, description: 'Hard, tasteless survival biscuit.', effects: { hunger: -40, health: 10, stress: -5 } },
