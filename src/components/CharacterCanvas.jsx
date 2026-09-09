@@ -192,24 +192,39 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
 
       const renderGender = activeCurse === 'girdle' ? (appearance.gender === 'male' ? 'female' : 'male') : appearance.gender;
 
+      const getBaseId = (itemId) => {
+        if (!itemId || itemId === 'none') return 'none';
+        let base = itemId;
+        if (base.startsWith('magical_')) base = base.replace('magical_', '');
+        if (base.startsWith('enchanted_')) base = base.replace('enchanted_', '');
+        if (base.startsWith('aegis_')) base = base.replace('aegis_', '');
+        if (base.startsWith('arch_mage_')) base = 'wizard_';
+        return base;
+      };
+
+      const resolvedMainHand = getBaseId(equipped.mainHand);
+      const resolvedOffHand = getBaseId(equipped.offHand);
+      const resolvedBody = getBaseId(equipped.body);
+      const resolvedHead = getBaseId(equipped.head);
+
       const hipWeapons = ['dagger', 'book'];
       const backWeapons = ['sword', 'hammer', 'axe', 'staff'];
       
-      const hasHipItem = hipWeapons.includes(equipped.mainHand) || hipWeapons.includes(equipped.offHand);
-      const hasBackItem = backWeapons.includes(equipped.mainHand) || backWeapons.includes(equipped.offHand);
+      const hasHipItem = hipWeapons.includes(resolvedMainHand) || hipWeapons.includes(resolvedOffHand);
+      const hasBackItem = backWeapons.includes(resolvedMainHand) || backWeapons.includes(resolvedOffHand);
 
       let beltSuffix = 'base';
-      if (equipped.body === 'leather_armor') beltSuffix = 'leather';
-      else if (equipped.body === 'chainmail') beltSuffix = 'chain_mail';
-      else if (equipped.body === 'plate') beltSuffix = 'plate';
-      else if (equipped.body && (equipped.body.startsWith('robe') || equipped.body === 'cultist_robe')) beltSuffix = 'robe1';
+      if (resolvedBody === 'leather_armor') beltSuffix = 'leather';
+      else if (resolvedBody === 'chainmail') beltSuffix = 'chain_mail';
+      else if (resolvedBody === 'plate') beltSuffix = 'plate';
+      else if (resolvedBody && (resolvedBody.startsWith('robe') || resolvedBody === 'cultist_robe')) beltSuffix = 'robe1';
 
       let armorBaseStr = 'base';
-      if (equipped.body === 'leather_armor') armorBaseStr = 'armor_leather';
-      else if (equipped.body === 'chainmail') armorBaseStr = 'armor_chain';
-      else if (equipped.body === 'plate') armorBaseStr = 'armor_plate';
-      else if (equipped.body && equipped.body.startsWith('robe')) {
-          const color = equipped.body.includes('_') ? equipped.body.split('_')[1] : 'blue';
+      if (resolvedBody === 'leather_armor') armorBaseStr = 'armor_leather';
+      else if (resolvedBody === 'chainmail') armorBaseStr = 'armor_chain';
+      else if (resolvedBody === 'plate') armorBaseStr = 'armor_plate';
+      else if (resolvedBody && resolvedBody.startsWith('robe')) {
+          const color = resolvedBody.includes('_') ? resolvedBody.split('_')[1] : 'blue';
           armorBaseStr = `robe_${color}`;
       }
 
@@ -220,8 +235,8 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
           }
       };
 
-      if (backWeapons.includes(equipped.mainHand)) drawLayer(`weapon_${equipped.mainHand}`);
-      if (backWeapons.includes(equipped.offHand)) drawLayer(`weapon_${equipped.offHand}`);
+      if (backWeapons.includes(resolvedMainHand)) drawLayer(`weapon_${resolvedMainHand}`);
+      if (backWeapons.includes(resolvedOffHand)) drawLayer(`weapon_${resolvedOffHand}`);
 
       const baseKey = `base_${renderGender}_${appearance.skinTone}`;
       if (imagesRef.current[baseKey]) drawLayer(baseKey);
@@ -231,15 +246,15 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
 
       drawLayer(`eyes_${renderGender}_${appearance.eyeColor}`);
 
-      if (equipped.body && equipped.body !== 'tunic' && equipped.body !== 'none' && equipped.body !== 'cultist_robe') {
-          let armorKey = `armor_${equipped.body}_${renderGender}`;
-          if (equipped.body.startsWith('robe')) armorKey = `${armorBaseStr}_${renderGender}`;
+      if (resolvedBody && resolvedBody !== 'tunic' && resolvedBody !== 'none' && resolvedBody !== 'cultist_robe') {
+          let armorKey = `armor_${resolvedBody}_${renderGender}`;
+          if (resolvedBody.startsWith('robe')) armorKey = `${armorBaseStr}_${renderGender}`;
           drawLayer(armorKey);
       }
 
-      const wearingFullHelm = equipped.head === 'iron_helm';
+      const wearingFullHelm = resolvedHead === 'iron_helm';
       
-      if (!wearingFullHelm && equipped.body !== 'cultist_robe') {
+      if (!wearingFullHelm && resolvedBody !== 'cultist_robe') {
           if (activeCurse === 'dungeon_dye_job') {
               drawLayer(`curse_dye${curseVariant || 1}_${renderGender}`);
           } else if (appearance.hairStyle !== 'bald') {
@@ -247,29 +262,29 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
           }
       }
 
-      if (equipped.body === 'cultist_robe') {
+      if (resolvedBody === 'cultist_robe') {
           drawLayer(`curse_cult${curseVariant || 1}_${renderGender}`);
       }
 
       if (hasBackItem) drawLayer(`belt_back_${beltSuffix}`);
       if (hasHipItem) drawLayer(`belt_hip_${beltSuffix}`);
 
-      if (hipWeapons.includes(equipped.mainHand) && equipped.mainHand !== 'book') drawLayer(`weapon_${equipped.mainHand}`);
-      if (hipWeapons.includes(equipped.offHand) && equipped.offHand !== 'book') drawLayer(`weapon_${equipped.offHand}`);
+      if (hipWeapons.includes(resolvedMainHand) && resolvedMainHand !== 'book') drawLayer(`weapon_${resolvedMainHand}`);
+      if (hipWeapons.includes(resolvedOffHand) && resolvedOffHand !== 'book') drawLayer(`weapon_${resolvedOffHand}`);
 
-      if (equipped.offHand && equipped.offHand !== 'none') {
-          if (equipped.offHand.includes('shield')) drawLayer(`shield_${equipped.offHand.split('_')[0]}`);
-          else if (equipped.offHand === 'book') drawLayer('offhand_book');
+      if (resolvedOffHand && resolvedOffHand !== 'none') {
+          if (resolvedOffHand.includes('shield')) drawLayer(`shield_${resolvedOffHand.split('_')[0]}`);
+          else if (resolvedOffHand === 'book') drawLayer('offhand_book');
       }
 
-      if (equipped.head && equipped.head !== 'none' && equipped.body !== 'cultist_robe') {
-          if (equipped.head === 'wizard_hat') {
+      if (resolvedHead && resolvedHead !== 'none' && resolvedBody !== 'cultist_robe') {
+          if (resolvedHead === 'wizard_hat') {
               drawLayer(`hat_${renderGender}_blue`);
-          } else if (equipped.head.startsWith('hat_')) {
-              const color = equipped.head.split('_')[1];
+          } else if (resolvedHead.startsWith('hat_')) {
+              const color = resolvedHead.split('_')[1];
               drawLayer(`hat_${renderGender}_${color}`);
           } else {
-              drawLayer(`${equipped.head}_${renderGender}`);
+              drawLayer(`${resolvedHead}_${renderGender}`);
           }
       }
 
