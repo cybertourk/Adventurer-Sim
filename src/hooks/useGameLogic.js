@@ -626,7 +626,7 @@ export const useGameLogic = () => {
     let newLevel = resources.level;
     let newGameStats = { ...gameStats };
     let changes = [];
-    let logText = action.message || "Completed action.";
+    let logText = action.message || `${action.label} completed.`;
     let lootText = "";
 
     if (action.id === 'rent_start') {
@@ -735,7 +735,7 @@ export const useGameLogic = () => {
         if (activeCurse === 'pacifism' && (action.type === 'labor' || action.type === 'social')) {
              setCurseTracker(prev => { const next = { ...prev, jobs: prev.jobs + 1 }; if (next.jobs >= 2) { setActiveCurse(null); addMessage("Pacifism cured by hard work!", "success"); changes.push("Cured Pacifism"); } return next; });
         }
-        addMessage(action.message, "success");
+        addMessage(logText, "success");
     } else {
         if (['labor', 'adventure', 'social', 'magic'].includes(action.type)) newGameStats.checksFailed += 1;
         
