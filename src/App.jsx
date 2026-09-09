@@ -635,7 +635,11 @@ const App = () => {
                            <div>
                               <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 flex items-center gap-2 border-b border-zinc-800 pb-1">Maintenance</h3>
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                 {MAINTENANCE_ACTIONS.map(action => (
+                                 {MAINTENANCE_ACTIONS.filter(action => {
+                                     if (action.id === 'rent_stop' && housing !== 'inn') return false;
+                                     if (action.id === 'rent_start' && housing === 'inn') return false;
+                                     return true;
+                                 }).map(action => (
                                     <ActionButton 
                                         key={action.id} 
                                         {...action} 
