@@ -20,11 +20,16 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       base_female_dark: `${baseUrl}base_female_dark.png`,
       base_female_deep: `${baseUrl}base_female_deep.png`,
       
-      exp_neutral: `${baseUrl}exp_neutral.png`,
-      exp_smug: `${baseUrl}exp_smug.png`,
-      exp_stressed: `${baseUrl}exp_stressed.png`,
-      exp_miserable: `${baseUrl}exp_miserable.png`,
-      exp_unhinged: `${baseUrl}exp_unhinged.png`,
+      exp_male_neutral: `${baseUrl}exp_male_neutral.png`,
+      exp_male_smug: `${baseUrl}exp_male_smug.png`,
+      exp_male_stressed: `${baseUrl}exp_male_stressed.png`,
+      exp_male_miserable: `${baseUrl}exp_male_miserable.png`,
+      exp_male_unhinged: `${baseUrl}exp_male_unhinged.png`,
+      exp_female_neutral: `${baseUrl}exp_female_neutral.png`,
+      exp_female_smug: `${baseUrl}exp_female_smug.png`,
+      exp_female_stressed: `${baseUrl}exp_female_stressed.png`,
+      exp_female_miserable: `${baseUrl}exp_female_miserable.png`,
+      exp_female_unhinged: `${baseUrl}exp_female_unhinged.png`,
 
       eyes_male_blue: `${baseUrl}eyes_male_blue.png`,
       eyes_male_brown: `${baseUrl}eyes_male_brown.png`,
@@ -222,7 +227,7 @@ const CharacterCanvas = ({ equipped, appearance, isAlive, activeCurse, activeCom
       if (imagesRef.current[baseKey]) drawLayer(baseKey);
       else drawLayer(renderGender === 'female' ? 'base_female_pale' : 'base_male_pale');
 
-      drawLayer(`exp_${expression}`);
+      drawLayer(`exp_${renderGender}_${expression}`);
 
       drawLayer(`eyes_${renderGender}_${appearance.eyeColor}`);
 
