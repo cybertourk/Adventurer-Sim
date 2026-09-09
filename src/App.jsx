@@ -273,7 +273,7 @@ const App = () => {
 
           Object.entries(resolvedEquipped).forEach(([slot, itemId]) => {
               if (itemId !== 'none' && itemId !== 'fist' && itemId !== 'tunic') {
-                  let item = [...ITEM_DB.head, ...ITEM_DB.body, ...ITEM_DB.mainHand, ...ITEM_DB.offHand].find(i => i.id === itemId);
+                  let item = [...(ITEM_DB.head || []), ...(ITEM_DB.body || []), ...(ITEM_DB.mainHand || []), ...(ITEM_DB.offHand || [])].find(i => i.id === itemId);
                   if (item && item.stats && item.stats[statKey]) {
                       details.modifiers.push({ source: item.name, value: item.stats[statKey] });
                   }
@@ -327,6 +327,18 @@ const App = () => {
       reader.readAsText(file);
       e.target.value = null; 
   };
+
+  const getFullItemDetails = (basicItem) => {
+      if (!basicItem || !basicItem.itemId) return basicItem;
+      const dbItem = [...(ITEM_DB.head||[]), ...(ITEM_DB.body||[]), ...(ITEM_DB.mainHand||[]), ...(ITEM_DB.offHand||[]), ...(ITEM_DB.supplies||[])].find(i => i.id === basicItem.itemId);
+      return dbItem ? { ...dbItem, ...basicItem } : basicItem;
+  };
+
+  const fullInventory = inventory.map(getFullItemDetails);
+  const displayedInventory = inventoryTab === 'All' ? fullInventory : fullInventory.filter(item => getItemCategoryTab(item) === inventoryTab);
+
+  const fullShop = shopStock.map(getFullItemDetails);
+  const displayedShop = shopTab === 'All' ? fullShop : fullShop.filter(item => getItemCategoryTab(item) === shopTab);
 
   if (!gameStarted) {
     return (
@@ -679,7 +691,7 @@ const App = () => {
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                                     {Object.entries(equipped).map(([slot, instanceId]) => {
                                         const itemId = resolveItemId(instanceId);
-                                        const item = ITEM_DB[slot]?.find(i => i.id === itemId);
+                                        const item = [...(ITEM_DB.head||[]), ...(ITEM_DB.body||[]), ...(ITEM_DB.mainHand||[]), ...(ITEM_DB.offHand||[])].find(i => i.id === itemId);
                                         const isDefault = ['none', 'fist', 'tunic', 'cultist_robe'].includes(itemId);
                                         
                                         let displayName = item ? item.name : 'None';
