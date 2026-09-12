@@ -255,9 +255,12 @@ const App = () => {
 
   const getAttributeTotal = (attrKey) => currentStats[attrKey] || 0;
 
+  const currentLoc = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : 'village_road';
+
   const getModalDetails = (statKey) => {
       let isAttribute = ['str', 'dex', 'con', 'int', 'cha', 'ac'].includes(statKey);
       let isMeter = ['health', 'hunger', 'thirst', 'mood', 'stress'].includes(statKey);
+      let isLocation = statKey === 'location';
 
       let details = { title: '', description: '', base: 0, modifiers: [], total: 0 };
 
@@ -292,12 +295,20 @@ const App = () => {
           details.base = stats[statKey];
           details.total = stats[statKey];
           details.max = maxStats[statKey];
+      } else if (isLocation) {
+          const locInfo = LOCATIONS[currentLoc];
+          details.title = locInfo.name;
+          details.description = locInfo.details;
+          details.isLocation = true;
+          details.dailyCost = locInfo.dailyCost;
+          details.restModifiers = locInfo.modifiers.rest;
       }
 
       return details;
   };
+
+  const modalDetails = activeDetailModal ? getModalDetails(activeDetailModal) : null;
   
-  const currentLoc = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : 'village_road';
   const isMaintenanceDisabled = (action) => {
       if (isDead) return true;
       if (action.cost > 0 && resources.gold < action.cost) return true;
@@ -391,7 +402,28 @@ const App = () => {
                   <div className="p-5 space-y-4">
                       <p className="text-sm text-zinc-300 leading-relaxed italic">{modalDetails.description}</p>
                       
-                      {!modalDetails.isQuirk && (
+                      {modalDetails.isLocation ? (
+                          <div className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/50 space-y-3">
+                              <div className="flex justify-between items-center text-sm font-bold text-zinc-400">
+                                  <span>Daily Rent:</span>
+                                  <span className="font-mono text-amber-400">{modalDetails.dailyCost}g</span>
+                              </div>
+                              <div className="pt-2 mt-2 border-t border-zinc-700/50">
+                                  <span className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 block">Rest Modifiers</span>
+                                  {Object.entries(modalDetails.restModifiers).map(([key, val]) => {
+                                      const isGood = ['health', 'mood'].includes(key) ? val > 0 : val < 0;
+                                      return (
+                                          <div key={key} className="flex justify-between items-center text-xs text-zinc-400 mb-1">
+                                              <span className="capitalize">{key}</span>
+                                              <span className={`font-mono font-bold ${isGood ? 'text-emerald-400' : 'text-red-400'}`}>
+                                                  {val > 0 ? '+' : ''}{val}
+                                              </span>
+                                          </div>
+                                      );
+                                  })}
+                              </div>
+                          </div>
+                      ) : !modalDetails.isQuirk && (
                           <div className="bg-zinc-800/50 rounded-xl p-4 border border-zinc-700/50 space-y-3">
                               <div className="flex justify-between items-center text-sm font-bold text-zinc-400">
                                   <span>Base Value:</span>
@@ -448,24 +480,24 @@ const App = () => {
                 
                 <div className="w-px h-6 md:h-8 bg-zinc-700/60 hidden sm:block"></div>
                 
-                <div className="hidden sm:flex flex-col">
+                <button onClick={() => setActiveDetailModal('location')} className="hidden sm:flex flex-col text-left hover:opacity-80 transition-opacity">
                     <span className="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Location</span>
                     <span className="text-xs md:text-sm font-bold text-zinc-200">{LOCATIONS[location]?.name}</span>
-                </div>
+                </button>
 
-                <div className="hidden sm:flex flex-col">
+                <button onClick={() => setActiveDetailModal('location')} className="hidden sm:flex flex-col text-left hover:opacity-80 transition-opacity">
                     <span className="text-[9px] md:text-[10px] text-zinc-400 font-bold uppercase tracking-widest">Housing</span>
                     <span className={`text-xs md:text-sm font-bold ${housing === 'homeless' ? 'text-amber-500 drop-shadow-[0_0_5px_rgba(245,158,11,0.4)]' : 'text-emerald-400 drop-shadow-[0_0_5px_rgba(52,211,153,0.4)]'}`}>
                         {housing === 'inn' ? 'Inn Room' : housing === 'estate' ? 'Estate' : 'Homeless'}
                     </span>
-                </div>
+                </button>
 
-                <div className="flex sm:hidden flex-col border-l border-zinc-700/60 pl-3">
+                <button onClick={() => setActiveDetailModal('location')} className="flex sm:hidden flex-col border-l border-zinc-700/60 pl-3 text-left hover:opacity-80 transition-opacity">
                     <span className="text-[9px] text-zinc-400 font-bold uppercase tracking-widest truncate max-w-[70px]">{LOCATIONS[location]?.name}</span>
                     <span className={`text-[10px] font-bold ${housing === 'homeless' ? 'text-amber-500' : 'text-emerald-400'}`}>
                         {housing === 'inn' ? 'Inn' : housing === 'estate' ? 'Estate' : 'Homeless'}
                     </span>
-                </div>
+                </button>
             </div>
             
             <div className="flex items-center gap-2 md:gap-6 bg-zinc-950/70 px-2 py-1 md:py-2 rounded-lg md:rounded-xl border border-zinc-800/80 shadow-inner">
