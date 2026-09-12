@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { 
   SAVE_KEY, MAX_STAT, ITEM_DB, JOB_DB, ADVENTURE_DB, SOCIAL_DB, MAGIC_DB,
   AUTONOMY_EVENTS, QUIRKS, LOCATIONS, COMPANIONS, CURSES,
-  EDGY_FIRST_NAMES, EDGY_LAST_NAMES
+  EDGY_FIRST_NAMES, EDGY_LAST_NAMES, TITLES
 } from '../data/constants';
 
 const generateId = () => Math.random().toString(36).substr(2, 9) + Date.now();
@@ -33,7 +33,9 @@ const defaultStats = {
     deaths: 0, marriages: 0, dungeonFoodEaten: 0, shitfacedCount: 0, puddlesDrank: 0, voidScreams: 0, autoConsumes: 0, 
     tablesFought: 0, bedsStabbed: 0, timesArrested: 0, timesBlacklisted: 0, goldStolenByGoblins: 0, 
     checksPassed: 0, checksFailed: 0, magicBackfires: 0, dungeonLootFound: 0, 
-    lifetimeGoldEarned: 0, lifetimeRentPaid: 0, cultTithesPaid: 0
+    lifetimeGoldEarned: 0, lifetimeRentPaid: 0, cultTithesPaid: 0,
+    socialJobsCompleted: 0, laborSocialJobsNoArrest: 0, socialJobsFailed: 0, magicJobsFailed: 0, 
+    combatJobsFailed: 0, weirdFoodEaten: 0, cumulativeGoldSpent: 0, consecutiveRoadNights: 0
 };
 
 export const useGameLogic = () => {
@@ -69,12 +71,13 @@ export const useGameLogic = () => {
   const [isDead, setIsDead] = useState(false);
   const [dailyLogs, setDailyLogs] = useState([]); 
   const [gameStats, setGameStats] = useState(defaultStats);
+  const [unlockedTitles, setUnlockedTitles] = useState([]);
 
   const [stagedAction, setStagedAction] = useState(null);
   const [rollState, setRollState] = useState({ isRolling: false, result: null, isSuccess: false });
   const [reportData, setReportData] = useState(null);
 
-  const calculateMaxStats = (level, con) => ({ health: 10 + (level * 10) + (con * 2), mood: MAX_STAT, hunger: MAX_STAT, thirst: MAX_STAT, stress: MAX_STAT });
+  const calculateMaxStats = (level, con, titles = []) => ({ health: 10 + (level * 10) + (con * 2) + (titles.includes('punching_bag') ? 20 : 0), mood: MAX_STAT, hunger: MAX_STAT, thirst: MAX_STAT, stress: MAX_STAT });
   const getModifier = (val) => Math.floor((val - 10) / 2);
 
   const currentStats = useMemo(() => {
@@ -107,7 +110,7 @@ export const useGameLogic = () => {
     return total;
   }, [equipped, attributes, quirk, inventory]);
 
-  const maxStats = useMemo(() => calculateMaxStats(resources.level, attributes.con), [resources.level, attributes.con]);
+  const maxStats = useMemo(() => calculateMaxStats(resources.level, attributes.con, unlockedTitles), [resources.level, attributes.con, unlockedTitles]);
   const pointsAvailable = 10 + Math.floor(resources.level / 2) - (Object.values(attributes).reduce((a, b) => a + b, 0) - 50);
 
   const addMessage = (text, type = 'info') => {
@@ -213,6 +216,7 @@ export const useGameLogic = () => {
         setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0, days: 0 });
         setShitfacedToday(parsed.shitfacedToday || false);
         setGameStats({ ...defaultStats, ...(parsed.gameStats || {}) });
+        setUnlockedTitles(parsed.unlockedTitles || []);
         setShowIntro(parsed.showIntro || false);
         
         let loadedVariant = parsed.companionVariant || null;
@@ -252,9 +256,39 @@ export const useGameLogic = () => {
       if (housing === 'estate' && location === 'village_road') setLocation('estate');
 
       localStorage.setItem(SAVE_KEY, JSON.stringify({
-        characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, showIntro, lastSave: Date.now()
+        characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, unlockedTitles, showIntro, lastSave: Date.now()
       }));
-  }, [characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, showIntro]);
+  }, [characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, isDead, days, housing, rentActive, gameStarted, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, unlockedTitles, showIntro]);
+
+  useEffect(() => {
+      if (!gameStarted) return;
+      const newTitles = [...unlockedTitles];
+      let changed = false;
+
+      const checkAndAdd = (id, condition) => {
+          if (!newTitles.includes(id) && condition) {
+              newTitles.push(id);
+              addMessage(`Title Unlocked: ${TITLES[id].name}!`, 'success');
+              changed = true;
+          }
+      };
+
+      checkAndAdd('pillar_of_community', gameStats.laborSocialJobsNoArrest >= 10);
+      checkAndAdd('public_nuisance', gameStats.timesArrested >= 3 || gameStats.socialJobsFailed >= 5);
+      checkAndAdd('silver_tongue', gameStats.socialJobsCompleted >= 10);
+      checkAndAdd('gutter_rat', gameStats.consecutiveRoadNights >= 5);
+      checkAndAdd('tavern_fiend', gameStats.shitfacedCount >= 10);
+      checkAndAdd('iron_stomach', gameStats.weirdFoodEaten >= 5);
+      checkAndAdd('hazard_to_reality', gameStats.magicJobsFailed >= 5);
+      checkAndAdd('punching_bag', gameStats.combatJobsFailed >= 5);
+      checkAndAdd('compulsive_hoarder', inventory.filter(i => !Object.values(equipped).includes(i.instanceId)).length >= 10);
+      checkAndAdd('vip_spender', gameStats.cumulativeGoldSpent >= 1000);
+
+      if (changed) {
+          setUnlockedTitles(newTitles);
+          setStats(prev => ({ ...prev, health: Math.min(calculateMaxStats(resources.level, attributes.con, newTitles).health, prev.health) }));
+      }
+  }, [gameStats, inventory, unlockedTitles, gameStarted, equipped, resources.level, attributes.con]);
 
   const calculateOdds = (action) => {
       if (!['labor', 'adventure', 'social', 'magic'].includes(action.type)) return null;
@@ -335,6 +369,7 @@ export const useGameLogic = () => {
               if (newGold >= LOCATIONS[currentLocId].dailyCost) {
                   newGold -= LOCATIONS[currentLocId].dailyCost;
                   newGameStats.lifetimeRentPaid += LOCATIONS[currentLocId].dailyCost;
+                  newGameStats.cumulativeGoldSpent += LOCATIONS[currentLocId].dailyCost;
                   if (i === 0) rentMsg = `Paid rent: -${LOCATIONS[currentLocId].dailyCost * daysPassed}g.`;
               } else {
                   setHousing('homeless'); setRentActive(false); currentLocId = 'village_road';
@@ -346,7 +381,17 @@ export const useGameLogic = () => {
               rentMsg = "Slept outside. It was cold.";
           }
 
-          const mod = LOCATIONS[currentLocId].modifiers.rest;
+          if (currentLocId === 'village_road') {
+              newGameStats.consecutiveRoadNights += 1;
+          } else {
+              newGameStats.consecutiveRoadNights = 0;
+          }
+
+          let mod = { ...LOCATIONS[currentLocId].modifiers.rest };
+          if (currentLocId === 'village_road' && unlockedTitles.includes('gutter_rat')) {
+              mod.mood = 0; mod.stress = 0;
+          }
+
           newStats.health = Math.min(maxStats.health, newStats.health + (mod.health || 0));
           newStats.stress = Math.max(0, newStats.stress + (mod.stress || 0));
           newStats.mood = Math.max(0, Math.min(maxStats.mood, newStats.mood + (mod.mood || 0)));
@@ -407,6 +452,7 @@ export const useGameLogic = () => {
               if (newGold >= 10) {
                   newGold -= 10;
                   newGameStats.cultTithesPaid += 10;
+                  newGameStats.cumulativeGoldSpent += 10;
               } else {
                   currentCurse = null; setActiveCurse(null); setCurseVariant(null);
                   newStats.stress += 30; changes.push("Kicked from Cult");
@@ -442,13 +488,22 @@ export const useGameLogic = () => {
 
       if (incident) {
           incidentMsg = incident.text; 
-          const fx = incident.effects;
+          let fx = { ...incident.effects };
           
-          if (incident.id === 'weird_shit') newGameStats.dungeonFoodEaten += 1;
+          if (incident.id === 'weird_shit') {
+              newGameStats.weirdFoodEaten += 1;
+              if (unlockedTitles.includes('iron_stomach') && fx.health && fx.health < 0) {
+                  fx.health = Math.ceil(fx.health / 2);
+              }
+              newGameStats.dungeonFoodEaten += 1;
+          }
           if (incident.id === 'spontaneous_marriage') newGameStats.marriages += 1;
           if (incident.id === 'table_brawl') newGameStats.tablesFought += 1;
           if (incident.id === 'paranoid_mimic') newGameStats.bedsStabbed += 1;
-          if (incident.id === 'arrested') newGameStats.timesArrested += 1;
+          if (incident.id === 'arrested') { 
+              newGameStats.timesArrested += 1;
+              newGameStats.laborSocialJobsNoArrest = 0; 
+          }
 
           if (fx) {
               if (fx.edgyRebrand) {
@@ -580,6 +635,8 @@ export const useGameLogic = () => {
     if (quirk && quirk.effects.bannedJobs && quirk.effects.bannedJobs.includes(action.id)) { addMessage("I don't get it. Too complicated.", "error"); return; }
     if (activeCurse === 'pacifism' && action.type === 'adventure') { addMessage("I refuse to hurt them! (Pacifism)", "error"); return; }
     if (activeCurse === 'blacklist' && action.id === 'rent_start') { addMessage("You are permanently banned.", "error"); return; }
+    if (unlockedTitles.includes('hazard_to_reality') && action.type === 'magic') { addMessage("Banned from Magic. Too volatile.", "error"); return; }
+    if (action.reqLocation === 'estate' && !unlockedTitles.includes('pillar_of_community')) { addMessage("You are not civilized enough for the Estate.", "error"); return; }
 
     if (action.reqLocation && action.reqLocation !== 'any') {
         const currentLoc = housing === 'inn' ? 'inn_room' : housing === 'estate' ? 'estate' : 'village_road';
@@ -629,10 +686,18 @@ export const useGameLogic = () => {
     let logText = action.message || `${action.label} completed.`;
     let lootText = "";
 
+    if (!isSuccess && unlockedTitles.includes('hazard_to_reality') && action.type !== 'magic' && ['labor', 'adventure', 'social'].includes(action.type)) {
+        if (Math.random() < 0.10) {
+            isSuccess = true;
+            logText = "Accidentally succeeded by blowing something up!";
+        }
+    }
+
     if (action.id === 'rent_start') {
         if (newGold >= 5) {
             setHousing('inn'); setRentActive(true); newGold -= 5; addMessage("Rented room at Rusty Spoon.", 'success');
             newGameStats.lifetimeRentPaid += 5;
+            newGameStats.cumulativeGoldSpent += 5;
             addToLog({ type: 'housing', day: days, title: 'Housing', text: 'Rented a room at the Rusty Spoon.', status: 'Success', changesArr: ['-5 Gold', '+Warm Bed'] });
         } else { addMessage("Not enough gold to rent room.", 'error'); addToLog({ type: 'housing', day: days, title: 'Housing', text: 'Tried to rent a room but was too poor.', status: 'Failed', changesArr: [] }); }
         setResources(prev => ({ ...prev, gold: newGold }));
@@ -644,19 +709,33 @@ export const useGameLogic = () => {
         addToLog({ type: 'housing', day: days, title: 'Housing', text: 'Checked out of the inn.', status: 'Success', changesArr: ['-Warm Bed'] });
         return;
     }
+    
+    if (action.id === 'shop_reroll') {
+        refreshShop(newLevel);
+        addMessage("Shop inventory forcefully refreshed!", "success");
+    }
 
     let cost = action.cost;
     if (quirk && quirk.id === 'iron_liver' && action.id === 'shitfaced') cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
-    if (cost > 0 && action.costType === 'gp') { newGold -= cost; changes.push(`-${cost} Gold`); }
+    if (cost > 0 && action.costType === 'gp') { 
+        newGold -= cost; 
+        newGameStats.cumulativeGoldSpent += cost;
+        changes.push(`-${cost} Gold`); 
+    }
 
     if (isSuccess) {
         if (['labor', 'adventure', 'social', 'magic'].includes(action.type)) newGameStats.checksPassed += 1;
+        if (['labor', 'social'].includes(action.type)) newGameStats.laborSocialJobsNoArrest += 1;
+        if (action.type === 'social') newGameStats.socialJobsCompleted += 1;
         if (action.id === 'shitfaced') newGameStats.shitfacedCount += 1;
         if (action.id === 'drink_puddle') newGameStats.puddlesDrank += 1;
         if (action.id === 'scream') newGameStats.voidScreams += 1;
 
         let moodGain = action.effects?.mood || 0; if (quirk && quirk.id === 'drama_queen' && moodGain > 0) moodGain *= (quirk.effects.moodMultiplier || 1);
-        const healthGain = action.effects?.health || 0, hungerGain = action.effects?.hunger || 0, thirstGain = action.effects?.thirst || 0, stressGain = action.effects?.stress || 0;
+        const healthGain = action.effects?.health || 0, hungerGain = action.effects?.hunger || 0, thirstGain = action.effects?.thirst || 0;
+        let stressGain = action.effects?.stress || 0;
+        
+        if (action.id === 'scrounge' && unlockedTitles.includes('iron_stomach')) stressGain = 0;
 
         newStats.health = Math.max(0, Math.min(maxStats.health, newStats.health + healthGain));
         newStats.mood = Math.max(0, Math.min(maxStats.mood, newStats.mood + moodGain));
@@ -741,18 +820,20 @@ export const useGameLogic = () => {
         
         logText = "Failed!"; let stressGain = 0;
         if (action.type === 'labor') { logText = "Screwed up the job. No pay."; stressGain = 10; } 
-        else if (action.type === 'magic') { logText = "Spell backfired! You smell like sulfur."; stressGain = 15; newGameStats.magicBackfires += 1; }
+        else if (action.type === 'magic') { logText = "Spell backfired! You smell like sulfur."; stressGain = 15; newGameStats.magicBackfires += 1; newGameStats.magicJobsFailed += 1; }
         else if (action.type === 'adventure') { 
             logText = "Defeated! Retreated with wounds."; 
             newStats.health = Math.max(0, newStats.health - 20);
             newStats.stress = Math.min(100, newStats.stress + 20);
             newStats.hunger = Math.min(100, newStats.hunger + 20);
             newStats.thirst = Math.min(100, newStats.thirst + 20);
+            newGameStats.combatJobsFailed += 1;
             changes.push("-20 Health", "+20 Stress", "+20 Hunger", "+20 Thirst"); 
         } 
         else if (action.type === 'social') { 
             logText = "Made a total fool of yourself."; 
             newStats.mood = Math.max(0, newStats.mood - 20); 
+            newGameStats.socialJobsFailed += 1;
             changes.push("-20 Mood"); 
         }
         
@@ -787,7 +868,7 @@ export const useGameLogic = () => {
 
   const exportSave = () => {
       const saveData = {
-          characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, showIntro, lastSave: Date.now()
+          characterName, edgyName, attributes, stats, resources, equipped, appearance, location, inventory, shopStock, days, housing, rentActive, dailyQuests, dailyLogs, quirk, activeCompanion, companionVariant, activeCurse, curseVariant, curseTracker, shitfacedToday, gameStats, unlockedTitles, showIntro, lastSave: Date.now()
       };
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(saveData));
       const downloadAnchorNode = document.createElement('a');
@@ -824,6 +905,7 @@ export const useGameLogic = () => {
           setCurseTracker(parsed.curseTracker || { fails: 0, jobs: 0, ales: 0, days: 0 });
           setShitfacedToday(parsed.shitfacedToday || false);
           setGameStats({ ...defaultStats, ...(parsed.gameStats || {}) });
+          setUnlockedTitles(parsed.unlockedTitles || []);
           setShowIntro(parsed.showIntro || false);
           setInventory(parsed.inventory || []);
           setEquipped(parsed.equipped || { head: 'inst_none', body: 'inst_tunic', mainHand: 'inst_fist', offHand: 'inst_none' });
@@ -852,6 +934,7 @@ export const useGameLogic = () => {
     if (quirk && quirk.id === 'iron_liver' && (item.type === 'drink' || item.id === 'courage' || item.id === 'stout')) cost = Math.floor(cost * (quirk.effects.drinkCostMultiplier || 1));
     if (resources.gold >= cost) { 
         setResources(prev => ({ ...prev, gold: prev.gold - cost })); 
+        setGameStats(p => ({ ...p, cumulativeGoldSpent: p.cumulativeGoldSpent + cost }));
         setInventory(prev => [...prev, { instanceId: `inv_${generateId()}`, itemId: item.id, displayName: item.displayName }]); 
         addMessage(`Purchased ${item.displayName}`, 'success'); 
         addToLog({ type: 'shop', day: days, title: 'Shop', text: `Bought ${item.displayName}.`, status: 'Success', changesArr: [`-${cost} Gold`, `+${item.displayName}`] }); 
@@ -860,7 +943,8 @@ export const useGameLogic = () => {
 
   const sellItem = (item) => {
     if (['food', 'drink', 'potion'].includes(item.type)) { addMessage("Cannot sell consumables back.", "error"); return; }
-    let sellValue = Math.floor(item.cost / 2); if (item.id === 'shiny_trash') { sellValue = Math.floor(Math.random() * 4) + 1; }
+    let sellValue = Math.floor(item.cost * (unlockedTitles.includes('compulsive_hoarder') ? 0.75 : 0.5)); 
+    if (item.id === 'shiny_trash') { sellValue = Math.floor(Math.random() * 4) + 1; }
     
     setGameStats(p => ({ ...p, lifetimeGoldEarned: p.lifetimeGoldEarned + sellValue }));
     setResources(prev => ({ ...prev, gold: prev.gold + sellValue })); 
@@ -879,6 +963,8 @@ export const useGameLogic = () => {
       const effects = item.effects || {};
       let hungerRec = effects.hunger || 0; let moodRec = effects.mood || 0; let stressRec = effects.stress || 0;
       
+      if (item.id === 'mushroom') setGameStats(p => ({ ...p, weirdFoodEaten: p.weirdFoodEaten + 1 }));
+
       if (activeCompanion === 'mimic' && hungerRec < 0) hungerRec = Math.floor(hungerRec * 0.5);
       if (effects.random_mood_stress) { if (Math.random() < 0.5) moodRec = effects.random_mood_stress; else stressRec = effects.random_mood_stress; }
       if (activeCurse === 'pacifism' && item.type === 'drink') {
@@ -903,7 +989,7 @@ export const useGameLogic = () => {
   };
 
   const startGame = () => {
-      const newMax = calculateMaxStats(1, attributes.con); setStats(prev => ({ ...prev, health: newMax.health }));
+      const newMax = calculateMaxStats(1, attributes.con, unlockedTitles); setStats(prev => ({ ...prev, health: newMax.health }));
       const randomQuirk = QUIRKS[Math.floor(Math.random() * QUIRKS.length)]; setQuirk(randomQuirk);
       setGameStarted(true); 
       setShowIntro(true); 
@@ -916,6 +1002,6 @@ export const useGameLogic = () => {
     gameStarted, setGameStarted, showIntro, setShowIntro, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages, isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk,
     activeCompanion, companionVariant, activeCurse, curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
-    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, exportSave, importSave
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, unlockedTitles, exportSave, importSave
   };
 };
