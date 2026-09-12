@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Clock, HelpCircle, Minus, Plus, Sun, X, Shield, Hammer, Scroll, Zap, Heart, User, Coins, DollarSign, Activity, Tent, Droplets, Beer, Skull, Utensils, Backpack, Store, List, TrendingUp, Download, Upload } from 'lucide-react';
-import { ITEM_DB, MAINTENANCE_ACTIONS, LOCATIONS, COMPANIONS, CURSES } from './data/constants';
+import { ITEM_DB, MAINTENANCE_ACTIONS, LOCATIONS, COMPANIONS, CURSES, TITLES } from './data/constants';
 import { useGameLogic } from './hooks/useGameLogic';
 import CharacterCanvas from './components/CharacterCanvas';
 import CreationScreen from './components/CreationScreen';
@@ -215,7 +215,7 @@ const App = () => {
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
     curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
-    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, exportSave, importSave
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, unlockedTitles, exportSave, importSave
   } = useGameLogic();
 
   const [openPanel, setOpenPanel] = useState(null);
@@ -223,6 +223,7 @@ const App = () => {
   const [inventoryTab, setInventoryTab] = useState('All');
   const [shopTab, setShopTab] = useState('All');
   const [logTab, setLogTab] = useState('daily');
+  const [charTab, setCharTab] = useState('status');
   const fileInputRef = useRef(null);
 
   const resolveItemId = (instanceId) => {
@@ -622,42 +623,76 @@ const App = () => {
                             </div>
 
                             <div>
-                                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3 border-b border-zinc-800 pb-1">Status Effects</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <div className="bg-indigo-950/30 border border-indigo-900/50 p-4 rounded-xl">
-                                        <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Trait</h4>
-                                        {quirk ? (
-                                            <div>
-                                                <span className="text-sm font-bold text-indigo-300 block mb-1">{quirk.name}</span>
-                                                <p className="text-[10px] text-zinc-400 leading-relaxed">{quirk.desc}</p>
-                                            </div>
-                                        ) : <span className="text-xs text-zinc-600 italic">None</span>}
-                                    </div>
-
-                                    {(activeCompanion || activeCurse) && (
-                                        <>
-                                            {activeCompanion && (
-                                                <div className="bg-emerald-950/30 border border-emerald-900/50 p-4 rounded-xl">
-                                                    <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Companion</h4>
-                                                    <div>
-                                                        <span className="text-sm font-bold text-emerald-400 block mb-1">{COMPANIONS[activeCompanion].name}</span>
-                                                        <p className="text-[10px] text-zinc-400 leading-relaxed">{COMPANIONS[activeCompanion].desc}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            {activeCurse && (
-                                                <div className="bg-red-950/30 border border-red-900/50 p-4 rounded-xl">
-                                                    <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Curse</h4>
-                                                    <div>
-                                                        <span className="text-sm font-bold text-red-400 block mb-1">{CURSES[activeCurse].name}</span>
-                                                        <p className="text-[10px] text-zinc-400 leading-relaxed">{CURSES[activeCurse].desc}</p>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
+                                <div className="flex flex-wrap gap-2 mb-4 border-b border-zinc-800 pb-3">
+                                    {['Status', 'Titles'].map(tab => (
+                                        <button 
+                                            key={tab} 
+                                            onClick={() => setCharTab(tab.toLowerCase())}
+                                            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg border transition-all whitespace-nowrap ${charTab === tab.toLowerCase() ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_10px_rgba(99,102,241,0.5)]' : 'bg-zinc-800/80 text-zinc-400 border-zinc-700 hover:bg-zinc-700'}`}
+                                        >
+                                            {tab}
+                                        </button>
+                                    ))}
                                 </div>
+
+                                {charTab === 'status' && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        <div className="bg-indigo-950/30 border border-indigo-900/50 p-4 rounded-xl">
+                                            <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Trait</h4>
+                                            {quirk ? (
+                                                <div>
+                                                    <span className="text-sm font-bold text-indigo-300 block mb-1">{quirk.name}</span>
+                                                    <p className="text-[10px] text-zinc-400 leading-relaxed">{quirk.desc}</p>
+                                                </div>
+                                            ) : <span className="text-xs text-zinc-600 italic">None</span>}
+                                        </div>
+
+                                        {(activeCompanion || activeCurse) && (
+                                            <>
+                                                {activeCompanion && (
+                                                    <div className="bg-emerald-950/30 border border-emerald-900/50 p-4 rounded-xl">
+                                                        <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Companion</h4>
+                                                        <div>
+                                                            <span className="text-sm font-bold text-emerald-400 block mb-1">{COMPANIONS[activeCompanion].name}</span>
+                                                            <p className="text-[10px] text-zinc-400 leading-relaxed">{COMPANIONS[activeCompanion].desc}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {activeCurse && (
+                                                    <div className="bg-red-950/30 border border-red-900/50 p-4 rounded-xl">
+                                                        <h4 className="text-[10px] uppercase text-zinc-500 font-bold mb-2 tracking-widest">Curse</h4>
+                                                        <div>
+                                                            <span className="text-sm font-bold text-red-400 block mb-1">{CURSES[activeCurse].name}</span>
+                                                            <p className="text-[10px] text-zinc-400 leading-relaxed">{CURSES[activeCurse].desc}</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+
+                                {charTab === 'titles' && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {Object.values(TITLES).map(t => {
+                                            const isUnlocked = unlockedTitles.includes(t.id);
+                                            return (
+                                                <div key={t.id} className={`p-4 rounded-xl border ${isUnlocked ? 'bg-amber-950/30 border-amber-900/50 shadow-[inset_0_0_15px_rgba(245,158,11,0.05)]' : 'bg-zinc-900/50 border-zinc-800/80 border-dashed opacity-80'}`}>
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <h4 className={`text-sm font-bold tracking-widest uppercase ${isUnlocked ? 'text-amber-400' : 'text-zinc-500'}`}>
+                                                            {isUnlocked ? t.name : 'Locked Title'}
+                                                        </h4>
+                                                        {isUnlocked && <span className="text-[9px] bg-amber-900/40 text-amber-500 px-2 py-0.5 rounded border border-amber-700/50">Unlocked</span>}
+                                                    </div>
+                                                    <p className="text-[10px] text-zinc-400 leading-relaxed">
+                                                        {isUnlocked ? t.desc : `Hint: ${t.hint}`}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
                             </div>
                         </div>
                      )}
@@ -670,6 +705,7 @@ const App = () => {
                                  {MAINTENANCE_ACTIONS.filter(action => {
                                      if (action.id === 'rent_stop' && housing !== 'inn') return false;
                                      if (action.id === 'rent_start' && housing === 'inn') return false;
+                                     if (action.reqTitle && !unlockedTitles.includes(action.reqTitle)) return false;
                                      return true;
                                  }).map(action => (
                                     <ActionButton 
@@ -796,7 +832,7 @@ const App = () => {
                                                         </div>
                                                         <div className="flex flex-col items-end gap-1">
                                                             <span className="text-[10px] font-mono font-bold text-amber-500 bg-amber-950/50 px-2.5 py-1 rounded-md border border-amber-700/50">
-                                                                {Math.floor((item.cost || 0)/2)}g Value
+                                                                {Math.floor((item.cost || 0) * (unlockedTitles.includes('compulsive_hoarder') ? 0.75 : 0.5))}g Value
                                                             </span>
                                                             {isEquipped && (
                                                                 <span className="text-[9px] text-emerald-400 font-bold uppercase mt-1">Equipped</span>
