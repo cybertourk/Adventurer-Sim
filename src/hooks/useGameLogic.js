@@ -54,11 +54,7 @@ export const useGameLogic = () => {
   const [shitfacedToday, setShitfacedToday] = useState(false);
   const [stats, setStats] = useState({ hunger: 0, thirst: 0, health: 20, mood: 100, stress: 0 });
   const [resources, setResources] = useState({ gold: 50, xp: 0, level: 1 });
-  const [inventory, setInventory] = useState([
-    { instanceId: 'inst_none', itemId: 'none', displayName: 'Bare' },
-    { instanceId: 'inst_tunic', itemId: 'tunic', displayName: 'Breezy Tunic' },
-    { instanceId: 'inst_fist', itemId: 'fist', displayName: 'These Two Hands' }
-  ]); 
+  const [inventory, setInventory] = useState([]); 
   const [shopStock, setShopStock] = useState([]); 
   const [equipped, setEquipped] = useState({ head: 'inst_none', body: 'inst_tunic', mainHand: 'inst_fist', offHand: 'inst_none' });
   const [appearance, setAppearance] = useState({ gender: 'male', skinTone: 'fair', hairColor: 'brown', eyeColor: 'brown', hairStyle: 'short' });
@@ -86,8 +82,15 @@ export const useGameLogic = () => {
     Object.keys(equipped).forEach(slot => {
       const instanceId = equipped[slot];
       if (!instanceId) return;
-      const invItem = inventory.find(i => i.instanceId === instanceId);
-      const itemId = invItem ? invItem.itemId : null;
+      
+      let itemId = null;
+      if (instanceId.startsWith('inst_') && ['none', 'tunic', 'fist', 'cultist_robe'].includes(instanceId.replace('inst_', ''))) {
+          itemId = instanceId.replace('inst_', '');
+      } else {
+          const invItem = inventory.find(i => i.instanceId === instanceId);
+          itemId = invItem ? invItem.itemId : null;
+      }
+
       if (itemId) {
         const item = ITEM_DB[slot]?.find(i => i.id === itemId);
         if (item && item.stats) {
@@ -231,7 +234,7 @@ export const useGameLogic = () => {
         if (loadedInv.length > 0 && typeof loadedInv[0] === 'string') {
             loadedInv = loadedInv.map(id => ({ instanceId: ['none', 'tunic', 'fist'].includes(id) ? `inst_${id}` : `inst_${generateId()}`, itemId: id, displayName: id }));
         }
-        if (loadedInv.length === 0) loadedInv = [{ instanceId: 'inst_none', itemId: 'none', displayName: 'Bare' }, { instanceId: 'inst_tunic', itemId: 'tunic', displayName: 'Breezy Tunic' }, { instanceId: 'inst_fist', itemId: 'fist', displayName: 'These Two Hands' }];
+        loadedInv = loadedInv.filter(i => !['none', 'tunic', 'fist'].includes(i.itemId));
         setInventory(loadedInv);
 
         let loadedEq = parsed.equipped || { head: 'inst_none', body: 'inst_tunic', mainHand: 'inst_fist', offHand: 'inst_none' };
@@ -907,7 +910,11 @@ export const useGameLogic = () => {
           setGameStats({ ...defaultStats, ...(parsed.gameStats || {}) });
           setUnlockedTitles(parsed.unlockedTitles || []);
           setShowIntro(parsed.showIntro || false);
-          setInventory(parsed.inventory || []);
+          
+          let loadedInv = parsed.inventory || [];
+          loadedInv = loadedInv.filter(i => !['none', 'tunic', 'fist'].includes(i.itemId));
+          setInventory(loadedInv);
+          
           setEquipped(parsed.equipped || { head: 'inst_none', body: 'inst_tunic', mainHand: 'inst_fist', offHand: 'inst_none' });
           setShopStock(parsed.shopStock || []);
           setDailyQuests(parsed.dailyQuests || generateDailyQuests(parsed.resources?.level || 1, parsed.activeCompanion, parsed.activeCurse));
