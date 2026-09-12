@@ -815,7 +815,13 @@ export const useGameLogic = () => {
         }
 
         if (activeCurse === 'pacifism' && (action.type === 'labor' || action.type === 'social')) {
-             setCurseTracker(prev => { const next = { ...prev, jobs: prev.jobs + 1 }; if (next.jobs >= 2) { setActiveCurse(null); addMessage("Pacifism cured by hard work!", "success"); changes.push("Cured Pacifism"); } return next; });
+             const nextJobs = curseTracker.jobs + 1;
+             setCurseTracker(prev => ({ ...prev, jobs: nextJobs }));
+             if (nextJobs >= 2) { 
+                 setActiveCurse(null); 
+                 addMessage("Pacifism cured by hard work!", "success"); 
+                 changes.push("Cured Pacifism"); 
+             }
         }
         addMessage(logText, "success");
     } else {
@@ -859,7 +865,13 @@ export const useGameLogic = () => {
         if (stressGain > 0) { newStats.stress = Math.min(100, newStats.stress + stressGain); changes.push(`+${stressGain} Stress`); }
         
         if (activeCurse === 'identity_crisis' && (action.type === 'adventure' || action.type === 'magic')) {
-             setCurseTracker(prev => { const next = { ...prev, fails: prev.fails + 1 }; if (next.fails >= 3) { setActiveCurse(null); addMessage("Snapped out of identity crisis!", "success"); changes.push("Cured Identity Crisis"); } return next; });
+             const nextFails = curseTracker.fails + 1;
+             setCurseTracker(prev => ({ ...prev, fails: nextFails }));
+             if (nextFails >= 3) { 
+                 setActiveCurse(null); 
+                 addMessage("Snapped out of identity crisis!", "success"); 
+                 changes.push("Cured Identity Crisis"); 
+             }
         }
         addMessage(logText, "error"); 
     }
@@ -881,6 +893,12 @@ export const useGameLogic = () => {
         setInventory(newInv);
         setGameStats(newGameStats);
         setResources(prev => ({ ...prev, xp: newXp, level: newLevel, gold: newGold }));
+
+        if (newStats.health <= 0 || newStats.hunger >= 100 || newStats.thirst >= 100) {
+            setIsDead(true);
+            addMessage("Your adventurer has perished!", "error");
+            addToLog({ type: 'action', day: days, title: 'Death', text: 'You succumbed to your condition.', status: 'Failed', changesArr: ['DIED'] });
+        }
     }
   };
 
@@ -989,15 +1007,35 @@ export const useGameLogic = () => {
 
       if (activeCompanion === 'mimic' && hungerRec < 0) hungerRec = Math.floor(hungerRec * 0.5);
       if (effects.random_mood_stress) { if (Math.random() < 0.5) moodRec = effects.random_mood_stress; else stressRec = effects.random_mood_stress; }
+      
       if (activeCurse === 'pacifism' && item.type === 'drink') {
-          setCurseTracker(prev => { const next = { ...prev, ales: prev.ales + 1 }; if (next.ales >= 3) { setActiveCurse(null); addMessage("Pacifism cured by alcohol!", "success"); } return next; });
+          const nextAles = curseTracker.ales + 1;
+          setCurseTracker(prev => ({ ...prev, ales: nextAles }));
+          if (nextAles >= 3) {
+              setActiveCurse(null); 
+              addMessage("Pacifism cured by alcohol!", "success"); 
+          }
       }
 
-      setStats(prev => ({ health: Math.max(0, Math.min(maxStats.health, prev.health + (effects.health || 0))), mood: Math.max(0, Math.min(maxStats.mood, prev.mood + moodRec)), hunger: Math.max(0, Math.min(maxStats.hunger, prev.hunger + hungerRec)), thirst: Math.max(0, Math.min(maxStats.thirst, prev.thirst + (effects.thirst || 0))), stress: Math.max(0, Math.min(maxStats.stress, prev.stress + stressRec)) }));
-      addMessage(`Consumed ${item.displayName}`, 'success'); let changes = [];
+      const newHealth = Math.max(0, Math.min(maxStats.health, stats.health + (effects.health || 0)));
+      const newMood = Math.max(0, Math.min(maxStats.mood, stats.mood + moodRec));
+      const newHunger = Math.max(0, Math.min(maxStats.hunger, stats.hunger + hungerRec));
+      const newThirst = Math.max(0, Math.min(maxStats.thirst, stats.thirst + (effects.thirst || 0)));
+      const newStress = Math.max(0, Math.min(maxStats.stress, stats.stress + stressRec));
+
+      setStats({ health: newHealth, mood: newMood, hunger: newHunger, thirst: newThirst, stress: newStress });
+
+      addMessage(`Consumed ${item.displayName}`, 'success'); 
+      let changes = [];
       if(effects.health) changes.push(`${effects.health > 0 ? '+' : ''}${effects.health} Health`); if(hungerRec !== 0) changes.push(`${Math.abs(hungerRec)} Hunger`); if(effects.thirst) changes.push(`${Math.abs(effects.thirst)} Thirst`); if(moodRec !== 0) changes.push(`${moodRec > 0 ? '+' : ''}${moodRec} Mood`); if(stressRec !== 0) changes.push(`${stressRec > 0 ? '+' : ''}${stressRec} Stress`);
       changes.push(`-${item.displayName}`); 
       addToLog({ type: 'consumable', day: days, title: 'Inventory', text: `Ate/Drank ${item.displayName}.`, status: 'Success', changesArr: changes });
+
+      if (newHealth <= 0 || newHunger >= 100 || newThirst >= 100) {
+          setIsDead(true);
+          addMessage("Your adventurer has perished!", "error");
+          addToLog({ type: 'action', day: days, title: 'Death', text: 'You succumbed to your condition.', status: 'Failed', changesArr: ['DIED'] });
+      }
   };
 
   const updateAppearance = (key, value) => setAppearance(prev => ({ ...prev, [key]: value }));
