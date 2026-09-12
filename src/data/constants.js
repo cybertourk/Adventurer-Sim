@@ -85,12 +85,16 @@ export const MAINTENANCE_ACTIONS = [
   { id: 'repair', label: 'Repair Gear', icon: 'Hammer', cost: 5, days: 0, costType: 'gp', type: 'maintenance', description: 'Fixing dents. (-10 Stress)', reqLocation: 'inn_room', effects: { stress: -10 } },
   { id: 'shitfaced', label: 'Get Shitfaced', icon: 'Beer', cost: 8, days: 0, costType: 'gp', type: 'maintenance', description: 'Limit 1/day. (+15 Mood, -15 Stress)', reqLocation: 'inn_room', effects: { mood: 15, stress: -15, hunger: -5, thirst: -10 } },
   { id: 'basic_train', label: 'Basic Training', icon: 'Shield', cost: 30, days: 1, costType: 'gp', type: 'maintenance', description: 'Hitting dummies. (+10 XP)', reqLocation: 'inn_room', effects: { xp: 10, hunger: 20, thirst: 20 } },
+  
+  { id: 'backroom_brawl', label: 'Backroom Brawl', icon: 'Skull', cost: 0, days: 0, costType: 'gp', type: 'maintenance', description: 'Fight locals. (+20 XP, +15g, -15 HP, +15 Stress)', reqLocation: 'inn_room', reqTitle: 'tavern_fiend', effects: { xp: 20, gold: 15, health: -15, stress: 15 } },
 
   { id: 'eat_feast', label: 'Order Gourmet Feast', icon: 'Utensils', cost: 40, days: 0, costType: 'gp', type: 'maintenance', description: 'Luxurious. (-100 Hunger, +50 HP)', reqLocation: 'estate', effects: { hunger: -100, health: 50, mood: 10, stress: -20 } },
   { id: 'drink_wine', label: 'Order Elven Vintage', icon: 'Beer', cost: 50, days: 0, costType: 'gp', type: 'maintenance', description: 'Exquisite. (-100 Thirst, +40 Mood)', reqLocation: 'estate', effects: { thirst: -100, mood: 40, stress: -40 } },
   { id: 'polish', label: 'Mastercraft Polish', icon: 'Hammer', cost: 20, days: 0, costType: 'gp', type: 'maintenance', description: 'So shiny. (-25 Stress)', reqLocation: 'estate', effects: { stress: -25 } },
   { id: 'hire_bard', label: 'Hire a Bard', icon: 'User', cost: 40, days: 0, costType: 'gp', type: 'maintenance', description: 'Limit 1/day. (+30 Mood, -40 Stress)', reqLocation: 'estate', effects: { mood: 30, stress: -40 } },
   { id: 'elite_train', label: 'Elite Tutor (Train)', icon: 'Shield', cost: 150, days: 1, costType: 'gp', type: 'maintenance', description: 'Masterclass. (+60 XP)', reqLocation: 'estate', effects: { xp: 60, hunger: 20, thirst: 20 } },
+
+  { id: 'shop_reroll', label: 'Special Orders', icon: 'Store', cost: 50, days: 0, costType: 'gp', type: 'maintenance', description: 'Re-roll Shop Inventory instantly.', reqLocation: 'any', reqTitle: 'vip_spender', effects: { reroll_shop: true } },
 
   { id: 'sleep', label: 'Sleep', icon: 'Tent', cost: 0, days: 1, costType: 'gp', type: 'maintenance', description: 'End the day.', reqLocation: 'any', effects: {} },
 ];
@@ -359,4 +363,17 @@ export const APPEARANCE_OPTIONS = {
   hairStyles: [
     { id: 'bald', label: 'Bald' }, { id: 'short', label: 'Short' }, { id: 'long', label: 'Long' },
   ]
+};
+
+export const TITLES = {
+    pillar_of_community: { id: 'pillar_of_community', name: 'Pillar of the Community', desc: 'Unlocked the Estate by being a civilized, upstanding citizen.', hint: 'Complete 10 basic labor or social jobs without getting arrested.' },
+    public_nuisance: { id: 'public_nuisance', name: 'Public Nuisance', desc: 'Unlocked the Black Market shop slot by being an absolute menace.', hint: 'Fail 5 social jobs or get arrested 3 times.' },
+    silver_tongue: { id: 'silver_tongue', name: 'Silver-Tongued Menace', desc: 'Unlocks the "Talk Your Way Out" weekly action.', hint: 'Successfully complete 10 Social jobs.' },
+    gutter_rat: { id: 'gutter_rat', name: 'Gutter Rat', desc: 'The Village Road no longer applies Mood or Stress penalties.', hint: 'Sleep on the Village Road for 5 consecutive nights.' },
+    tavern_fiend: { id: 'tavern_fiend', name: 'Tavern Fiend', desc: 'Unlocks the "Backroom Brawl" Inn service.', hint: 'Use the "Get Shitfaced" service 10 times.' },
+    iron_stomach: { id: 'iron_stomach', name: 'The Iron Stomach', desc: 'Halves HP penalties from bad food and removes Stress from Scrounging.', hint: 'Consume Suspicious Mushrooms or Weird Dungeon Shit 5 times.' },
+    hazard_to_reality: { id: 'hazard_to_reality', name: 'Hazard to Reality', desc: 'Banned from Magic jobs, but 10% chance to randomly succeed any failed job.', hint: 'Fail 5 Magic jobs.' },
+    punching_bag: { id: 'punching_bag', name: 'Professional Punching Bag', desc: '+20 Max Health permanently.', hint: 'Fail 5 Combat Adventures.' },
+    compulsive_hoarder: { id: 'compulsive_hoarder', name: 'Compulsive Hoarder', desc: 'Sell items for 75% value instead of 50%.', hint: 'Have 10 items in your inventory at one time.' },
+    vip_spender: { id: 'vip_spender', name: 'VIP Big Spender', desc: 'Unlocks a 50g action to refresh the Shop immediately.', hint: 'Spend over 1,000 cumulative gold.' }
 };
