@@ -822,6 +822,21 @@ export const useGameLogic = () => {
         if (['labor', 'adventure', 'social', 'magic'].includes(action.type)) newGameStats.checksFailed += 1;
         
         logText = "Failed!"; let stressGain = 0;
+        
+        if (['labor', 'social', 'magic'].includes(action.type)) {
+            const hGain = action.effects?.hunger || 0;
+            const tGain = action.effects?.thirst || 0;
+            const hpCost = (action.effects?.health || 0) < 0 ? action.effects.health : 0;
+            
+            newStats.hunger = Math.min(100, newStats.hunger + hGain);
+            newStats.thirst = Math.min(100, newStats.thirst + tGain);
+            newStats.health = Math.max(0, newStats.health + hpCost);
+            
+            if(hGain > 0) changes.push(`+${hGain} Hunger`);
+            if(tGain > 0) changes.push(`+${tGain} Thirst`);
+            if(hpCost < 0) changes.push(`${hpCost} Health`);
+        }
+
         if (action.type === 'labor') { logText = "Screwed up the job. No pay."; stressGain = 10; } 
         else if (action.type === 'magic') { logText = "Spell backfired! You smell like sulfur."; stressGain = 15; newGameStats.magicBackfires += 1; newGameStats.magicJobsFailed += 1; }
         else if (action.type === 'adventure') { 
