@@ -215,7 +215,7 @@ const App = () => {
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages,
     isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk, activeCompanion, companionVariant, activeCurse,
     curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
-    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, unlockedTitles, exportSave, importSave
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, unlockedTitles, eventPopup, setEventPopup, exportSave, importSave
   } = useGameLogic();
 
   const [openPanel, setOpenPanel] = useState(null);
@@ -391,6 +391,23 @@ const App = () => {
               activeCompanion={activeCompanion}
               activeCurse={activeCurse}
           />
+      )}
+
+      {eventPopup && (
+          <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-zinc-950/80 backdrop-blur-md animate-in fade-in duration-200" onClick={() => setEventPopup(null)}>
+              <div className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-sm shadow-[0_0_40px_rgba(0,0,0,0.8)] overflow-hidden" onClick={e => e.stopPropagation()}>
+                  <div className="p-4 border-b border-zinc-800 bg-indigo-950/50 flex justify-between items-center">
+                      <h3 className="font-bold text-lg text-indigo-400 uppercase tracking-widest">{eventPopup.title}</h3>
+                      <button onClick={() => setEventPopup(null)} className="text-zinc-500 hover:text-zinc-300 transition-colors"><X size={18}/></button>
+                  </div>
+                  <div className="p-6 space-y-4 text-center bg-gradient-to-b from-transparent to-zinc-950/50">
+                      <p className="text-base text-zinc-200 leading-relaxed font-medium italic">"{eventPopup.text}"</p>
+                  </div>
+                  <div className="p-4 border-t border-zinc-800 bg-zinc-950/80 flex justify-center">
+                      <button onClick={() => setEventPopup(null)} className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold tracking-widest uppercase rounded-xl transition-all shadow-lg hover:scale-[1.02] active:scale-95">Continue</button>
+                  </div>
+              </div>
+          </div>
       )}
 
       {activeDetailModal && modalDetails && (
