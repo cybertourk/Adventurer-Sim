@@ -68,6 +68,7 @@ export const useGameLogic = () => {
   const [dailyLogs, setDailyLogs] = useState([]); 
   const [gameStats, setGameStats] = useState(defaultStats);
   const [unlockedTitles, setUnlockedTitles] = useState([]);
+  const [eventPopup, setEventPopup] = useState(null);
 
   const [stagedAction, setStagedAction] = useState(null);
   const [rollState, setRollState] = useState({ isRolling: false, result: null, isSuccess: false });
@@ -221,6 +222,7 @@ export const useGameLogic = () => {
         setGameStats({ ...defaultStats, ...(parsed.gameStats || {}) });
         setUnlockedTitles(parsed.unlockedTitles || []);
         setShowIntro(parsed.showIntro || false);
+        setEventPopup(null);
         
         let loadedVariant = parsed.companionVariant || null;
         if (parsed.activeCompanion === 'spouse' && !loadedVariant) loadedVariant = `${Math.random() < 0.5 ? 'male' : 'female'}_${Math.floor(Math.random() * 3) + 1}`;
@@ -521,8 +523,9 @@ export const useGameLogic = () => {
                   setActiveCompanion(fx.applyCompanion);
                   if (fx.applyCompanion === 'spouse') {
                       const isMale = Math.random() < 0.5; const variantNum = Math.floor(Math.random() * 3) + 1;
-                      const pron = isMale ? "his" : "her";
-                      incidentMsg = `Went to bed drunk and single, woke up hungover and married. Hasn't stopped nagging me to get a job so I can ask ${pron} name again.`;
+                      const names = isMale ? "Brad?, Chad?, Thad?" : "Jenny?, Jenna?, Jess?";
+                      const againStr = newGameStats.marriages > 1 ? " again" : "";
+                      incidentMsg = `Went to bed drunk and single. Woke up hungover and married${againStr}. I think ${isMale ? 'his' : 'her'} name is ${names} I'd ask but they just keep telling me I need to get a real job.`;
                       setCompanionVariant(`${isMale ? 'male' : 'female'}_${variantNum}`);
                   } else if (fx.applyCompanion === 'groupie') {
                       incidentMsg = "Woke up to the sound of a horribly out-of-tune lute. A 'fan' is following me everywhere and won't shut up about how great I am.";
@@ -589,11 +592,18 @@ export const useGameLogic = () => {
               }
           }
           addMessage("Something happened last night...", "warning");
+          setEventPopup({ title: incident.title, text: incidentMsg });
       }
 
       if (quirk && quirk.id === 'shiny_syndrome' && Math.random() < (quirk.effects.junkChance || 0)) { 
           setInventory(prev => [...prev, { instanceId: `loot_${generateId()}`, itemId: 'shiny_trash', displayName: 'Shiny Trash' }]);
-          incidentMsg += " Also... found some shiny trash."; changes.push("+Shiny Trash"); 
+          if (!incident) {
+              incidentMsg = "Found some shiny trash on the ground.";
+              setEventPopup({ title: "Shiny Syndrome", text: incidentMsg });
+          } else {
+              incidentMsg += " Also... found some shiny trash.";
+          }
+          changes.push("+Shiny Trash"); 
       }
 
       setEdgyName(currentEdgy);
@@ -943,6 +953,7 @@ export const useGameLogic = () => {
           setGameStats({ ...defaultStats, ...(parsed.gameStats || {}) });
           setUnlockedTitles(parsed.unlockedTitles || []);
           setShowIntro(parsed.showIntro || false);
+          setEventPopup(null);
           
           let loadedInv = parsed.inventory || [];
           loadedInv = loadedInv.filter(i => !['none', 'tunic', 'fist'].includes(i.itemId));
@@ -1062,6 +1073,6 @@ export const useGameLogic = () => {
     gameStarted, setGameStarted, showIntro, setShowIntro, creationStep, setCreationStep, characterName, setCharacterName, edgyName, attributes, updateAttribute, stats, setStats, resources, inventory, shopStock, equipped, equipItem,
     appearance, updateAppearance, days, location, housing, rentActive, dailyQuests, messages, isDead, maxStats, currentStats, dailyLogs, setDailyLogs, quirk,
     activeCompanion, companionVariant, activeCurse, curseVariant, shitfacedToday, performAction, revive, buyItem, sellItem, consumeItem, startGame, resetGame, pointsAvailable,
-    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, unlockedTitles, exportSave, importSave
+    stagedAction, setStagedAction, rollState, calculateOdds, executeRoll, finalizeAction, reportData, setReportData, passTime, gameStats, unlockedTitles, eventPopup, setEventPopup, exportSave, importSave
   };
 };
